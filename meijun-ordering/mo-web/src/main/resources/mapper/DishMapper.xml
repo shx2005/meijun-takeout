@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mo.service.mapper.DishMapper">
+    <select id="getCategories" resultType="com.mo.entity.Dish">
+        select * from dishes where status = 1 order by category_id
+    </select>
+    <select id="getPage" resultType="com.mo.entity.Dish">
+        select * from dishes where status = 1 limit #{offset},#{size}
+    </select>
+</mapper>

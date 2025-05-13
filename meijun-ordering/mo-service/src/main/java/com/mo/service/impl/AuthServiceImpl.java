@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
         if(user == null) user = employeeMapper.getEmployeeByUsername(username);
         if(user == null) user = customerMapper.getCustomerByUsername(username);
         if(user == null) throw new AccountNotFoundException(MessageConstant.ACCOUNT_NOT_FOUND);
-
+        //todo 密码加密
         if(!user.getPassword().equals(password)) throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
 
         return user;
@@ -59,6 +59,8 @@ public class AuthServiceImpl implements AuthService {
                 .phoneNum(authRegisterDTO.getPhoneNum())
                 .gender(authRegisterDTO.getGender())
                 .build();
+
+        //todo 密码加密
 
         switch (identity){
             case ADMIN -> throw new RegisterFailedException("暂不支持管理员注册");

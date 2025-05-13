@@ -17,6 +17,7 @@ public class UserController {
 
     @GetMapping("/info")
     public Result<User> info(){
+        //todo 使用redis
         String uuid = BaseContext.getCurrentId();
         if(uuid == null) return Result.error();
 

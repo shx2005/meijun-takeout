@@ -4,8 +4,10 @@ import com.mo.api.dto.AuthLoginDTO;
 import com.mo.api.dto.AuthRegisterDTO;
 import com.mo.api.vo.AuthLoginVo;
 import com.mo.common.constant.JwtClaimsConstant;
+import com.mo.common.constant.MessageConstant;
 import com.mo.common.context.BaseContext;
 import com.mo.common.enumeration.UserIdentity;
+import com.mo.common.exception.UnknownIdentityException;
 import com.mo.common.properties.JwtProperties;
 import com.mo.common.result.Result;
 import com.mo.common.utils.JwtUtil;
@@ -21,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.mo.api.service.AuthService;
 
-import javax.security.auth.login.LoginException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/auth")
 @Tag(name = "账号管理")
 public class AuthController {
+    //todo 可以改为构造器注入
     @Autowired
     private AuthService authService;
     @Autowired
@@ -40,7 +42,7 @@ public class AuthController {
     @Parameters({
             @Parameter(name = "authLoginDTO", description = "登录信息", required = true)
     })
-    public Result<User> login(@RequestBody AuthLoginDTO authLoginDTO) {
+    public Result<AuthLoginVo> login(@RequestBody AuthLoginDTO authLoginDTO) {
         log.info("login:{}", authLoginDTO);
 
         User user = authService.login(authLoginDTO);
@@ -57,16 +59,18 @@ public class AuthController {
 
         //放入当前线程
         BaseContext.setCurrentId(user.getUuid());
-
+        //todo 检查输入是否合法
+        //todo 使用redis缓存
+        //todo 验证码
         AuthLoginVo authLoginVo = AuthLoginVo.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .name(user.getName())
-                .uuid(user.getOpenid())
+                .uuid(user.getUuid())
                 .token(token)
                 .build();
 
-        return Result.success(user);
+        return Result.success(authLoginVo);
     }
 
     @PostMapping("/register")
@@ -90,7 +94,7 @@ public class AuthController {
             case CUSTOMER -> jwtProperties.getCustomerSecretKey();
             case EMPLOYEE -> jwtProperties.getEmployeeSecretKey();
             case MERCHANT -> jwtProperties.getMerchantSecretKey();
-            default -> null;
+            default -> throw new UnknownIdentityException(MessageConstant.UNKNOWN_IDENTITY);
         };
     }
 
@@ -100,7 +104,7 @@ public class AuthController {
             case CUSTOMER -> jwtProperties.getCustomerTtl();
             case EMPLOYEE -> jwtProperties.getEmployeeTtl();
             case MERCHANT -> jwtProperties.getMerchantTtl();
-            default -> 0;
+            default -> throw new UnknownIdentityException(MessageConstant.UNKNOWN_IDENTITY);
         };
     }
 }

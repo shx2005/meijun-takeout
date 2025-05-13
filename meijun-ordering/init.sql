@@ -4,6 +4,10 @@ USE mo_db;
 
 -- 创建顾客表
 DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS employees;
+DROP TABLE IF EXISTS dishes;
+DROP TABLE IF EXISTS admins;
+DROP TABLE IF EXISTS merchants;
 CREATE TABLE customers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     wechat_openid VARCHAR(255) NOT NULL UNIQUE,
@@ -16,7 +20,6 @@ CREATE TABLE customers (
 );
 
 -- 创建商家表
-DROP TABLE IF EXISTS merchants;
 CREATE TABLE merchants (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50),
@@ -28,7 +31,6 @@ CREATE TABLE merchants (
 );
 
 -- 创建管理员表
-DROP TABLE IF EXISTS admins;
 CREATE TABLE admins (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -39,7 +41,6 @@ CREATE TABLE admins (
 );
 
 -- 创建店员表
-DROP TABLE IF EXISTS employees;
 CREATE TABLE employees (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50),
@@ -50,5 +51,18 @@ CREATE TABLE employees (
     FOREIGN KEY (merchant_id) REFERENCES merchants(id) ON DELETE CASCADE
 );
 
+-- 创建商品表
+CREATE TABLE dishes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    category_id INT NOT NULL,
+    description TEXT,
+    image_url VARCHAR(255),
+    createTime TIMESTAMP,
+    updateTime TIMESTAMP,
+    merchant_id INT,
+    FOREIGN KEY (merchant_id) REFERENCES merchants(id) ON DELETE CASCADE
+);
 -- 插入root管理员
 INSERT INTO admins (username, password, role) VALUES ('root', 'root', 'root');
