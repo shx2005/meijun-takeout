@@ -1,12 +1,12 @@
 package com.mo.service.impl;
 
-import com.mo.api.dto.DishPageQueryDTO;
 import com.mo.api.service.DishService;
 import com.mo.entity.Dish;
 import com.mo.service.mapper.DishMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -15,11 +15,33 @@ public class DishServiceImpl implements DishService {
     private DishMapper dishMapper;
     @Override
     public List<Dish> getCategories() {
-        return null;
+        return dishMapper.getCategories();
     }
 
     @Override
     public List<Dish> getPage(int offset, int size) {
-        return null;
+        return dishMapper.getPage(offset,size);
+    }
+
+    @Override
+    public List<Dish> getRecommendations() {
+        List<Dish> list = dishMapper.getCategories();
+        list.sort(new Comparator<Dish>() {
+            @Override
+            public int compare(Dish o1, Dish o2) {
+                return Long.compare(o1.getSale(), o2.getSale());
+            }
+        });
+        return list;
+    }
+
+    @Override
+    public List<Dish> getDishByCategory(Long categoryId) {
+        return dishMapper.getDishByCategory(categoryId);
+    }
+
+    @Override
+    public List<Dish> getSearchResult(String name) {
+        return dishMapper.getSearchResult(name);
     }
 }

@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS merchants;
 CREATE TABLE customers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     wechat_openid VARCHAR(255) NOT NULL UNIQUE,
+    uuid VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(30),
     password VARCHAR(255) NOT NULL,
     avatar_url VARCHAR(255),
@@ -22,6 +23,7 @@ CREATE TABLE customers (
 -- 创建商家表
 CREATE TABLE merchants (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    uuid VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(50),
     password VARCHAR(255) NOT NULL,
     number VARCHAR(20),
@@ -33,6 +35,7 @@ CREATE TABLE merchants (
 -- 创建管理员表
 CREATE TABLE admins (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    uuid VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role ENUM('root', 'admin') DEFAULT 'admin',
@@ -43,6 +46,7 @@ CREATE TABLE admins (
 -- 创建店员表
 CREATE TABLE employees (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    uuid VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(50),
     password VARCHAR(255) NOT NULL,
     createTime TIMESTAMP,
@@ -65,4 +69,4 @@ CREATE TABLE dishes (
     FOREIGN KEY (merchant_id) REFERENCES merchants(id) ON DELETE CASCADE
 );
 -- 插入root管理员
-INSERT INTO admins (username, password, role) VALUES ('root', 'root', 'root');
+INSERT INTO admins (uuid, username, password, role) VALUES ('adm-root','root', 'root', 'root');

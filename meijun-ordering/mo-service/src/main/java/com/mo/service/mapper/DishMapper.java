@@ -10,4 +10,7 @@ import java.util.List;
 public interface DishMapper {
     List<Dish> getCategories();
     List<Dish> getPage(@Param("offset") int offset,@Param("size") int size);
+    List<Dish> getRecommendations();
+    List<Dish> getDishByCategory(@Param("categoryId") Long categoryId);
+    List<Dish> getSearchResult(@Param("name") String name);
 }

@@ -1,9 +1,20 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc::mysql://localhost:3306/mo_db
+    url: jdbc:mysql://localhost:3306/mo_db?useSSL=false&serverTimezone=UTC&characterEncoding=utf-8&allowPublicKeyRetrieval=true
     username: root
     password: password
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          max-wait: -1
+          min-idle: 0
 # springdoc-openapi项目配置
 springdoc:
   swagger-ui:
@@ -26,15 +37,15 @@ mybatis:
 # mo项目配置
 mo:
   jwt:
-    admin-secret-key: ADMIN-SECRET-KEY
+    admin-secret-key: ADMIN-32-BYTE-LONG-SECRET-SECURE-KEY
     admin-ttl: 3600000
     admin-token-name: adminToken
-    customer-secret-key: CUSTOMER-SECRET-KEY
+    customer-secret-key: CUSTOMER-32-BYTE-LONG-SECRET-SECURE-KEY
     customer-ttl: 3600000
     customer-token-name: customerToken
-    merchant-secret-key: MERCHANT-SECRET-KEY
+    merchant-secret-key: MERCHANT-32-BYTE-LONG-SECRET-SECURE-KEY
     merchant-ttl: 3600000
     merchant-token-name: merchantToken
-    employee-secret-key: EMPLOYEE-SECRET-KEY
+    employee-secret-key: EMPLOYEE-32-BYTE-LONG-SECRET-SECURE-KEY
     employee-ttl: 3600000
     employee-token-name: employeeToken

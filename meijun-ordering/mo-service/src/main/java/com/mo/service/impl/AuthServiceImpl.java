@@ -61,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         //todo 密码加密
-
+        //todo 字段autofill
         switch (identity){
             case ADMIN -> throw new RegisterFailedException("暂不支持管理员注册");
             case MERCHANT -> {
@@ -69,6 +69,8 @@ public class AuthServiceImpl implements AuthService {
                 if(mer != null) throw new RegisterFailedException("商家已存在");
 
                 Merchant merchant = Merchant.fromUser(user);
+                String uuid = "mer-"+merchant.getUsername();
+                merchant.setUuid(uuid);
                 merchant.setAddress(authRegisterDTO.getAddress());
                 merchantMapper.addMerchant(merchant);
                 log.info("商家{}注册成功", merchant.getUsername());
@@ -84,6 +86,8 @@ public class AuthServiceImpl implements AuthService {
                 if(merchant == null) throw new RegisterFailedException("没有对应商家");
                 Long id = merchant.getId();
                 employee.setMerchant_id(id);
+                String uuid = "emp-"+employee.getUsername();
+                employee.setUuid(uuid);
                 employeeMapper.addEmployee(employee);
                 log.info("员工{}注册成功", employee.getUsername());
 
@@ -95,6 +99,8 @@ public class AuthServiceImpl implements AuthService {
 
                 Customer customer = Customer.fromUser(user);
                 customer.setBalance(0.0);
+                String uuid = "cus-"+customer.getUsername();
+                customer.setUuid(uuid);
                 customerMapper.addCustomer(customer);
                 log.info("用户{}注册成功", customer.getUsername());
 

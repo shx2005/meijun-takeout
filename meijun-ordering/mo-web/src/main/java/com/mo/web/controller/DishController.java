@@ -41,6 +41,6 @@ public class DishController {
 
         List<Dish> list = dishService.getPage(offset,size);
 
-        return PageResult.success();
+        return PageResult.success(list.size(), list, pageNum, pageSize);
     }
 }

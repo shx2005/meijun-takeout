@@ -11,6 +11,7 @@ import com.mo.common.exception.UnknownIdentityException;
 import com.mo.common.properties.JwtProperties;
 import com.mo.common.result.Result;
 import com.mo.common.utils.JwtUtil;
+import com.mo.common.utils.RedisUtil;
 import com.mo.entity.User;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import com.mo.api.service.AuthService;
@@ -31,11 +33,14 @@ import java.util.Map;
 @RequestMapping("/api/v1/auth")
 @Tag(name = "账号管理")
 public class AuthController {
+    static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     //todo 可以改为构造器注入
     @Autowired
     private AuthService authService;
     @Autowired
     private JwtProperties jwtProperties;
+    @Autowired
+    private RedisTemplate<String, Object>  redisTemplate;
 
     @PostMapping("/login")
     @Tag(name = "登录")
@@ -44,6 +49,7 @@ public class AuthController {
     })
     public Result<AuthLoginVo> login(@RequestBody AuthLoginDTO authLoginDTO) {
         log.info("login:{}", authLoginDTO);
+        logger.info("login:{}", authLoginDTO);
 
         User user = authService.login(authLoginDTO);
 
@@ -58,6 +64,7 @@ public class AuthController {
                 claims);
 
         //放入当前线程
+        redisTemplate.opsForValue().set(user.getUuid(), token);
         BaseContext.setCurrentId(user.getUuid());
         //todo 检查输入是否合法
         //todo 使用redis缓存
