@@ -8,6 +8,9 @@ DROP TABLE IF EXISTS employees;
 DROP TABLE IF EXISTS dishes;
 DROP TABLE IF EXISTS admins;
 DROP TABLE IF EXISTS merchants;
+DROP TABLE IF EXISTS orders;
+
+-- 创建顾客表
 CREATE TABLE customers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     wechat_openid VARCHAR(255) NOT NULL UNIQUE,
@@ -68,5 +71,20 @@ CREATE TABLE dishes (
     merchant_id INT,
     FOREIGN KEY (merchant_id) REFERENCES merchants(id) ON DELETE CASCADE
 );
+
+-- 创建订单表
+CREATE TABLE orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    uuid VARCHAR(255) NOT NULL UNIQUE,
+    customer_id INT,
+    merchant_id INT,
+    total DECIMAL(10, 2) NOT NULL,
+    status ENUM('pending', 'completed', 'cancelled'),
+    createTime TIMESTAMP,
+    updateTime TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
+    FOREIGN KEY (merchant_id) REFERENCES merchants(id)
+);
+
 -- 插入root管理员
 INSERT INTO admins (uuid, username, password, role) VALUES ('adm-root','root', 'root', 'root');

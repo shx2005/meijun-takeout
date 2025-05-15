@@ -9,12 +9,13 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Setmeal implements Serializable {
+public class SetMeal implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -31,6 +32,8 @@ public class Setmeal implements Serializable {
     private String description;
     //图片
     private String image;
+    //菜品
+    List<Long> dishes;
 
     private LocalDateTime createTime;
 

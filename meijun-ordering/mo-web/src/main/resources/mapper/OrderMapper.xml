@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mo.service.mapper.OrderMapper">
+    <select id="getAll" resultType="com.mo.entity.Order">
+        select * from orders
+    </select>
+    <select id="getPage" resultType="com.mo.entity.Order">
+        select * from orders where uuid = #{uuid}
+        limit #{offset},#{size}
+    </select>
+    <select id="getOrderById" resultType="com.mo.entity.Order">
+        select * from orders where id = #{orderId}
+    </select>
+</mapper>

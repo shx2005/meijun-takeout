@@ -64,10 +64,9 @@ public class AuthController {
                 claims);
 
         //放入当前线程
-        redisTemplate.opsForValue().set(user.getUuid(), token);
+        redisTemplate.opsForValue().set(user.getUuid(), user);
         BaseContext.setCurrentId(user.getUuid());
         //todo 检查输入是否合法
-        //todo 使用redis缓存
         //todo 验证码
         AuthLoginVo authLoginVo = AuthLoginVo.builder()
                 .id(user.getId())
@@ -91,6 +90,8 @@ public class AuthController {
 
     @PostMapping("/logout")
     public Result<String> logout(){
+        String uuid = BaseContext.getCurrentId();
+        log.info("logout: {}", uuid);
         BaseContext.removeCurrentId();
         return Result.success();
     }
