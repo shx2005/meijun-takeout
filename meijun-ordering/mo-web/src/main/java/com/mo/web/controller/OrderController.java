@@ -1,21 +1,18 @@
 package com.mo.web.controller;
 
 import com.mo.api.dto.OrderPageQueryDTO;
+import com.mo.api.dto.OrderCommentDTO;
 import com.mo.api.service.OrderService;
 import com.mo.common.context.BaseContext;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
 import com.mo.entity.Order;
-import com.mo.service.mapper.OrderMapper;
+import com.mo.entity.OrderComment;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.reflection.wrapper.BaseWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -52,5 +49,10 @@ public class OrderController {
     public Result<Order> getOrderById( @PathVariable Long orderId){
         Order order = orderService.getOrderById(orderId);
         return Result.success(order);
+    }
+
+    @PostMapping("/comment")
+    public Result<OrderComment> setOrderComment(OrderCommentDTO orderCommentDTO){
+        return null;
     }
 }

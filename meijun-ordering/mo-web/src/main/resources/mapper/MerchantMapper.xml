@@ -8,9 +8,12 @@
     <select id="getMerchantByUuid" resultType="com.mo.entity.Merchant">
         select * from merchants where uuid = #{uuid}
     </select>
-    <insert id="addMerchant" parameterType="com.mo.entity.Merchant"
-        useGeneratedKeys="true" keyProperty="id">
+    <insert id="addMerchant"
+            parameterType="com.mo.entity.Merchant"
+            useGeneratedKeys="true"
+            keyProperty="merchant.id">
         insert into merchants (username,password,number,address,createTime,updateTime)
-        values (#{username},#{password},#{number},#{address},#{createTime},#{updateTime})
+        values (#{merchant.username},#{merchant.password},#{merchant.number},#{merchant.address},
+                #{merchant.createTime},#{merchant.updateTime})
     </insert>
 </mapper>

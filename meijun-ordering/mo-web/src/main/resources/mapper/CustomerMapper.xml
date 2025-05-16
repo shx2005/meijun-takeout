@@ -8,9 +8,12 @@
     <select id="getCustomerByUuid" resultType="com.mo.entity.Customer">
         select * from customers where uuid = #{uuid}
     </select>
-    <insert id="addCustomer" parameterType="com.mo.entity.Customer"
-        useGeneratedKeys="true" keyProperty="id">
+    <insert id="addCustomer"
+            parameterType="com.mo.entity.Customer"
+            useGeneratedKeys="true"
+            keyProperty="customer.id">
         insert into customers (wechat_openid,username,password,avatar_url,balance,createTime,updateTime)
-        values (#{openid},#{username},#{password},#{avatar_url},0 ,#{createTime},#{updateTime})
+        values (#{customer.openid},#{customer.username},#{customer.password},#{customer.avatar_url},0 ,
+                #{customer.createTime},#{customer.updateTime})
     </insert>
 </mapper>

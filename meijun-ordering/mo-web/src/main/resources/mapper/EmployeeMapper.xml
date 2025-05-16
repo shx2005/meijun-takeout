@@ -8,9 +8,12 @@
     <select id="getEmployeeByUuid" resultType="com.mo.entity.Employee">
         select * from employees where uuid = #{uuid}
     </select>
-    <insert id="addEmployee" parameterType="com.mo.entity.Employee"
-        useGeneratedKeys="true" keyProperty="id">
+    <insert id="addEmployee"
+            parameterType="com.mo.entity.Employee"
+            useGeneratedKeys="true"
+            keyProperty="employee.id">
         insert into employees (username,password,createTime,updateTime,merchant_id)
-        values (#{username},#{password},#{createTime},#{updateTime},#{merchant_id})
+        values (#{employee.username},#{employee.password},
+                #{employee.createTime},#{employee.updateTime},#{employee.merchant_id})
     </insert>
 </mapper>

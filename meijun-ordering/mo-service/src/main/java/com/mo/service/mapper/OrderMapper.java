@@ -11,5 +11,7 @@ public interface OrderMapper {
     List<Order> getAll();
     List<Order> getPage(@Param("offset") int offset, @Param("size") int size, @Param("uuid") String uuid);
 
-    Order getOrderById(Long orderId);
+    Order getOrderById(@Param("orderId") Long orderId);
+
+    void setOrderStatus(@Param("orderId") Long orderId, @Param("status") Integer status);
 }

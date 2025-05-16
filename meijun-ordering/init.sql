@@ -75,7 +75,6 @@ CREATE TABLE dishes (
 -- 创建订单表
 CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    uuid VARCHAR(255) NOT NULL UNIQUE,
     customer_id INT,
     merchant_id INT,
     total DECIMAL(10, 2) NOT NULL,
@@ -84,6 +83,29 @@ CREATE TABLE orders (
     updateTime TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
     FOREIGN KEY (merchant_id) REFERENCES merchants(id)
+);
+
+-- 创建订单详情表
+CREATE TABLE order_details (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    dish_id INT,
+    quantity INT,
+    price DECIMAL(10, 2),
+    createTime TIMESTAMP,
+    updateTime TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (dish_id) REFERENCES dishes(id) ON DELETE CASCADE
+);
+
+-- 创建订单评价表
+CREATE TABLE order_comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    comment TEXT,
+    createTime TIMESTAMP,
+    updateTime TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
 -- 插入root管理员

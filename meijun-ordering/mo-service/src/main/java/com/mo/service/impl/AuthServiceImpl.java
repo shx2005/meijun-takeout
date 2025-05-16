@@ -20,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -59,6 +61,8 @@ public class AuthServiceImpl implements AuthService {
                 .phoneNum(authRegisterDTO.getPhoneNum())
                 .gender(authRegisterDTO.getGender())
                 .build();
+        LocalDateTime createTime = LocalDateTime.now();
+        user.setCreateTime(createTime);
 
         //todo 密码加密
         //todo 字段autofill
