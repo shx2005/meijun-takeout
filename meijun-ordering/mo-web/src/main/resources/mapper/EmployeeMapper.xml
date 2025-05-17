@@ -8,6 +8,13 @@
     <select id="getEmployeeByUuid" resultType="com.mo.entity.Employee">
         select * from employees where uuid = #{uuid}
     </select>
+    <select id="getAll" resultType="com.mo.entity.Employee">
+        select * from employees where status = 1
+    </select>
+    <select id="getPage" resultType="com.mo.entity.Employee">
+        select * from employees where status = 1
+        limit #{offset},#{size}
+    </select>
     <insert id="saveEmployee"
             parameterType="com.mo.entity.Employee"
             useGeneratedKeys="true"

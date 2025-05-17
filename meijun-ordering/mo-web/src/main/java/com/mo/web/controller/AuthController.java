@@ -7,7 +7,9 @@ import com.mo.common.constant.JwtClaimsConstant;
 import com.mo.common.constant.MessageConstant;
 import com.mo.common.context.BaseContext;
 import com.mo.common.enumeration.UserIdentity;
+import com.mo.common.exception.RedisAccessException;
 import com.mo.common.exception.UnknownIdentityException;
+import com.mo.common.exception.UserNotLoginException;
 import com.mo.common.properties.JwtProperties;
 import com.mo.common.result.Result;
 import com.mo.common.utils.JwtUtil;
@@ -27,6 +29,7 @@ import com.mo.api.service.AuthService;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RestController
@@ -64,7 +67,7 @@ public class AuthController {
                 claims);
 
         //放入当前线程
-        redisTemplate.opsForValue().set(user.getUuid(), user);
+        redisTemplate.opsForValue().set(user.getUuid(), user, getTtl(user.getIdentity()), TimeUnit.MILLISECONDS);
         BaseContext.setCurrentId(user.getUuid());
         //todo 检查输入是否合法
         //todo 验证码
@@ -86,7 +89,6 @@ public class AuthController {
         User user = new User();
         BeanUtils.copyProperties(authRegisterDTO, user);
         authService.saveUser(user);
-        log.info("register:{}", user);
 
         return Result.success(user);
     }
@@ -96,7 +98,30 @@ public class AuthController {
         String uuid = BaseContext.getCurrentId();
         log.info("logout: {}", uuid);
         BaseContext.removeCurrentId();
+        redisTemplate.delete(uuid);
         return Result.success();
+    }
+
+    @PostMapping("/refresh-token")
+    public Result<String> refreshToken(){
+        String uuid = BaseContext.getCurrentId();
+        if(uuid == null) throw new UserNotLoginException(MessageConstant.USER_NOT_LOGIN);
+        User user = (User) redisTemplate.opsForValue().get(uuid);
+        if(user == null) throw new RedisAccessException(MessageConstant.REDIS_ACCESS_ERROR);
+
+        Map<String, Object> claims = new HashMap<>();
+        String id = JwtClaimsConstant.getId(user.getIdentity());
+        claims.put(id, user.getId());
+
+        String token = JwtUtil.createJwt(
+                getKey(user.getIdentity()),
+                getTtl(user.getIdentity()),
+                claims);
+
+        user.setToken(token);
+        redisTemplate.opsForValue().set(uuid, user, getTtl(user.getIdentity()), TimeUnit.MILLISECONDS);
+
+        return Result.success(token);
     }
 
     private String getKey(UserIdentity userIdentity){

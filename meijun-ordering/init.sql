@@ -52,6 +52,7 @@ CREATE TABLE employees (
     uuid VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(50),
     password VARCHAR(255) NOT NULL,
+    status ENUM('active', 'inactive') DEFAULT 'active',
     createTime TIMESTAMP,
     updateTime TIMESTAMP,
     merchant_id INT,
