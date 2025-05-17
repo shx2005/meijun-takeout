@@ -8,7 +8,7 @@
     <select id="getEmployeeByUuid" resultType="com.mo.entity.Employee">
         select * from employees where uuid = #{uuid}
     </select>
-    <insert id="addEmployee"
+    <insert id="saveEmployee"
             parameterType="com.mo.entity.Employee"
             useGeneratedKeys="true"
             keyProperty="employee.id">

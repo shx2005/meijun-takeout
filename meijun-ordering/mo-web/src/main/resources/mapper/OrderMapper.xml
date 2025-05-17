@@ -12,7 +12,7 @@
     <select id="getOrderById" resultType="com.mo.entity.Order">
         select * from orders where id = #{orderId}
     </select>
-    <update id="setOrderStatus">
+    <update id="updateOrderStatus">
         update orders set status = #{status} where id = #{orderId}
     </update>
 </mapper>

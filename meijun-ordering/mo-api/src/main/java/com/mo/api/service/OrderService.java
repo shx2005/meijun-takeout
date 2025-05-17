@@ -1,7 +1,5 @@
 package com.mo.api.service;
 
-import com.mo.api.dto.OrderPageQueryDTO;
-import com.mo.common.result.PageResult;
 import com.mo.entity.Order;
 import com.mo.entity.OrderComment;
 
@@ -15,7 +13,7 @@ public interface OrderService {
 
     Order getOrderById(Long orderId);
 
-    OrderComment addOrderComment(Long orderId, String content);
+    OrderComment saveOrderComment(Long orderId, String content);
 
-    void setOrderStatus(Long orderId, Integer status);
+    void updateOrderStatus(Long orderId, Integer status);
 }

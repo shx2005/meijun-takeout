@@ -83,7 +83,7 @@ public class AuthController {
     public Result<User> register(@RequestBody AuthRegisterDTO authRegisterDTO) {
         log.info("register:{}", authRegisterDTO);
 
-        User user = authService.register(authRegisterDTO);
+        User user = authService.saveUser(authRegisterDTO);
 
         return Result.success(user);
     }

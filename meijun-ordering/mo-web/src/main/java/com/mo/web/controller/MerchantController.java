@@ -40,7 +40,7 @@ public class MerchantController {
         OrderStatus orderStatus = OrderStatus.fromValue(status);
         order.setStatus(orderStatus);
 
-        orderService.setOrderStatus(orderId, status);
+        orderService.updateOrderStatus(orderId, status);
         redisTemplate.delete("order:" + orderId);
 
         return Result.success(order);

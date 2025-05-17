@@ -6,5 +6,5 @@ import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface CommentMapper {
-    void addOrderComment(@Param("orderComment") OrderComment orderComment);
+    void saveOrderComment(@Param("orderComment") OrderComment orderComment);
 }

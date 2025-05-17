@@ -33,18 +33,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderComment addOrderComment(Long orderId, String content){
+    public OrderComment saveOrderComment(Long orderId, String content){
         OrderComment orderComment = OrderComment.builder()
                 .orderId(orderId)
                 .content(content)
                 .build();
 
-        commentMapper.addOrderComment(orderComment);
+        commentMapper.saveOrderComment(orderComment);
         return orderComment;
     }
 
     @Override
-    public void setOrderStatus(Long orderId, Integer status){
-        orderMapper.setOrderStatus(orderId,status);
+    public void updateOrderStatus(Long orderId, Integer status){
+        orderMapper.updateOrderStatus(orderId,status);
     }
 }

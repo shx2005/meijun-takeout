@@ -51,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public User register(AuthRegisterDTO authRegisterDTO) {
+    public User saveUser(AuthRegisterDTO authRegisterDTO) {
         UserIdentity identity = authRegisterDTO.getIdentity();
 
         User user = User.builder()
@@ -76,7 +76,7 @@ public class AuthServiceImpl implements AuthService {
                 String uuid = "mer-"+merchant.getUsername();
                 merchant.setUuid(uuid);
                 merchant.setAddress(authRegisterDTO.getAddress());
-                merchantMapper.addMerchant(merchant);
+                merchantMapper.saveMerchant(merchant);
                 log.info("商家{}注册成功", merchant.getUsername());
 
                 return merchant;
@@ -92,7 +92,7 @@ public class AuthServiceImpl implements AuthService {
                 employee.setMerchant_id(id);
                 String uuid = "emp-"+employee.getUsername();
                 employee.setUuid(uuid);
-                employeeMapper.addEmployee(employee);
+                employeeMapper.saveEmployee(employee);
                 log.info("员工{}注册成功", employee.getUsername());
 
                 return employee;
@@ -105,7 +105,7 @@ public class AuthServiceImpl implements AuthService {
                 customer.setBalance(0.0);
                 String uuid = "cus-"+customer.getUsername();
                 customer.setUuid(uuid);
-                customerMapper.addCustomer(customer);
+                customerMapper.saveCustomer(customer);
                 log.info("用户{}注册成功", customer.getUsername());
 
                 return customer;

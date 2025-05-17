@@ -8,7 +8,7 @@
     <select id="getMerchantByUuid" resultType="com.mo.entity.Merchant">
         select * from merchants where uuid = #{uuid}
     </select>
-    <insert id="addMerchant"
+    <insert id="saveMerchant"
             parameterType="com.mo.entity.Merchant"
             useGeneratedKeys="true"
             keyProperty="merchant.id">

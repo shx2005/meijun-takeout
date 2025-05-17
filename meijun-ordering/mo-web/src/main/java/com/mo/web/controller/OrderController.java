@@ -42,17 +42,23 @@ public class OrderController {
         int size = pageSize;
 
         List<Order> orders = orderService.getPage(offset, size, uuid);
+
         return PageResult.success(orders.size(), orders, pageNum, pageSize);
     }
 
     @GetMapping("/{orderId}")
     public Result<Order> getOrderById( @PathVariable Long orderId){
         Order order = orderService.getOrderById(orderId);
+
         return Result.success(order);
     }
 
     @PostMapping("/comment")
-    public Result<OrderComment> setOrderComment(OrderCommentDTO orderCommentDTO){
-        return null;
+    public Result<OrderComment> saveOrderComment(OrderCommentDTO orderCommentDTO){
+        Long orderId = orderCommentDTO.getOrderId();
+        String content = orderCommentDTO.getComment();
+        OrderComment orderComment = orderService.saveOrderComment(orderId, content);
+
+        return Result.success(orderComment);
     }
 }
