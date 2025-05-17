@@ -5,6 +5,7 @@ import com.mo.common.constant.MessageConstant;
 import com.mo.common.context.BaseContext;
 import com.mo.common.exception.AccountNotFoundException;
 import com.mo.entity.User;
+import com.mo.service.annotation.AutoFillTime;
 import com.mo.service.mapper.AdminMapper;
 import com.mo.service.mapper.CustomerMapper;
 import com.mo.service.mapper.EmployeeMapper;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@AutoFillTime
 public class UserServiceImpl implements UserService {
     @Autowired
     private AdminMapper adminMapper;

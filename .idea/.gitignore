@@ -8,3 +8,5 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+
+/Redis-8.0.0-Windows-x64-msys2-with-Service

@@ -11,7 +11,6 @@ import com.mo.common.exception.UnknownIdentityException;
 import com.mo.common.properties.JwtProperties;
 import com.mo.common.result.Result;
 import com.mo.common.utils.JwtUtil;
-import com.mo.common.utils.RedisUtil;
 import com.mo.entity.User;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -19,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -83,7 +83,10 @@ public class AuthController {
     public Result<User> register(@RequestBody AuthRegisterDTO authRegisterDTO) {
         log.info("register:{}", authRegisterDTO);
 
-        User user = authService.saveUser(authRegisterDTO);
+        User user = new User();
+        BeanUtils.copyProperties(authRegisterDTO, user);
+        authService.saveUser(user);
+        log.info("register:{}", user);
 
         return Result.success(user);
     }

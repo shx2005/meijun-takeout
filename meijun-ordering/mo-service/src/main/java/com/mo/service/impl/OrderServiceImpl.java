@@ -3,14 +3,18 @@ package com.mo.service.impl;
 import com.mo.api.service.OrderService;
 import com.mo.entity.Order;
 import com.mo.entity.OrderComment;
+import com.mo.service.annotation.AutoFillTime;
 import com.mo.service.mapper.CommentMapper;
 import com.mo.service.mapper.OrderMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
+@AutoFillTime
 public class OrderServiceImpl implements OrderService {
     @Autowired
     private OrderMapper orderMapper;

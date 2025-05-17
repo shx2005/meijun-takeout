@@ -1,4 +1,4 @@
-package com.mo.service.Annotation;
+package com.mo.service.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

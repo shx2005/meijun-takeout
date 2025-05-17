@@ -10,4 +10,6 @@ public interface DishService {
     List<Dish> getRecommendations();
     List<Dish> getDishByCategory(Long categoryId);
     List<Dish> getSearchResult(String name);
+
+    void saveDish(Dish dish);
 }

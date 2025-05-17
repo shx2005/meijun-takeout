@@ -1,7 +1,6 @@
 package com.mo.api.service;
 
 import com.mo.api.dto.AuthLoginDTO;
-import com.mo.api.dto.AuthRegisterDTO;
 import com.mo.entity.User;
 
 public interface AuthService {
@@ -14,5 +13,5 @@ public interface AuthService {
      */
     User login(AuthLoginDTO authLoginDTO);
 
-    User saveUser(AuthRegisterDTO authRegisterDTO);
+    void saveUser(User user);
 }

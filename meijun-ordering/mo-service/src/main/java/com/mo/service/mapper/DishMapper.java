@@ -13,4 +13,6 @@ public interface DishMapper {
     List<Dish> getRecommendations();
     List<Dish> getDishByCategory(@Param("categoryId") Long categoryId);
     List<Dish> getSearchResult(@Param("name") String name);
+
+    void saveDish(@Param("dish") Dish dish);
 }

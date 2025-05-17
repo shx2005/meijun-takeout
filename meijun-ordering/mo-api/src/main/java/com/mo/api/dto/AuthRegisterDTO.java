@@ -20,6 +20,8 @@ public class AuthRegisterDTO {
     private String gender;
     @Schema(name = "头像")
     private String avatar_url;
+    @Schema(name = "openid")
+    private String openid;
 
     //商家
     @Schema(name = "地址")
