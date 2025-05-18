@@ -1,5 +1,6 @@
 package com.mo.web.controller;
 
+import com.mo.api.dto.EmployeeDTO;
 import com.mo.api.dto.EmployeePageQueryDTO;
 import com.mo.api.service.EmployeeService;
 import com.mo.api.service.OrderService;
@@ -10,6 +11,7 @@ import com.mo.entity.Employee;
 import com.mo.entity.Order;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -55,7 +57,7 @@ public class MerchantController {
     }
 
     @GetMapping("/staff")
-    public Result<List<Employee>> getStaff(){
+    public Result<List<Employee>> getEmployee(){
         List<Employee> list = employeeService.getAllEmployee();
 
         return Result.success(list);
@@ -71,5 +73,31 @@ public class MerchantController {
         List<Employee> list = employeeService.getEmployeePage(offset, size);
 
         return PageResult.success();
+    }
+
+    @PostMapping("/staff")
+    public Result<Employee> saveEmployee(EmployeeDTO employeeDTO){
+        Employee employee = new Employee();
+        BeanUtils.copyProperties(employeeDTO, employee);
+        employeeService.saveEmployee(employee);
+
+        return Result.success(employee);
+    }
+
+    @PutMapping("/staff/{id}")
+    public Result<String> updateEmployee(@PathVariable Long id, EmployeeDTO employeeDTO){
+        Employee employee = new Employee();
+        BeanUtils.copyProperties(employeeDTO, employee);
+        employee.setId(id);
+        employeeService.updateEmployee(employee);
+
+        return Result.success();
+    }
+
+    @DeleteMapping("/staff/{id}")
+    public Result<String> deleteEmployee(@PathVariable Long id){
+        employeeService.deleteEmployee(id);
+
+        return Result.success();
     }
 }

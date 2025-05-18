@@ -8,6 +8,9 @@
     <select id="getMerchantByUuid" resultType="com.mo.entity.Merchant">
         select * from merchants where uuid = #{uuid}
     </select>
+    <select id="getMerchantById" resultType="com.mo.entity.Merchant">
+        select * from merchants where id = #{merchantId}
+    </select>
     <insert id="saveMerchant"
             parameterType="com.mo.entity.Merchant"
             useGeneratedKeys="true"

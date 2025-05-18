@@ -44,8 +44,8 @@ public class User implements Serializable {
     protected String gender;
     //地址
     protected String address;
-    @Schema(description = "商家用户名")
-    protected String merchantUsername;
+    @Schema(description = "商家id")
+    protected Long merchantId;
     @Schema(description = "头像")
     protected String avatar_url;
     @Schema(description = "jwt令牌")

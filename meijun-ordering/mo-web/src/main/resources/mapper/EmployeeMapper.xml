@@ -23,4 +23,24 @@
         values (#{employee.username},#{employee.password},
                 #{employee.createTime},#{employee.updateTime},#{employee.merchant_id})
     </insert>
+    <update id="updateEmployee" parameterType="com.mo.entity.Employee">
+        update employees
+        set
+            <if test="employee.username ！= null and employee.username != ''">
+                username = #{employee.username}
+            </if>
+            <if test="employee.password != null and employee.password != ''">
+                password = #{employee.password},
+            </if>
+            <if test="employee.updateTime != null">
+                updateTime = #{employee.updateTime},
+            </if>
+            <if test="employee.merchant_id != null">
+                merchant_id = #{employee.merchant_id},
+            </if>
+        where id = #{employee.id}
+    </update>
+    <delete id="deleteEmployee">
+        delete from employees where id = #{id}
+    </delete>
 </mapper>

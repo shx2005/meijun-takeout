@@ -16,4 +16,8 @@ public interface EmployeeMapper {
     List<Employee> getPage(@Param("offset") int offset, @Param("size") int size);
 
     void saveEmployee(@Param("employee") Employee employee);
+
+    void updateEmployee(@Param("employee") Employee employee);
+
+    void deleteEmployee(@Param("id") Long id);
 }

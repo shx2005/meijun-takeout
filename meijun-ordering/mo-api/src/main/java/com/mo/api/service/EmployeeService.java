@@ -8,4 +8,10 @@ public interface EmployeeService {
     List<Employee> getAllEmployee();
 
     List<Employee> getEmployeePage(int offset, int size);
+
+    void saveEmployee(Employee employee);
+
+    void updateEmployee(Employee employee);
+
+    void deleteEmployee(Long id);
 }

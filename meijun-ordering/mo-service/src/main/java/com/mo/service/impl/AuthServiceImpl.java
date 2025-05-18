@@ -13,6 +13,7 @@ import com.mo.entity.Customer;
 import com.mo.entity.Employee;
 import com.mo.entity.Merchant;
 import com.mo.entity.User;
+import com.mo.service.annotation.AutoFillUuid;
 import com.mo.service.mapper.AdminMapper;
 import com.mo.service.mapper.CustomerMapper;
 import com.mo.service.mapper.EmployeeMapper;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 @AutoFillTime
+@AutoFillUuid
 public class AuthServiceImpl implements AuthService {
     @Autowired
     private AdminMapper adminMapper;
@@ -58,7 +60,6 @@ public class AuthServiceImpl implements AuthService {
         String username = user.getUsername();
 
         //todo 密码加密
-        //todo 字段autofill
         switch (identity){
             case ADMIN -> throw new RegisterFailedException("暂不支持管理员注册");
             case MERCHANT -> {
@@ -66,8 +67,6 @@ public class AuthServiceImpl implements AuthService {
                 if(mer != null) throw new RegisterFailedException("商家已存在");
 
                 Merchant merchant = Merchant.fromUser(user);
-                String uuid = "mer-"+merchant.getUsername();
-                merchant.setUuid(uuid);
                 merchant.setAddress(user.getAddress());
                 merchantMapper.saveMerchant(merchant);
                 log.info("商家{}注册成功", merchant.getUsername());
@@ -77,12 +76,10 @@ public class AuthServiceImpl implements AuthService {
                 if(emp != null) throw new RegisterFailedException("员工已存在");
 
                 Employee employee = Employee.fromUser(user);
-                Merchant merchant = merchantMapper.getMerchantByUsername(user.getMerchantUsername());
+                Merchant merchant = merchantMapper.getMerchantById(user.getMerchantId());
                 if(merchant == null) throw new RegisterFailedException("没有对应商家");
                 Long id = merchant.getId();
                 employee.setMerchant_id(id);
-                String uuid = "emp-"+employee.getUsername();
-                employee.setUuid(uuid);
                 employeeMapper.saveEmployee(employee);
                 log.info("员工{}注册成功", employee.getUsername());
             }
@@ -92,8 +89,6 @@ public class AuthServiceImpl implements AuthService {
 
                 Customer customer = Customer.fromUser(user);
                 customer.setBalance(0.0);
-                String uuid = "cus-"+customer.getUsername();
-                customer.setUuid(uuid);
                 customerMapper.saveCustomer(customer);
                 log.info("用户{}注册成功", customer.getUsername());
             }

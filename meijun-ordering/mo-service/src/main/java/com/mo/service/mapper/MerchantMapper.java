@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 public interface MerchantMapper {
     Merchant getMerchantByUsername(@Param("username") String username);
     Merchant getMerchantByUuid(@Param("uuid") String uuid);
+    Merchant getMerchantById(@Param("merchantId") Long merchantId);
 
     void saveMerchant(@Param("merchant") Merchant merchant);
 }
