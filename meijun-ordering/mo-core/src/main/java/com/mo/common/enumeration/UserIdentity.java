@@ -1,10 +1,10 @@
 package com.mo.common.enumeration;
 
 public enum UserIdentity {
-    ADMIN(1),
-    MERCHANT(2),
-    EMPLOYEE(3),
-    CUSTOMER(4);
+    ADMIN(0),
+    MERCHANT(1),
+    EMPLOYEE(2),
+    CUSTOMER(3);
 
     private final int value;
 

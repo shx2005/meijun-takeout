@@ -1,6 +1,7 @@
 package com.mo.service.impl;
 
 import com.mo.api.service.EmployeeService;
+import com.mo.common.exception.RegisterFailedException;
 import com.mo.entity.Employee;
 import com.mo.service.annotation.AutoFillTime;
 import com.mo.service.annotation.AutoFillUuid;
@@ -29,6 +30,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public void saveEmployee(Employee employee){
+        Employee employee1 = employeeMapper.getEmployeeByUsername(employee.getUsername());
+        if(employee1 != null) throw new RegisterFailedException("员工已存在");
+
         employeeMapper.saveEmployee(employee);
     }
 

@@ -109,5 +109,25 @@ CREATE TABLE order_comments (
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
+-- 创建购物车表
+CREATE TABLE carts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT PRIMARY KEY,
+    createTime TIMESTAMP,
+    updateTime TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES customers(id) ON DELETE CASCADE
+);
+
+-- 创建购物车条目表
+CREATE TABLE cart_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cart_id INT,
+    item_id INT,
+    item_type ENUM('dish', 'set_meal') NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    price DECIMAL(10, 2),
+    FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE
+);
+
 -- 插入root管理员
 INSERT INTO admins (uuid, username, password, role) VALUES ('adm-root','root', 'root', 'root');

@@ -52,7 +52,6 @@ public class AuthController {
     })
     public Result<AuthLoginVo> login(@RequestBody AuthLoginDTO authLoginDTO) {
         log.info("login:{}", authLoginDTO);
-        logger.info("login:{}", authLoginDTO);
 
         User user = authService.login(authLoginDTO);
 

@@ -40,6 +40,7 @@ public class EntityAutoFillAspect {
                 log.info("自动填充时间成功,字段： {}", arg.getClass().getName());
 
                 String uuid = BaseContext.getCurrentId();
+                //todo 填充用户
 
                 try{
                     Method setCreateUser = arg.getClass().getMethod("setCreateUser", String.class);
