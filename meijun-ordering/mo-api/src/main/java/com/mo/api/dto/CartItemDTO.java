@@ -1,5 +1,6 @@
-package com.mo.entity;
+package com.mo.api.dto;
 
+import com.mo.common.enumeration.ItemType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -7,21 +8,17 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Cart implements Serializable {
+public class CartItemDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private Long id;
     private Long userId;
-    private List<CartItem> items;
-
-    LocalDateTime createTime;
-    LocalDateTime updateTime;
+    private Long ItemId;
+    private Integer quantity;
+    private ItemType itemType;
 }

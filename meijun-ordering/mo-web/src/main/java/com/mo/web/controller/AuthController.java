@@ -5,6 +5,7 @@ import com.mo.api.dto.AuthRegisterDTO;
 import com.mo.api.vo.AuthLoginVo;
 import com.mo.common.constant.JwtClaimsConstant;
 import com.mo.common.constant.MessageConstant;
+import com.mo.common.constant.RedisKeyConstant;
 import com.mo.common.context.BaseContext;
 import com.mo.common.enumeration.UserIdentity;
 import com.mo.common.exception.RedisAccessException;
@@ -36,7 +37,6 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/api/v1/auth")
 @Tag(name = "账号管理")
 public class AuthController {
-    static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     //todo 可以改为构造器注入
     @Autowired
     private AuthService authService;
@@ -66,6 +66,7 @@ public class AuthController {
                 claims);
 
         //放入当前线程
+        redisTemplate.opsForValue().set(RedisKeyConstant.USER_ID, user.getId());
         redisTemplate.opsForValue().set(user.getUuid(), user, getTtl(user.getIdentity()), TimeUnit.MILLISECONDS);
         BaseContext.setCurrentId(user.getUuid());
         //todo 检查输入是否合法

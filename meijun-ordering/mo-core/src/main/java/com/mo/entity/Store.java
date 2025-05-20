@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -17,4 +18,6 @@ public class Store implements Serializable {
     Long id;
     Long merchantId;
     String name;
+    LocalDateTime createTime;
+    LocalDateTime updateTime;
 }

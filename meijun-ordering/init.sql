@@ -112,7 +112,7 @@ CREATE TABLE order_comments (
 -- 创建购物车表
 CREATE TABLE carts (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT PRIMARY KEY,
+    user_id INT,
     createTime TIMESTAMP,
     updateTime TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES customers(id) ON DELETE CASCADE
@@ -127,6 +127,16 @@ CREATE TABLE cart_items (
     quantity INT NOT NULL DEFAULT 1,
     price DECIMAL(10, 2),
     FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE
+);
+
+-- 创建商店表
+CREATE TABLE stores (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    merchant_id INT,
+    createTime TIMESTAMP,
+    updateTime TIMESTAMP,
+    FOREIGN KEY (merchant_id) REFERENCES merchants(id) ON DELETE CASCADE
 );
 
 -- 插入root管理员

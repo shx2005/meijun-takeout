@@ -1,5 +1,6 @@
 package com.mo.service.impl;
 
+import com.mo.common.exception.UnknownIdentityException;
 import com.mo.service.annotation.AutoFillTime;
 import com.mo.api.dto.AuthLoginDTO;
 import com.mo.api.dto.AuthRegisterDTO;
@@ -42,12 +43,25 @@ public class AuthServiceImpl implements AuthService {
     public User login(AuthLoginDTO authLoginDTO){
         String username = authLoginDTO.getUsername();
         String password = authLoginDTO.getPassword();
+        UserIdentity identity = authLoginDTO.getIdentity();
+        User user = null;
 
-        User user = adminMapper.getAdminByUsername(username);
-        if(user == null) user = merchantMapper.getMerchantByUsername(username);
-        if(user == null) user = employeeMapper.getEmployeeByUsername(username);
-        if(user == null) user = customerMapper.getCustomerByUsername(username);
-        if(user == null) throw new AccountNotFoundException(MessageConstant.ACCOUNT_NOT_FOUND);
+        switch(identity){
+            case ADMIN -> {
+                user = adminMapper.getAdminByUsername(username);
+            }
+            case MERCHANT -> {
+                user = merchantMapper.getMerchantByUsername(username);
+            }
+            case EMPLOYEE -> {
+                user = employeeMapper.getEmployeeByUsername(username);
+            }
+            case CUSTOMER -> {
+                user = customerMapper.getCustomerByUsername(username);
+            }
+            default -> throw new UnknownIdentityException(MessageConstant.UNKNOWN_IDENTITY);
+        }
+
         //todo 密码加密
         if(!user.getPassword().equals(password)) throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
 

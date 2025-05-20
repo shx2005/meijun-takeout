@@ -21,12 +21,14 @@ public class UuidAutoFillAspect {
 
     @Before("autoFillSave()")
     public void beforeSave(JoinPoint joinPoint) {
+        log.info("[before] 开始: {}", joinPoint.getSignature());
         Object[] args = joinPoint.getArgs();
         for(Object arg : args){
             try{
                 Method setUuid = arg.getClass().getMethod("setUuid", String.class);
 
-                String newUuid = UUID.randomUUID().toString();
+                String newUuid = UUID.randomUUID().toString().substring(0, 6);
+                newUuid = arg.getClass().getSimpleName() + newUuid;
 
                 setUuid.invoke(arg, newUuid);
             } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e){

@@ -28,6 +28,7 @@ public class EntityAutoFillAspect {
 
     @Before("autoFillSave()")
     public void beforeSave(JoinPoint joinPoint){
+        log.info("[before] 开始:{}", joinPoint.getSignature());
         Object[] args = joinPoint.getArgs();
         for(Object arg : args){
             try{
@@ -61,6 +62,7 @@ public class EntityAutoFillAspect {
 
     @Before("autoFillUpdate()")
     public void beforeUpdate(JoinPoint joinPoint){
+        log.info("[before] 开始: {}", joinPoint.getSignature());
         Object[] args = joinPoint.getArgs();
         for(Object arg : args){
             try {

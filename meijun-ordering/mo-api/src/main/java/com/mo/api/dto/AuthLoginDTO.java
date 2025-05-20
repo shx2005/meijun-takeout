@@ -1,5 +1,6 @@
 package com.mo.api.dto;
 
+import com.mo.common.enumeration.UserIdentity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
@@ -15,4 +16,6 @@ public class AuthLoginDTO implements Serializable {
     private String password;
     @Schema(description = "验证码")
     private String code;
+    @Schema(description = "用户身份")
+    private UserIdentity identity;
 }

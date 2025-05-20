@@ -2,7 +2,18 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.mo.service.mapper.CartMapper">
-    <select id="getCart" resultType="com.mo.entity.Cart">
-        select * from carts where user_id = #{userId}
-    </select>
+    <insert id="createCartIfNotExists">
+        INSERT INTO cart (user_id)
+        SELECT #{userId}
+        WHERE NOT EXISTS (
+            SELECT 1 FROM cart WHERE user_id = #{userId}
+        )
+    </insert>
+    <insert id="saveCart"
+            parameterType="com.mo.entity.Cart"
+            useGeneratedKeys="true"
+            keyProperty="cart.id">
+        insert into carts (user_id, createTime, updateTime)
+        values (#{cart.userId}, #{cart.createTime}, #{cart.updateTime})
+    </insert>
 </mapper>
