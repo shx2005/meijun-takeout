@@ -15,10 +15,10 @@ import java.lang.reflect.Method;
 @Component
 public class UserAutoFillAspect {
 
-    @Pointcut("execution(* com.mo.service.impl.*.save*(..)) && @within(com.mo.service.annotation.AutoFillUser)")
+    @Pointcut("execution(* com.mo.service.impl.*.save*(..)) && @annotation(com.mo.service.annotation.AutoFillUser)")
     public void autoFillSave() {}
 
-    @Pointcut("execution(* com.mo.service.impl.*.update*(..)) && @within(com.mo.service.annotation.AutoFillUser)")
+    @Pointcut("execution(* com.mo.service.impl.*.update*(..)) && @annotation(com.mo.service.annotation.AutoFillUser)")
     public void autoFillUpdate() {}
 
     @Before("autoFillSave()")

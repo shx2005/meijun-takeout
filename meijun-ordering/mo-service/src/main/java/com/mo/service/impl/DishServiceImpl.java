@@ -13,7 +13,6 @@ import java.util.List;
 
 @Slf4j
 @Service
-@AutoFillTime
 public class DishServiceImpl implements DishService {
     @Autowired
     private DishMapper dishMapper;
@@ -50,6 +49,7 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
+    @AutoFillTime
     public void saveDish(Dish dish) {
         dishMapper.saveDish(dish);
     }

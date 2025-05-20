@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@AutoFillTime
 public class UserServiceImpl implements UserService {
     @Autowired
     private AdminMapper adminMapper;

@@ -2,13 +2,17 @@ package com.mo.web.controller;
 
 import com.mo.api.dto.EmployeeDTO;
 import com.mo.api.dto.EmployeePageQueryDTO;
+import com.mo.api.dto.StoreDTO;
 import com.mo.api.service.EmployeeService;
 import com.mo.api.service.OrderService;
+import com.mo.api.service.StoreService;
 import com.mo.common.enumeration.OrderStatus;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
 import com.mo.entity.Employee;
 import com.mo.entity.Order;
+import com.mo.entity.Store;
+import com.mo.service.impl.StoreServiceImpl;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -29,6 +33,8 @@ public class MerchantController {
     private RedisTemplate<String, Object> redisTemplate;
     @Autowired
     private EmployeeService employeeService;
+    @Autowired
+    private StoreService storeService;
 
     @GetMapping("/{orderId}")
     public Result<Order> getOrderById( @PathVariable Long orderId){
@@ -97,6 +103,23 @@ public class MerchantController {
     @DeleteMapping("/staff/{id}")
     public Result<String> deleteEmployee(@PathVariable Long id){
         employeeService.deleteEmployee(id);
+
+        return Result.success();
+    }
+
+    @GetMapping("/stores")
+    public Result<List<Store>> getStore(){
+        List<Store> list = storeService.getAll();
+
+        return Result.success(list);
+    }
+
+    @PutMapping("/stores/{id}")
+    public Result<String> updateStore(@PathVariable Long id, StoreDTO storeDTO){
+        Store store = new Store();
+        BeanUtils.copyProperties(storeDTO, store);
+        store.setId(id);
+        storeService.updateStore(store);
 
         return Result.success();
     }

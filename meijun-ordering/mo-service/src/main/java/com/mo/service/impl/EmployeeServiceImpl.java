@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@AutoFillUuid
-@AutoFillTime
 public class EmployeeServiceImpl implements EmployeeService {
     @Autowired
     EmployeeMapper employeeMapper;
@@ -29,6 +27,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @AutoFillTime
+    @AutoFillUuid
     public void saveEmployee(Employee employee){
         Employee employee1 = employeeMapper.getEmployeeByUsername(employee.getUsername());
         if(employee1 != null) throw new RegisterFailedException("员工已存在");
@@ -37,6 +37,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @AutoFillTime
     public void updateEmployee(Employee employee){
         employeeMapper.updateEmployee(employee);
     }

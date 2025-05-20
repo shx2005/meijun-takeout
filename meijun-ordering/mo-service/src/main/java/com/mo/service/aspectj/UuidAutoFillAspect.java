@@ -16,7 +16,7 @@ import java.util.UUID;
 @Component
 public class UuidAutoFillAspect {
 
-    @Pointcut("execution(* com.mo.service.impl.*.save*(..)) && @within(com.mo.service.annotation.AutoFillUuid)")
+    @Pointcut("execution(* com.mo.service.impl.*.save*(..)) && @annotation(com.mo.service.annotation.AutoFillUuid)")
     public void autoFillSave() {}
 
     @Before("autoFillSave()")

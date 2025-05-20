@@ -3,6 +3,7 @@ package com.mo.service.impl;
 import com.mo.api.service.CartService;
 import com.mo.entity.Cart;
 import com.mo.entity.CartItem;
+import com.mo.service.annotation.AutoFillTime;
 import com.mo.service.mapper.CartItemMapper;
 import com.mo.service.mapper.CartMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @AutoFillTime
     public void saveCart(Cart cart){
         cartMapper.saveCart(cart);
     }

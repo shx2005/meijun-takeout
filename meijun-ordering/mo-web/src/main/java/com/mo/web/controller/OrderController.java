@@ -1,15 +1,18 @@
 package com.mo.web.controller;
 
+import com.mo.api.dto.AfterSaleDTO;
 import com.mo.api.dto.OrderPageQueryDTO;
 import com.mo.api.dto.OrderCommentDTO;
 import com.mo.api.service.OrderService;
 import com.mo.common.context.BaseContext;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
+import com.mo.entity.AfterSale;
 import com.mo.entity.Order;
 import com.mo.entity.OrderComment;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -60,5 +63,14 @@ public class OrderController {
         OrderComment orderComment = orderService.saveOrderComment(orderId, content);
 
         return Result.success(orderComment);
+    }
+
+    @PostMapping("/after-sale")
+    public Result<String> applyForAfterSale(AfterSaleDTO afterSaleDTO){
+        AfterSale afterSale = new AfterSale();
+        BeanUtils.copyProperties(afterSaleDTO, afterSale);
+        orderService.saveAfterSale(afterSale);
+
+        return Result.success();
     }
 }

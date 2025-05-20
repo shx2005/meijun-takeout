@@ -27,8 +27,6 @@ import java.time.LocalDateTime;
 
 @Slf4j
 @Service
-@AutoFillTime
-@AutoFillUuid
 public class AuthServiceImpl implements AuthService {
     @Autowired
     private AdminMapper adminMapper;
@@ -69,6 +67,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @AutoFillTime
+    @AutoFillUuid
     public void saveUser(User user) {
         UserIdentity identity = user.getIdentity();
         String username = user.getUsername();

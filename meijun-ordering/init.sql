@@ -109,6 +109,21 @@ CREATE TABLE order_comments (
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
+-- 创建订单售后表
+CREATE TABLE order_afters (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    user_id INT,
+    type ENUM('refund', 'replace', 'other'),
+    reason TEXT,
+    content TEXT,
+    status ENUM('pending', 'approved', 'rejected'),
+    createTime TIMESTAMP,
+    updateTime TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES customers(id) ON DELETE CASCADE
+);
+
 -- 创建购物车表
 CREATE TABLE carts (
     id INT AUTO_INCREMENT PRIMARY KEY,

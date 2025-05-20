@@ -20,10 +20,10 @@ import java.time.LocalDateTime;
 public class EntityAutoFillAspect {
 
     //拦截所有 save*() 方法和 update*() 方法，并且被 AutoFillTime 注解修饰的类
-    @Pointcut("execution(* com.mo.service.impl.*.save*(..)) && @within(com.mo.service.annotation.AutoFillTime)")
+    @Pointcut("execution(* com.mo.service.impl.*.save*(..)) && @annotation(com.mo.service.annotation.AutoFillTime)")
     public void autoFillSave(){}
 
-    @Pointcut("execution(* com.mo.service.impl.*.update*(..)) && @within(com.mo.service.annotation.AutoFillTime)")
+    @Pointcut("execution(* com.mo.service.impl.*.update*(..)) && @annotation(com.mo.service.annotation.AutoFillTime)")
     public void autoFillUpdate(){}
 
     @Before("autoFillSave()")
