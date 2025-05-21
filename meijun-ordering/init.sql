@@ -149,9 +149,39 @@ CREATE TABLE stores (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     merchant_id INT,
+    address VARCHAR(255),
+    info  TEXT,
     createTime TIMESTAMP,
     updateTime TIMESTAMP,
     FOREIGN KEY (merchant_id) REFERENCES merchants(id) ON DELETE CASCADE
+);
+
+-- 创建优惠券表
+CREATE TABLE coupons (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    name VARCHAR(50) NOT NULL,
+    description TEXT,
+    type ENUM('fixed', 'percentage'),
+    value DECIMAL(10, 2),
+    min_amount DECIMAL(10, 2),
+    max_amount DECIMAL(10, 2),
+    start_time TIMESTAMP,
+    end_time TIMESTAMP,
+    createTime TIMESTAMP,
+    updateTime TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES customers(id) ON DELETE SET NULL
+);
+
+-- 创建促销信息表
+CREATE TABLE promotions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description TEXT,
+    start_time TIMESTAMP,
+    end_time TIMESTAMP,
+    createTime TIMESTAMP,
+    updateTime TIMESTAMP
 );
 
 -- 插入root管理员

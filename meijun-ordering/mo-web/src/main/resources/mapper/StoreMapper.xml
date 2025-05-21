@@ -6,6 +6,16 @@
         select * from stores
     </select>
     <update id="updateStore" parameterType="com.mo.entity.Store">
-        update stores set name = #{name} where id = #{id}
+        update stores
+        <if test="store.name != null">
+            set name = #{store.name}
+        </if>
+        <if test="store.address != null">
+            set address = #{store.address}
+        </if>
+        <if test="store.info != null">
+            set info = #{store.info}
+        </if>
+        where id = #{store.id}
     </update>
 </mapper>

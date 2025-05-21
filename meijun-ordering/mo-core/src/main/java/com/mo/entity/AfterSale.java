@@ -1,10 +1,12 @@
 package com.mo.entity;
 
 import com.mo.common.enumeration.AfterSaleType;
+import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
 
+@Data
 public class AfterSale implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

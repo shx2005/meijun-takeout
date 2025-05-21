@@ -18,6 +18,8 @@ public class Store implements Serializable {
     Long id;
     Long merchantId;
     String name;
+    String address;
+    String info;
     LocalDateTime createTime;
     LocalDateTime updateTime;
 }
