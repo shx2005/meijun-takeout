@@ -99,6 +99,7 @@ public class AuthController {
         log.info("logout: {}", uuid);
         BaseContext.removeCurrentId();
         redisTemplate.delete(uuid);
+        redisTemplate.delete(RedisKeyConstant.USER_ID);
         return Result.success();
     }
 

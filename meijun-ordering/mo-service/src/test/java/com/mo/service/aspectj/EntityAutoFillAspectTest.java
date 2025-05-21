@@ -7,85 +7,63 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 class EntityAutoFillAspectUnitTest {
 
-    @InjectMocks
     private EntityAutoFillAspect aspect;
 
     @Mock
     private JoinPoint joinPoint;
 
-    @Mock
-    private Method method;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        aspect = new EntityAutoFillAspect();
     }
 
+    // 假设 @AutoFillTime 注解移到了测试方法上，添加示例注解
+    @AutoFillTime
     @Test
-    void testBeforeSave_AutoFillTimeFields() throws Exception {
-        // 构造一个被 AutoFillTime 注解修饰的类
-        Class<?> mockClass = MockAnnotatedClass.class;
-
-        // 创建一个目标对象
-        Object target = new Dish();
-
-        // 设置 JoinPoint 的返回值
-        when(joinPoint.getArgs()).thenReturn(new Object[]{target});
-
-        // 设置 BaseContext 当前线程用户 ID
+    void testBeforeSave_AutoFillTimeFields() {
+        Dish dish = new Dish();
+        when(joinPoint.getArgs()).thenReturn(new Object[]{dish});
         BaseContext.setCurrentId("user-123");
 
-        // 执行切面逻辑
         aspect.beforeSave(joinPoint);
 
-        // 验证字段是否填充
-        assertNotNull(((Dish) target).getCreateTime());
-        assertNotNull(((Dish) target).getUpdateTime());
-        assertEquals("user-123", ((Dish) target).getCreateUser());
-        assertEquals("user-123", ((Dish) target).getUpdateUser());
+        assertNotNull(dish.getCreateTime());
+        assertNotNull(dish.getUpdateTime());
+        assertEquals("user-123", dish.getCreateUser());
+        assertEquals("user-123", dish.getUpdateUser());
 
-        // 清除线程变量
         BaseContext.removeCurrentId();
     }
 
+    // 假设 @AutoFillTime 注解移到了测试方法上，添加示例注解
+    @AutoFillTime
     @Test
-    void testBeforeUpdate_OnlyUpdateTimeFilled() throws Exception {
-        // 构造一个被 AutoFillTime 注解修饰的类
-        Class<?> mockClass = MockAnnotatedClass.class;
-
-        // 创建一个目标对象
-        Object target = new Dish();
-
-        // 设置 JoinPoint 的返回值
-        when(joinPoint.getArgs()).thenReturn(new Object[]{target});
-
-        // 设置 BaseContext 当前线程用户 ID
+    void testBeforeUpdate_OnlyUpdateTimeFilled() {
+        Dish dish = new Dish();
+        when(joinPoint.getArgs()).thenReturn(new Object[]{dish});
         BaseContext.setCurrentId("user-123");
 
-        // 执行切面逻辑
         aspect.beforeUpdate(joinPoint);
 
-        // 验证只有 updateTime 填充了
-        assertNull(((Dish) target).getCreateTime()); // 不填充 create_time
-        assertNotNull(((Dish) target).getUpdateTime());
-        assertEquals("user-123", ((Dish) target).getUpdateUser());
+        assertNull(dish.getCreateTime());
+        assertNotNull(dish.getUpdateTime());
+        assertEquals("user-123", dish.getUpdateUser());
 
-        // 清除线程变量
         BaseContext.removeCurrentId();
     }
 
-    // 模拟一个被 @AutoFillTime 注解修饰的类
-    @AutoFillTime
-    static class MockAnnotatedClass {}
+// 移除不再需要的类
+// static class MockAnnotatedClass {}
 }
