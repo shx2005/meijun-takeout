@@ -514,37 +514,37 @@
 			},
 			//初始化数据
 			async initData() {
-				Promise.all([categoryListApi(), cartListApi({})]).then(res => {
+				try {
+					const [categoryRes, cartRes] = await Promise.all([categoryListApi(), cartListApi()]);
 					//获取分类数据
-					console.log('菜单列表', res);
+					console.log('菜单列表', categoryRes);
 					
-					if (res[0].code === 0) {
-						this.categoryList = res[0].data;
-						if (Array.isArray(res[0].data) && res[0].data.length > 0) {
-							this.categoryId = res[0].data[0].id;
-							if (res[0].data[0].type === 1) {
-								this.getDishList();
-							} else {
-								this.getSetmealData();
-							}
+					if (categoryRes && categoryRes.length > 0) {
+						this.categoryList = categoryRes;
+						if (Array.isArray(categoryRes) && categoryRes.length > 0) {
+							this.categoryId = categoryRes[0].id;
+							this.getDishList();
 						}
 					} else {
-						
-						return uni.$showMsg(res.msg == 'token不能为空'? '未登录' : res.msg);
-						
+						uni.$showMsg('获取分类失败');
 					}
-					//获取菜品数据
-					if (res[1].code === 0) {
-						this.cartData = res[1].data;
+					
+					//获取购物车数据
+					if (cartRes) {
+						this.cartData = cartRes.items || [];
 					} else {
-						// return uni.$showMsg("请登录");
+						uni.$showMsg('获取购物车失败');
 					}
+					
 					if (this.loading) {
 						setTimeout(() => {
 							this.loading = false;
 						}, 1500);
 					}
-				});
+				} catch (error) {
+					console.error('初始化数据失败', error);
+					uni.$showMsg('数据加载失败，请检查网络');
+				}
 			},
 			//分类点击
 			categoryClick(index, id, type) {
@@ -564,25 +564,35 @@
 				if (!this.categoryId) {
 					return;
 				}
-				const res = await dishListApi({
-					categoryId: this.categoryId,
-					status: 1
-				});
-				if (res.code === 0) {
-					let dishList = res.data;
-					const cartData = this.cartData;
-					if (dishList.length > 0 && cartData.length > 0) {
-						dishList.forEach(dish => {
-							cartData.forEach(cart => {
-								if (dish.id === cart.dishId) {
-									dish.number = cart.number;
-								}
+				
+				try {
+					const res = await dishListApi({
+						categoryId: this.categoryId,
+						pageNum: 1,
+						pageSize: 50
+					});
+					
+					if (res && Array.isArray(res)) {
+						let dishList = res;
+						const cartData = this.cartData;
+						
+						if (dishList.length > 0 && cartData.length > 0) {
+							dishList.forEach(dish => {
+								cartData.forEach(cart => {
+									if (dish.id === cart.dishId) {
+										dish.number = cart.number;
+									}
+								});
 							});
-						});
+						}
+						
+						this.dishList = dishList;
+					} else {
+						uni.$showMsg('获取菜品失败');
 					}
-					this.dishList = dishList;
-				} else {
-					return uni.$showMsg(res.msg == 'token不能为空'? '未登录' : res.msg);;
+				} catch (error) {
+					console.error('获取菜品数据失败', error);
+					uni.$showMsg('获取菜品失败，请检查网络');
 				}
 			},
 			//获取套餐数据setmealId
@@ -614,49 +624,54 @@
 			},
 			//获取购物车数据
 			async getCartData() {
-				const res = await cartListApi({});
-				if (res.code === 0) {
-					this.cartData = res.data;
-				} else {
-					console.log("-----------获取购物车失败-----------")
-					return uni.$showMsg(res.msg == 'token不能为空'? '未登录' : res.msg);;
+				try {
+					const res = await cartListApi();
+					if (res) {
+						this.cartData = res.items || [];
+					} else {
+						console.log("-----------获取购物车失败-----------");
+						uni.$showMsg('获取购物车失败');
+					}
+				} catch (error) {
+					console.error('获取购物车数据失败', error);
+					uni.$showMsg('获取购物车失败，请检查网络');
 				}
 			},
 			//菜单中往购物车中添加商品
-			async addCart(item,event) {
+			async addCart(item, event) {
 				const token = this.getTokenInfo();
 				if (!token) return;
 				
 				let params = {
-					amount: item.price / 100, //金额
-					dishFlavor: item.dishFlavor, //口味  如果没有传undefined
-					dishId: undefined, //菜品id
-					setmealId: undefined, //套餐id
+					amount: item.price / 100, // 金额
+					dishFlavor: item.dishFlavor, // 口味，如果没有传undefined
+					dishId: item.id, // 菜品id
+					number: 1, // 数量
 					name: item.name,
 					image: item.image
 				};
-				if (Array.isArray(item.flavors)) {
-					//表示是菜品
-					params.dishId = item.id;
-				} else {
-					//表示套餐 套餐没有口味
-					params.setmealId = item.id;
-				}
-				const res = await addCartApi(params);
-				if (res.code === 0) {
-					this.dishList.forEach(dish => {
-						if (dish.id === item.id) {
-							console.log('数量={}', res.data.number);
-							dish.number = res.data.number;
+				
+				try {
+					const res = await addCartApi(params);
+					
+					if (res) {
+						this.dishList.forEach(dish => {
+							if (dish.id === item.id) {
+								dish.number = (dish.number || 0) + 1;
+							}
+						});
+						
+						if (this.setMealDialog.show) {
+							item.number = (item.number || 0) + 1;
 						}
-					});
-					if (this.setMealDialog.show) {
-						console.log(res.data.number);
-						item.number = res.data.number;
+						
+						this.getCartData();
+					} else {
+						uni.$showMsg('添加购物车失败');
 					}
-					this.getCartData();
-				} else {
-					return uni.$showMsg(res.msg == 'token不能为空'? '未登录' : res.msg);;
+				} catch (error) {
+					console.error('添加购物车失败', error);
+					uni.$showMsg('添加购物车失败，请检查网络');
 				}
 			},
 
@@ -664,38 +679,40 @@
 			async subtractCart(item) {
 				const token = this.getTokenInfo();
 				if (!token) return;
+				
 				let params = {
-					dishId: item.id
+					dishId: item.id,
+					number: Math.max(0, (item.number || 1) - 1)
 				};
-				if (!Array.isArray(item.flavors)) {
-					params = {
-						setmealId: item.id
-					};
-				}
-				const res = await updateCartApi(params);
-				if (res.code === 0) {
-					this.dishList.forEach(dish => {
-						if (dish.id === item.id) {
-							dish.number = res.data.number === 0 ? undefined : res.data.number;
-							if (this.detailsDialog.show && dish.number == undefined){
-								this.detailsDialog.show = false
+				
+				try {
+					const res = await updateCartApi(params);
+					
+					if (res) {
+						this.dishList.forEach(dish => {
+							if (dish.id === item.id) {
+								dish.number = params.number === 0 ? undefined : params.number;
+								if (this.detailsDialog.show && dish.number == undefined) {
+									this.detailsDialog.show = false;
+								}
+							}
+						});
+						
+						if (this.setMealDialog.show) {
+							item.number = params.number === 0 ? undefined : params.number;
+							if (this.setMealDialog.show && item.number == undefined) {
+								this.setMealDialog.show = false;
 							}
 						}
-					});
-					if (this.setMealDialog.show) {
-						item.number = res.data.number === 0 ? undefined : res.data.number;
-						if (this.detailsDialog.show && item.number == undefined){
-							this.detailsDialog.show = false
-						}
+						
+						this.getCartData();
+					} else {
+						uni.$showMsg('减少商品失败');
 					}
-					this.getCartData();
-				} else {
-					return uni.$showMsg(res.msg == 'token不能为空'? '未登录' : res.msg);;
-					this.$notify({
-						type: 'warning',
-						message: res.msg
-					});
-				}				
+				} catch (error) {
+					console.error('减少商品失败', error);
+					uni.$showMsg('减少商品失败，请检查网络');
+				}
 			},
 
 			//展开购物车

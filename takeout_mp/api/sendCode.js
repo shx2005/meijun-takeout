@@ -1,9 +1,17 @@
-
 import regeneratorRuntime, { async } from '../lib/runtime/runtime';
 
-export const updateUserInfo = (data) =>{
+// 更新用户信息
+export const updateUserInfo = (data) => {
 	return uni.$ajax.put({
-		url: 'mp/user/updateUserInfo',
+		url: 'api/v1/user/update',
+		data: data
+	})
+}
+
+// 发送验证码
+export const sendCode = (data) => {
+	return uni.$ajax.get({
+		url: 'api/v1/auth/send-code',
 		data: data
 	})
 }
