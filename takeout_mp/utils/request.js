@@ -6,7 +6,7 @@ import ajax from '@/uni_modules/u-ajax'
 // 创建请求实例
 const instance = ajax.create({
   // 初始配置
-  baseURL: 'http://localhost:8080' // 默认后端接口地址
+  baseURL: process.env.VUE_APP_BASE_URL || 'http://localhost:8080/api/' // 使用环境变量或默认值
 })
 
 // 添加请求拦截器
@@ -32,8 +32,11 @@ instance.interceptors.response.use(
     // 对响应数据做些什么
     const res = response.data
     
+    // 打印响应数据，帮助调试
+    console.log('响应数据:', response.config.url, res)
+    
     // 判断返回的状态码
-    if (res.code !== 1) {
+    if (res.code !== 0 && res.code !== 1 && res.code !== 200) {  // 接受多种成功状态码
       // 错误处理
       uni.$showMsg(res.msg || '请求失败')
       
@@ -52,11 +55,30 @@ instance.interceptors.response.use(
       return Promise.reject(new Error(res.msg || '请求失败'))
     }
     
-    return res.data
+    // 处理登录接口的特殊情况
+    if (response.config && response.config.url && response.config.url.includes('auth/login')) {
+      // 登录接口直接返回完整响应
+      return res
+    }
+    
+    // 其他接口返回data字段或整个响应
+    return res.data || res
   },
   error => {
     // 对响应错误做些什么
-    uni.$showMsg('网络请求失败')
+    console.error('请求错误:', error)
+    
+    // 检查是否有响应数据
+    if (error.response) {
+      console.error('错误响应:', error.response)
+      uni.$showMsg(`服务器错误 (${error.response.statusCode})`)
+    } else if (error.errMsg) {
+      // uni-app 错误格式
+      uni.$showMsg(error.errMsg || '网络请求失败')
+    } else {
+      uni.$showMsg('网络请求失败')
+    }
+    
     return Promise.reject(error)
   }
 )

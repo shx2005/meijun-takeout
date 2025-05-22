@@ -80,7 +80,7 @@
 </template>
 
 <script>
-	import WebsocketHeartbeat from 'websocket-heartbeat-miniprogram';
+	import WebsocketHeartbeat from '@/node_modules/websocket-heartbeat-miniprogram';
 	import '../../api/index.js'
 	import regeneratorRuntime, {
 		async
@@ -177,8 +177,7 @@
 				WebsocketHeartbeat({
 					miniprogram: wx,
 					connectSocketParams: {
-						url:  process.env.WEBSOCKET_BASE_URL + 'mp/websocket?token=' + token
-						// url:  "ws://localhost:8081/api/mp/websocket?token=" + token
+						url:  process.env.WEBSOCKET_BASE_URL + 'mp/websocket?token=' + token || "ws://localhost:8080/api/mp/websocket?token=" + token
 					}
 				}).then(task =>{
 					_this.websocket = task
@@ -299,7 +298,7 @@
 					};
 					
 					const res = await uni.$ajax.post({
-						url: 'api/v1/orders/submit',
+						url: 'v1/orders/submit',
 						data: orderData
 					});
 					

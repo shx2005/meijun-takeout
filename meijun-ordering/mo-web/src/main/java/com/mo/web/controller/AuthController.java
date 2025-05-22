@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api")
 @Tag(name = "账号管理")
 public class AuthController {
     //todo 可以改为构造器注入
@@ -45,7 +45,7 @@ public class AuthController {
     @Autowired
     private RedisTemplate<String, Object>  redisTemplate;
 
-    @PostMapping("/login")
+    @PostMapping("/v1/auth/login")
     @Tag(name = "登录")
     @Parameters({
             @Parameter(name = "authLoginDTO", description = "登录信息", required = true)
@@ -71,6 +71,51 @@ public class AuthController {
         BaseContext.setCurrentId(user.getUuid());
         //todo 检查输入是否合法
         //todo 验证码
+        AuthLoginVo authLoginVo = AuthLoginVo.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .name(user.getName())
+                .uuid(user.getUuid())
+                .token(token)
+                .build();
+
+        return Result.success(authLoginVo);
+    }
+
+    @PostMapping("/mp/login")
+    @Tag(name = "微信小程序登录")
+    public Result<AuthLoginVo> mpLogin(@RequestBody Map<String, String> loginData) {
+        log.info("微信小程序登录: {}", loginData);
+        
+        // 获取微信小程序传来的code等信息
+        String code = loginData.get("code");
+        String encryptedData = loginData.get("encryptedData");
+        String getPhoneCode = loginData.get("getPhoneCode");
+        
+        // 这里应该调用微信API获取openid等信息
+        // 为了演示，我们直接构造一个模拟用户
+        User user = new User();
+        user.setId(1L); // 假设用户ID为1
+        user.setUsername("微信用户");
+        user.setName("微信用户");
+        user.setUuid(java.util.UUID.randomUUID().toString());
+        user.setIdentity(UserIdentity.CUSTOMER);
+        
+        Map<String, Object> claims = new HashMap<>();
+        String id = JwtClaimsConstant.getId(user.getIdentity());
+        claims.put(id, user.getId());
+
+        // 生成JWT令牌
+        String token = JwtUtil.createJwt(
+                getKey(user.getIdentity()),
+                getTtl(user.getIdentity()),
+                claims);
+
+        //放入当前线程
+        redisTemplate.opsForValue().set(RedisKeyConstant.USER_ID, user.getId());
+        redisTemplate.opsForValue().set(user.getUuid(), user, getTtl(user.getIdentity()), TimeUnit.MILLISECONDS);
+        BaseContext.setCurrentId(user.getUuid());
+        
         AuthLoginVo authLoginVo = AuthLoginVo.builder()
                 .id(user.getId())
                 .username(user.getUsername())

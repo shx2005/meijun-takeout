@@ -139,18 +139,8 @@
 								placeholder-style="font-weight:normal;color:#bbbbbb;"></input>
 						</view>
 						<view class="form-row">
-							<input class="input" type="number" v-model="vCode" placeholder="请输入验证码"
+							<input class="input" type="password" v-model="password" placeholder="请输入密码"
 								placeholder-style="font-weight:normal;color:#bbbbbb;"></input>
-							<!-- <view class="getvcode" :class="{forhidden:readonly}" @click="getVcode">{{ codeText }}</view> -->
-							<!-- <u-button @tap="getCode">{{codeTips}}</u-button> -->
-<!-- 							<template slot="suffix">
-								<u-code ref="uCode" @change="codeChange" seconds="60" changeText="X秒重新获取"></u-code>
-								<u-button  @tap="getCode" :text="codeTips" type="warning" size="normal"></u-button>
-							</template> -->
-							<view class="getvcode">
-								<u-code ref="uCode" @change="codeChange" seconds="60" changeText="X秒重新获取"></u-code>
-								<u-button  color="#feca50" @tap="getCode" :text="codeTips" type="warning" size="normal"></u-button>
-							</view>
 						</view>
 						<button  class="submit" size="default" @click="onSubmit"
 							:style="{background:PrimaryColor}">确定</button>
@@ -261,7 +251,7 @@
 				readonly: false,
 				codeText: '获取验证码',
 				phone: '', //号码
-				vCode: '', //验证码
+				password: '', //密码
 				code: '', //uni.login获取的code
 				PrimaryColor: '#1fba1a', //主题色
 				loginPopupShow: false,
@@ -424,34 +414,43 @@
 					return;
 				}
 				
-				if (!this.vCode) {
-					uni.$showMsg('请输入验证码');
+				if (!this.password) {
+					uni.$showMsg('请输入密码');
 					return;
 				}
 				
 				this.isLoading = true;
 				
 				try {
-					const res = await phoneLoginApi({
+					const result = await phoneLoginApi({
 						phone: this.phone,
-						code: this.vCode
+						password: this.password
 					});
 					
-					if (res) {
-						uni.setStorageSync('token', res.token);
-						uni.setStorageSync('userId', res.id);
+					// 根据后端返回的格式调整处理方式
+					// 如果返回的是整个响应对象，需要从中获取token和id
+					console.log('登录结果:', result);
+					
+					const token = result.token || (result.data && result.data.token);
+					const userId = result.id || (result.data && result.data.id);
+					
+					if (token) {
+						uni.setStorageSync('token', token);
+						uni.setStorageSync('userId', userId);
 						uni.setStorageSync('phoneNumber', this.phone);
-						this.userToken = res.token;
+						this.userToken = token;
 						
 						this.getUserInfo();
 						this.initData();
 						this.closeLogin();
 						
 						uni.$showMsg('登录成功', 'success');
+					} else {
+						throw new Error('未获取到有效的登录信息');
 					}
 				} catch (error) {
 					console.error('登录失败', error);
-					uni.$showMsg('登录失败，请检查手机号和验证码');
+					uni.$showMsg('登录失败，请检查手机号和密码');
 				} finally {
 					this.isLoading = false;
 				}
@@ -860,10 +859,14 @@
 						return;
 					}
 					
-					const res = await getUserInfoApi();
+					const response = await getUserInfoApi();
+					console.log('获取用户信息结果:', response);
 					
-					if (res) {
-						this.user = res;
+					// 处理可能的不同响应格式
+					const userData = response.data || response;
+					
+					if (userData) {
+						this.user = userData;
 						const phone = uni.getStorageSync('phoneNumber');
 						this.phoneNumber = phone ? phone.replace(/(\d{3})\d{4}(\d{4})/, "$1****$2") : '';
 						this.userToken = uni.getStorageSync('token');

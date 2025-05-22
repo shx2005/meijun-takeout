@@ -470,29 +470,37 @@
 				size : true,
 				scrollOffset: true
 				},data =>{
-				divHeadComponentsHeight = data.height
-				console.log('divHeadComponentsHeight',divHeadComponentsHeight);
-				console.log("得到节点信息" + JSON.stringify(data));
+				if (data) {
+					divHeadComponentsHeight = data.height
+					console.log('divHeadComponentsHeight',divHeadComponentsHeight);
+					console.log("得到节点信息" + JSON.stringify(data));
+				}
 				}).exec();
 				
 				menuBar.fields({
 				 size: true,
 				 scrollOffset: true
 				}, data => {
-				menuBarComponentsHeight = data.height
-				console.log('menuBarComponentsHeight',menuBarComponentsHeight);
-				console.log("得到节点信息" + JSON.stringify(data));
+				if (data) {
+					menuBarComponentsHeight = data.height
+					console.log('menuBarComponentsHeight',menuBarComponentsHeight);
+					console.log("得到节点信息" + JSON.stringify(data));
+				}
 				}).exec();
 				
 				divCart.fields({
 				 size: true,
 				 scrollOffset: true
 				}, data => {
-				divCartComponentsHeight = data.height
-				console.log('divCartComponentsHeight',divCartComponentsHeight);
-				console.log("得到节点信息" + JSON.stringify(data));
-				_this.fixedHeight = menuBarComponentsHeight + divCartComponentsHeight + divHeadComponentsHeight + 33
-				console.log('ComponentsHeight',_this.fixedHeight);
+				if (data) {
+					divCartComponentsHeight = data.height
+					console.log('divCartComponentsHeight',divCartComponentsHeight);
+					console.log("得到节点信息" + JSON.stringify(data));
+					if (menuBarComponentsHeight && divHeadComponentsHeight && divCartComponentsHeight) {
+						_this.fixedHeight = menuBarComponentsHeight + divCartComponentsHeight + divHeadComponentsHeight + 33
+						console.log('ComponentsHeight',_this.fixedHeight);
+					}
+				}
 				}).exec();
 				
 
