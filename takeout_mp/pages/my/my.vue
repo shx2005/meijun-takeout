@@ -8,17 +8,20 @@
 				<view class="u-flex u-p-l-30 u-p-r-20 u-p-t-30 u-p-b-30">
 					<block v-if="userToken">
 						<view class="u-m-r-20">
-							<image class="avatar" mode="aspectFill" :src="user.avatarUrl || '/static/logo.png'">
+							<image class="avatar" mode="aspectFill" :src="user.avatar_url || user.avatarUrl || '/static/logo.png'">
 							</image>
 						</view>
 						<view class="u-flex-1" @click="onJump">
 							<view class="nickName u-flex">
-								<view class="name u-m-r-10" style="color: #423e3e"
-									v-if="user.nickName || phoneUserName">{{user.nickName || phoneUserName}}</view>
+								<view class="name u-m-r-10" style="color: #423e3e">
+									{{user.nickName || user.username || phoneUserName || '美食用户'}}
+								</view>
 								<view class="placardVip">美食元素</view>
 							</view>
 							<view class="detail" v-if="phoneNumber">手机号：{{phoneNumber}}</view>
+							<view class="detail" v-else-if="user.phoneNum">手机号：{{user.phoneNum}}</view>
 							<view class="detail" v-else>手机号:未绑定</view>
+							<view class="detail" v-if="user.id">ID: {{user.id}}</view>
 						</view>
 					</block>
 					<block v-else>
@@ -226,7 +229,8 @@
 		logoutApi,
 		updateUserInfoApi,
 		phoneLoginApi,
-		sendValidateCodeApi
+		sendValidateCodeApi,
+		getUserInfoApi
 	} from "../../api/my.js"
 	import regeneratorRuntime from '../../lib/runtime/runtime.js';
 	export default {
@@ -398,9 +402,17 @@
 			onNickname(e) {
 				this.nickName = e.detail.value;
 			},
-			initPhoneUserName() {
-				let num = this.phoneNumber.slice(7)
-				this.phoneUserName = '手机用户' + num
+			// 格式化手机号 (添加星号保护隐私)
+			formatPhoneNum(phone) {
+				if (!phone) return '';
+				return phone.replace(/(\d{3})\d{4}(\d{4})/, "$1****$2");
+			},
+			
+			// 修改initPhoneUserName方法
+			initPhoneUserName(phone) {
+				if (!phone) return;
+				const num = phone.slice(-4); // 使用最后4位数字
+				this.phoneUserName = '美食用户' + num;
 			},
 			// 手机号登录
 			async onSubmit() {
@@ -866,7 +878,9 @@
 					wx.setStorageSync('phoneNumber', phoneNumber)
 
 					this.getUserInfo()
-					this.initPhoneUserName()
+					if (phoneNumber) {
+						this.initPhoneUserName(phoneNumber)
+					}
 					this.initData()
 
 				} else {
@@ -876,26 +890,49 @@
 			async getUserInfo() {
 				try {
 					if (!uni.getStorageSync('token')) {
-						this.user = null;
+						this.user = {};
 						this.phoneNumber = '';
 						this.userToken = '';
 						return;
 					}
 					
+					// 直接使用从my.js导入的getUserInfoApi函数
 					const response = await getUserInfoApi();
 					console.log('获取用户信息结果:', response);
 					
-					// 处理可能的不同响应格式
-					const userData = response.data || response;
-					
-					if (userData) {
-						this.user = userData;
-						const phone = uni.getStorageSync('phoneNumber');
-						this.phoneNumber = phone ? phone.replace(/(\d{3})\d{4}(\d{4})/, "$1****$2") : '';
+					// 检查响应是否符合预期
+					if (response && response.code === 0 && response.data) {
+						this.user = response.data;
+						
+						// 处理电话号码 - 优先使用数据库中的phoneNum
+						const phone = this.user.phoneNum || uni.getStorageSync('phoneNumber');
+						if (phone) {
+							this.phoneNumber = this.formatPhoneNum(phone);
+						}
+						
+						// 如果没有用户名，使用手机号生成一个
+						if (!this.user.nickName && !this.user.username && phone) {
+							this.initPhoneUserName(phone);
+						}
+						
 						this.userToken = uni.getStorageSync('token');
+					} else {
+						console.error('获取用户信息失败:', response && response.msg ? response.msg : '未知错误');
+						// 如果是未登录或用户不存在，清除本地存储
+						if (response && response.msg && 
+							(response.msg.includes('未登录') || response.msg.includes('不存在'))) {
+							uni.clearStorageSync();
+							this.user = {};
+							this.phoneNumber = '';
+							this.userToken = '';
+						}
 					}
 				} catch (error) {
 					console.error('获取用户信息失败', error);
+					// 只在开发环境显示错误提示
+					// #ifdef APP-PLUS
+					uni.$showMsg('获取用户信息失败，请重试');
+					// #endif
 				}
 			},
 			async logout() {
@@ -905,28 +942,83 @@
 					success: async (res) => {
 						if (res.confirm) {
 							try {
-								await logoutApi();
+								// 使用从my.js导入的logoutApi函数
+								const result = await logoutApi();
+								console.log('退出登录结果:', result);
+								
+								// 无论服务器响应如何，都清除本地存储
 								uni.clearStorageSync();
-								this.getUserInfo();
+								
+								// 重置用户相关数据
+								this.userToken = '';
+								this.user = {};
+								this.phoneNumber = '';
+								
+								// 显示退出成功提示
 								uni.$showMsg('已退出登录', 'success');
+								
+								// 重启应用 - 返回到首页
+								setTimeout(() => {
+									uni.reLaunch({
+										url: '/pages/index/index'
+									});
+								}, 500);
 							} catch (error) {
 								console.error('退出登录失败', error);
-								uni.$showMsg('退出登录失败');
+								
+								// 即使服务器端退出失败，也清除本地存储强制退出
+								uni.clearStorageSync();
+								this.userToken = '';
+								this.user = {};
+								this.phoneNumber = '';
+								
+								uni.$showMsg('已强制退出登录');
+								setTimeout(() => {
+									uni.reLaunch({
+										url: '/pages/index/index'
+									});
+								}, 500);
 							}
 						}
 					}
 				});
 			},
 			async logoutConfirm() {
-				const res = await logoutApi({})
-				if (res.code === 0) {
-					this.logoutshow = false
+				try {
+					const res = await logoutApi();
+					this.logoutshow = false;
+					
+					// 清除所有本地存储
+					uni.clearStorageSync();
+					this.userToken = '';
+					this.user = {};
+					this.phoneNumber = '';
+					
+					// 显示退出成功提示
+					uni.$showMsg('已退出登录', 'success');
+					
+					// 重启应用 - 返回到首页
 					setTimeout(() => {
-						wx.clearStorageSync()
-						this.getUserInfo()
-					}, 500)
-				} else {
-					return uni.$showMsg(res.msg == 'token不能为空'? '未登录' : res.msg);
+						uni.reLaunch({
+							url: '/pages/index/index'
+						});
+					}, 500);
+				} catch (error) {
+					console.error('退出登录失败', error);
+					
+					// 即使服务器端退出失败，也清除本地存储强制退出
+					this.logoutshow = false;
+					uni.clearStorageSync();
+					this.userToken = '';
+					this.user = {};
+					this.phoneNumber = '';
+					
+					uni.$showMsg('已强制退出登录');
+					setTimeout(() => {
+						uni.reLaunch({
+							url: '/pages/index/index'
+						});
+					}, 500);
 				}
 			},
 			logoutCancel(){

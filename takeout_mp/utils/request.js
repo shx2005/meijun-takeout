@@ -18,6 +18,8 @@ instance.interceptors.request.use(
       config.header['token'] = token
       config.header['Authorization'] = `Bearer ${token}`
     }
+    // 添加用户类型标识
+    config.header['userType'] = '3' // 3 代表 CUSTOMER
     return config
   },
   error => {
@@ -35,10 +37,46 @@ instance.interceptors.response.use(
     // 打印响应数据，帮助调试
     console.log('响应数据:', response.config.url, res)
     
+    // 检查HTTP状态码
+    if (response.statusCode >= 400) {
+      console.error(`HTTP错误: ${response.statusCode}`, response)
+      let errMsg = '请求失败'
+      
+      try {
+        // 尝试解析错误响应
+        if (typeof res === 'string' && res.includes('<Map>')) {
+          // 处理XML格式的错误响应
+          const errorMatch = res.match(/<error>(.*?)<\/error>/)
+          if (errorMatch) {
+            errMsg = errorMatch[1]
+          }
+        } else if (res && res.msg) {
+          errMsg = res.msg
+        }
+      } catch (e) {
+        console.error('解析错误响应失败:', e)
+      }
+      
+      // 对401特殊处理
+      if (response.statusCode === 401) {
+        // 清除token
+        uni.removeStorageSync('token')
+        // 跳转到登录页
+        setTimeout(() => {
+          uni.navigateTo({
+            url: '/pages/my/my'
+          })
+        }, 1000)
+        return Promise.reject(new Error('登录已过期，请重新登录'))
+      }
+      
+      return Promise.reject(new Error(errMsg))
+    }
+    
     // 判断返回的状态码
     if (res.code !== 0 && res.code !== 1 && res.code !== 200) {  // 接受多种成功状态码
       // 错误处理
-      uni.$showMsg(res.msg || '请求失败')
+      const errMsg = res.msg || '请求失败'
       
       // 未登录或token过期
       if (res.code === 401) {
@@ -47,12 +85,12 @@ instance.interceptors.response.use(
         // 跳转到登录页
         setTimeout(() => {
           uni.navigateTo({
-            url: '/pages/login/login'
+            url: '/pages/my/my'
           })
-        }, 1500)
+        }, 1000)
       }
       
-      return Promise.reject(new Error(res.msg || '请求失败'))
+      return Promise.reject(new Error(errMsg))
     }
     
     // 处理登录接口的特殊情况
@@ -71,11 +109,31 @@ instance.interceptors.response.use(
     // 检查是否有响应数据
     if (error.response) {
       console.error('错误响应:', error.response)
-      uni.$showMsg(`服务器错误 (${error.response.statusCode})`)
+      let errMsg = `服务器错误 (${error.response.statusCode})`
+      
+      try {
+        // 尝试解析错误响应
+        const res = error.response.data
+        if (typeof res === 'string' && res.includes('<Map>')) {
+          // 处理XML格式的错误响应
+          const errorMatch = res.match(/<error>(.*?)<\/error>/)
+          if (errorMatch) {
+            errMsg = errorMatch[1]
+          }
+        } else if (res && res.msg) {
+          errMsg = res.msg
+        }
+      } catch (e) {
+        console.error('解析错误响应失败:', e)
+      }
+      
+      uni.$showMsg(errMsg)
     } else if (error.errMsg) {
       // uni-app 错误格式
+      console.error('错误信息:', error.errMsg)
       uni.$showMsg(error.errMsg || '网络请求失败')
     } else {
+      console.error('未知错误:', error)
       uni.$showMsg('网络请求失败')
     }
     

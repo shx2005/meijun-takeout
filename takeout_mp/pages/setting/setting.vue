@@ -52,28 +52,50 @@
 
 			getUserInfo() {
 				let _this = this
-				let httpData = {
-					userId: wx.getStorageSync('userId')
-				}
-				getUserInfoApi(httpData).then(res => {
-					uni.showLoading({
-						title: '加载中'
-					})
-					if (res.code === 0) {
-						setTimeout(() => {
-							uni.hideLoading();
-							// 这里此提示会被this.start()方法中的提示覆盖
-							_this.phoneNumber = res.data.phone
-							_this.avatarUrl = res.data.avatarUrl
-							_this.nickName = res.data.nickName
-							_this.name = res.data.name,
-							_this.idNumber = res.data.idNumber.replace(/^(.{6}).*(.{4})$/, '$1********$2')
-							_this.sex = gender[res.data.gender]
-						}, 500);
-
+				uni.showLoading({
+					title: '正在加载用户信息...'
+				})
+				// 用户ID应该通过token在后端获取，不需要在前端传递
+				getUserInfoApi().then(res => {
+					if (res && res.code === 0 && res.data) {
+						_this.phoneNumber = res.data.phone || res.data.phoneNum || res.data.username || ''
+						_this.avatarUrl = res.data.avatar_url || res.data.avatarUrl || '/static/logo.png'
+						_this.nickName = res.data.nickName || res.data.username || '美食用户'
+						_this.name = res.data.name || ''
+						_this.idNumber = res.data.idNumber ? res.data.idNumber.replace(/^(.{6}).*(.{4})$/, '$1********$2') : ''
+						_this.sex = res.data.gender !== undefined ? gender[res.data.gender] : '保密'
 					} else {
-						uni.$u.toast(res.msg == 'token不能为空'? '未登录' : res.msg)
+						const errMsg = res?.msg || '获取用户信息失败'
+						if (errMsg.includes('token') || errMsg.includes('登录')) {
+							uni.$u.toast('请先登录')
+							setTimeout(() => {
+								uni.navigateTo({
+									url: '/pages/my/my'
+								})
+							}, 1500)
+						} else {
+							uni.$u.toast(errMsg)
+						}
 					}
+				}).catch(err => {
+					console.error("获取用户信息失败", err)
+					// 检查是否是服务器错误
+					if (err.response && err.response.statusCode === 500) {
+						uni.$showMsg('服务器内部错误，请稍后重试')
+					} else if (err.message && err.message.includes('网络')) {
+						uni.$showMsg('网络连接异常，请检查网络后重试')
+					} else if (err.message && err.message.includes('登录')) {
+						uni.$showMsg('请先登录')
+						setTimeout(() => {
+							uni.navigateTo({
+								url: '/pages/my/my'
+							})
+						}, 1500)
+					} else {
+						uni.$showMsg(err.message || '获取用户信息失败，请稍后重试')
+					}
+				}).finally(() => {
+					uni.hideLoading()
 				})
 			},
 			selectSex() {
@@ -116,8 +138,10 @@
 				uni.showLoading({
 					title: '加载中'
 				});
+				
+				// 修复URL路径格式，确保不会重复api前缀
 				uni.uploadFile({
-					url: instance().baseURL + 'mp/oss/upload',
+					url: 'http://localhost:8080/api/mp/oss/upload', // 直接使用完整URL
 					filePath: e.target.avatarUrl,
 					name: 'file',
 					header: {

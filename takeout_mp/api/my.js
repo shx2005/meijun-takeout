@@ -12,7 +12,7 @@ export const register = (data) => {
 }
 
 // 登出
-export const logout = () => {
+export const logoutApi = () => {
 	return authLogoutApi();
 }
 
@@ -21,10 +21,13 @@ export const getUserInfo = () => {
 	return getUserInfoApi();
 }
 
+// 导出获取用户信息API以供直接使用
+export { getUserInfoApi };
+
 // 更新用户信息
 export const updateUserInfoApi = (data) => {
 	return uni.$ajax.put({
-		url: 'api/v1/user/update',
+		url: 'v1/user/info',
 		data: data
 	})
 }
@@ -102,7 +105,7 @@ export const phoneLoginApi = (data) => {
 // 发送验证码
 export const sendValidateCodeApi = (data) => {
 	return uni.$ajax.get({
-		url: 'api/v1/auth/send-code',
+		url: 'v1/auth/send-code',
 		data: data
 	})
 }
