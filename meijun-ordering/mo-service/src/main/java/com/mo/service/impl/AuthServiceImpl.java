@@ -60,6 +60,11 @@ public class AuthServiceImpl implements AuthService {
             default -> throw new UnknownIdentityException(MessageConstant.UNKNOWN_IDENTITY);
         }
 
+        // 检查用户是否存在
+        if (user == null) {
+            throw new AccountNotFoundException("账号不存在: " + username);
+        }
+
         //todo 密码加密
         if(!user.getPassword().equals(password)) throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
 

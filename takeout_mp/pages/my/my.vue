@@ -409,7 +409,8 @@
 					return;
 				}
 				
-				if (!/^1[3-9]\d{9}$/.test(this.phone)) {
+				const trimmedPhone = this.phone.trim();
+				if (!/^1\d{10}$/.test(trimmedPhone)) {
 					uni.$showMsg('手机号格式不正确');
 					return;
 				}
@@ -422,31 +423,52 @@
 				this.isLoading = true;
 				
 				try {
+					// 调用登录接口
 					const result = await phoneLoginApi({
-						phone: this.phone,
+						phone: trimmedPhone,
 						password: this.password
 					});
-					
-					// 根据后端返回的格式调整处理方式
-					// 如果返回的是整个响应对象，需要从中获取token和id
-					console.log('登录结果:', result);
-					
-					const token = result.token || (result.data && result.data.token);
-					const userId = result.id || (result.data && result.data.id);
-					
-					if (token) {
-						uni.setStorageSync('token', token);
-						uni.setStorageSync('userId', userId);
-						uni.setStorageSync('phoneNumber', this.phone);
-						this.userToken = token;
+
+					// 检查响应状态和内容类型
+					if (result && result.statusCode === 200 && result.data && typeof result.data === 'object') {
+						// 根据后端返回的格式调整处理方式
+						// 如果返回的是整个响应对象，需要从中获取token和id
+						console.log('登录结果:', result);
 						
-						this.getUserInfo();
-						this.initData();
-						this.closeLogin();
+						const token = result.data.token; // Assuming token is directly in data
+						const userId = result.data.id; // Assuming id is directly in data
 						
-						uni.$showMsg('登录成功', 'success');
+						if (token) {
+							uni.setStorageSync('token', token);
+							uni.setStorageSync('userId', userId);
+							uni.setStorageSync('phoneNumber', trimmedPhone);
+							this.userToken = token;
+							
+							this.getUserInfo();
+							this.initData();
+							this.closeLogin();
+							
+							uni.$showMsg('登录成功', 'success');
+						} else {
+							throw new Error('未获取到有效的登录信息');
+						}
 					} else {
-						throw new Error('未获取到有效的登录信息');
+						// 处理登录接口返回的错误信息
+						console.error('登录接口返回错误:', result);
+						let errorMsg = '登录失败，请稍后重试';
+						if (result && result.data && typeof result.data === 'string' && result.data.includes('<error>')) {
+							// 尝试从XML中提取错误信息
+							const match = result.data.match(/<error>(.*?)<\/error>/);
+							if (match && match[1]) {
+								errorMsg = match[1];
+							}
+						} else if (result && result.data && result.data.msg) {
+							errorMsg = result.data.msg;
+						} else if (result && result.errMsg && result.errMsg !== "request:ok") {
+							errorMsg = result.errMsg;
+						}
+						uni.$showMsg(errorMsg);
+						// throw new Error(errorMsg); // Optionally re-throw if you want the catch block below to handle it
 					}
 				} catch (error) {
 					console.error('登录失败', error);
@@ -462,14 +484,15 @@
 					return;
 				}
 				
-				if (!/^1[3-9]\d{9}$/.test(this.phone)) {
+				const trimmedPhone = this.phone.trim();
+				if (!/^1\d{10}$/.test(trimmedPhone)) {
 					uni.$showMsg('手机号格式不正确');
 					return;
 				}
 				
 				try {
 					const res = await sendValidateCodeApi({
-						phone: this.phone
+						phone: trimmedPhone
 					});
 					
 					if (res) {

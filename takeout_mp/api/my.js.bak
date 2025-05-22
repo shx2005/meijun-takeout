@@ -1,0 +1,160 @@
+import regeneratorRuntime, { async } from '../lib/runtime/runtime';
+import { loginApi, registerApi, logoutApi as authLogoutApi, getUserInfoApi } from './index';
+
+// 登录
+export const login = (data) => {
+	return loginApi(data);
+}
+
+// 注册
+export const register = (data) => {
+	return registerApi(data);
+}
+
+// 登出
+export const logout = () => {
+	return authLogoutApi();
+}
+
+// 获取用户信息
+export const getUserInfo = () => {
+	return new Promise((resolve, reject) => {
+		uni.request({
+			url: 'http://localhost:8080/api/v1/user/info',
+			method: 'GET',
+			header: {
+				'token': uni.getStorageSync('token'),
+				'Authorization': `Bearer ${uni.getStorageSync('token')}`,
+				'userType': '2' // 添加userType header，2表示CUSTOMER
+			},
+			success: (res) => {
+				console.log('获取用户信息响应:', res);
+				
+				// 检查状态码
+				if (res.statusCode === 200) {
+					// 判断响应类型
+					if (typeof res.data === 'string' && (res.data.includes('<Result>') || res.data.includes('<Map>'))) {
+						try {
+							// 简单解析XML获取用户信息
+							const nameMatch = res.data.match(/<name>(.*?)<\/name>/);
+							const phoneMatch = res.data.match(/<phoneNum>(.*?)<\/phoneNum>/);
+							const avatarMatch = res.data.match(/<avatar_url>(.*?)<\/avatar_url>/);
+							const idMatch = res.data.match(/<id>(.*?)<\/id>/);
+							
+							const userData = {
+								name: nameMatch && nameMatch[1] ? nameMatch[1] : '',
+								nickName: nameMatch && nameMatch[1] ? nameMatch[1] : '',
+								phoneNum: phoneMatch && phoneMatch[1] ? phoneMatch[1] : '',
+								avatar_url: avatarMatch && avatarMatch[1] ? avatarMatch[1] : '',
+								avatarUrl: avatarMatch && avatarMatch[1] ? avatarMatch[1] : '',
+								id: idMatch && idMatch[1] ? idMatch[1] : null
+							};
+							
+							console.log('从XML中提取的用户数据:', userData);
+							resolve(userData);
+						} catch (e) {
+							console.error('解析XML失败:', e);
+							reject(e);
+						}
+					} else {
+						// 如果不是XML，直接返回
+						resolve(res.data);
+					}
+				} else {
+					// 请求成功但服务器返回错误
+					uni.$showMsg(`获取用户信息失败: ${res.data && res.data.msg ? res.data.msg : '未知错误'}`);
+					reject(new Error(res.data && res.data.msg ? res.data.msg : '获取用户信息失败'));
+				}
+			},
+			fail: (err) => {
+				console.error('获取用户信息请求失败:', err);
+				uni.$showMsg('网络请求失败');
+				reject(err);
+			}
+		});
+	});
+}
+
+// 更新用户信息
+export const updateUserInfoApi = (data) => {
+	return uni.$ajax.put({
+		url: 'v1/user/update',
+		data: data
+	})
+}
+
+// 手机密码登录
+export const phoneLoginApi = (data) => {
+	return new Promise((resolve, reject) => {
+		uni.request({
+			url: 'http://localhost:8080/api/v1/auth/login',
+			method: 'POST',
+			header: {
+				'userType': '2' // 添加userType header，2表示CUSTOMER
+			},
+			data: {
+				username: data.phone,
+				password: data.password,
+				identity: 'CUSTOMER'
+			},
+			success: (res) => {
+				console.log('登录响应:', res);
+				
+				// 检查状态码
+				if (res.statusCode === 200) {
+					// 判断响应类型
+					if (typeof res.data === 'string' && (res.data.includes('<Result>') || res.data.includes('<Map>'))) {
+						try {
+							// 简单解析XML获取token
+							const tokenMatch = res.data.match(/<token>(.*?)<\/token>/);
+							const idMatch = res.data.match(/<id>(.*?)<\/id>/);
+							
+							if (tokenMatch && tokenMatch[1]) {
+								const result = {
+									token: tokenMatch[1],
+									id: idMatch && idMatch[1] ? idMatch[1] : null
+								};
+								console.log('从XML中提取的数据:', result);
+								resolve(result);
+							} else {
+								uni.$showMsg('解析登录响应失败');
+								reject(new Error('解析登录响应失败'));
+							}
+						} catch (e) {
+							console.error('解析XML失败:', e);
+							uni.$showMsg('解析登录响应失败');
+							reject(e);
+						}
+					} else {
+						// 如果不是XML，直接返回
+						resolve(res.data);
+					}
+				} else {
+					// 请求成功但服务器返回错误
+					uni.$showMsg(`登录失败: ${res.data.msg || '未知错误'}`);
+					reject(new Error(res.data.msg || '登录失败'));
+				}
+			},
+			fail: (err) => {
+				console.error('登录请求失败:', err);
+				uni.$showMsg('网络请求失败');
+				reject(err);
+			}
+		});
+	});
+}
+
+// 发送验证码
+export const sendValidateCodeApi = (data) => {
+	return uni.$ajax.get({
+		url: 'v1/auth/send-code',
+		data: data
+	})
+}
+
+// 刷新Token
+export const refreshTokenApi = () => {
+	return uni.$ajax.post({
+		url: 'v1/auth/refresh-token'
+	})
+} 

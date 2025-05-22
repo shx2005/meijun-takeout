@@ -54,34 +54,46 @@ export const phoneLoginApi = (data) => {
 							
 							if (tokenMatch && tokenMatch[1]) {
 								const result = {
-									token: tokenMatch[1],
-									id: idMatch && idMatch[1] ? idMatch[1] : null
+									statusCode: res.statusCode, // Preserve status code
+									data: { // Structure as expected by my.vue
+										token: tokenMatch[1],
+										id: idMatch && idMatch[1] ? idMatch[1] : null
+									}
 								};
-								console.log('从XML中提取的数据:', result);
-								resolve(result);
+								console.log('从XML中提取的数据封装后:', result);
+								resolve(result); // Resolve with the structured object
 							} else {
-								uni.$showMsg('解析登录响应失败');
-								reject(new Error('解析登录响应失败'));
+								// uni.$showMsg('解析登录响应失败'); // Let my.vue handle UI messages
+								resolve(res); // Resolve with original response if parsing fails
 							}
 						} catch (e) {
 							console.error('解析XML失败:', e);
-							uni.$showMsg('解析登录响应失败');
-							reject(e);
+							// uni.$showMsg('解析登录响应失败'); // Let my.vue handle UI messages
+							resolve(res); // Resolve with original response on error
 						}
 					} else {
-						// 如果不是XML，直接返回
-						resolve(res.data);
+						// 如果不是XML，直接返回，确保res.data is what my.vue expects or wrap it
+						// Assuming my.vue expects { statusCode: ..., data: { token: ..., id: ... } } for success
+						// If res.data is already in the correct { token: ..., id: ... } format, this is fine
+						// Otherwise, it might need adjustment like the XML case
+						resolve({ statusCode: res.statusCode, data: res.data }); 
 					}
 				} else {
-					// 请求成功但服务器返回错误
-					uni.$showMsg(`登录失败: ${res.data.msg || '未知错误'}`);
-					reject(new Error(res.data.msg || '登录失败'));
+					// 请求成功但服务器返回错误 (e.g., 4xx, 5xx)
+					// uni.$showMsg(`登录失败: ${res.data.msg || '未知错误'}`); // Let my.vue handle UI messages
+					resolve(res); // Resolve with the full response object (including error status and data)
 				}
 			},
 			fail: (err) => {
 				console.error('登录请求失败:', err);
-				uni.$showMsg('网络请求失败');
-				reject(err);
+				// uni.$showMsg('网络请求失败'); // Let my.vue handle UI messages
+				// For network errors, we should still resolve with an object that my.vue can inspect
+				// err for uni.request typically doesn't have statusCode or data, so construct a compatible error object
+				resolve({ 
+					statusCode: 0, // Or some other indicator of network error
+					data: null, 
+					errMsg: (err && err.errMsg) ? err.errMsg : '网络请求失败' 
+				});
 			}
 		});
 	});
