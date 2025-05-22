@@ -3,10 +3,25 @@ package com.mo.common.constant;
 import com.mo.common.enumeration.UserIdentity;
 
 public class JwtClaimsConstant {
-    private static final String ADMIN_ID = "adminID";
-    private static final String CUSTOMER_ID = "customerID";
-    private static final String EMPLOYEE_ID = "employeeID";
-    private static final String MERCHANT_ID = "merchantID";
+    public static final String ADMIN_ID = "adminID";
+    public static final String CUSTOMER_ID = "customerID";
+    public static final String EMPLOYEE_ID = "employeeID";
+    public static final String MERCHANT_ID = "merchantID";
+
+    public static final String ADMIN = "admin";
+    public static final String CUSTOMER = "customer";
+    public static final String EMPLOYEE = "employee";
+    public static final String MERCHANT = "merchant";
+
+    public static String getName(UserIdentity userIdentity){
+        return switch (userIdentity) {
+            case ADMIN -> ADMIN;
+            case CUSTOMER -> CUSTOMER;
+            case EMPLOYEE -> EMPLOYEE;
+            case MERCHANT -> MERCHANT;
+            default -> null;
+        };
+    }
 
     public static String getId(UserIdentity userIdentity){
         return switch (userIdentity) {

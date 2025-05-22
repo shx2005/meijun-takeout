@@ -12,7 +12,6 @@ import com.mo.common.result.Result;
 import com.mo.entity.Employee;
 import com.mo.entity.Order;
 import com.mo.entity.Store;
-import com.mo.service.impl.StoreServiceImpl;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -109,7 +108,7 @@ public class MerchantController {
 
     @GetMapping("/stores")
     public Result<List<Store>> getStore(){
-        List<Store> list = storeService.getAll();
+        List<Store> list = storeService.getStore();
 
         return Result.success(list);
     }
