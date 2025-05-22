@@ -5,7 +5,7 @@ import com.mo.entity.Store;
 import java.util.List;
 
 public interface StoreService {
-    List<Store> getAll();
+    List<Store> getStore();
 
     void updateStore(Store store);
 }

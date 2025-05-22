@@ -20,7 +20,7 @@ public class CouponController {
     @Autowired
     private CouponService couponService;
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @GetMapping("")
     public Result<List<Coupon>> getCoupons() {
