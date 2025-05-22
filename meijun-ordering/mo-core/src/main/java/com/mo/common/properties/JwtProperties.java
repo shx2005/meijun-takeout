@@ -36,4 +36,22 @@ public class JwtProperties {
     private String employeeSecretKey;
     private long employeeTtl;
     private String employeeTokenName;
+
+    public String getSecretKeyByType(UserIdentity type) {
+        return switch (type) {
+            case ADMIN -> adminSecretKey;
+            case CUSTOMER -> customerSecretKey;
+            case MERCHANT -> merchantSecretKey;
+            case EMPLOYEE -> employeeSecretKey;
+        };
+    }
+
+    public String getTokenNameByType(UserIdentity type) {
+        return switch (type) {
+            case ADMIN -> adminTokenName;
+            case CUSTOMER -> customerTokenName;
+            case MERCHANT -> merchantTokenName;
+            case EMPLOYEE -> employeeTokenName;
+        };
+    }
 }
