@@ -80,13 +80,12 @@
 </template>
 
 <script>
-	import WebsocketHeartbeat from 'websocket-heartbeat-miniprogram';
+	import WebsocketHeartbeat from '@/node_modules/websocket-heartbeat-miniprogram';
 	import '../../api/index.js'
 	import regeneratorRuntime, {
 		async
 	} from '../../lib/runtime/runtime';
 	import {
-
 		cartListApi,
 		categoryListApi,
 		dishListApi,
@@ -97,7 +96,8 @@
 		addCartApi,
 	} from '../../api/index';
 	import {
-		getDefaultAddressApi
+		getDefaultAddressApi,
+		addressListApi
 	} from '../../api/address.js'
 	import {
 		addOrderApi
@@ -112,36 +112,36 @@
 				timeoutNum: null, // 断开 重连倒计时
 				lockReconnect: false, // 防止
 				imageUrl: '',
-				address: {},
+				address: null,
 				finishTime: '', //送达时间
 				cartData: [],
 				note: '', //备注信息,
-				websocket: null
-
-
+				websocket: null,
+				loading: false
 			}
 		},
 		onShow() {
-			
+			// 获取上一页传递的地址
 			let pages = getCurrentPages();
-			let currPage = pages[pages.length - 1]; //当前页面
-			console.log("currpage",currPage)
-			var currAddress = currPage.data.address
-			this.address = currAddress
-			// console.log("currAddress",currAddress)
-			// this.address = currAddress
-			console.log("address",this.address)
-			// this.init()
+			let currPage = pages[pages.length - 1];
+			
+			if (currPage.data && currPage.data.address) {
+				this.address = currPage.data.address;
+			} else {
+				this.getDefaultAddress();
+			}
+			
+			this.initData();
 		},
 		onUnload() {
 			console.log("onUnload")
 			try {
-			  this.websocket.close()
+				if (this.websocket) {
+					this.websocket.close()
+				}
 			} catch (e) {
-			  console.log('Error closing WebSocket:', e);
+				console.log('Error closing WebSocket:', e);
 			}
-
-			
 		},
 		computed: {
 			goodsNum() {
@@ -166,8 +166,8 @@
 		created() {
 			this.initData()
 			this.getFinishTime()
-			this.initWebSocket()
-			
+			// 可选择是否启用WebSocket
+			// this.initWebSocket()
 		},
 		mounted() {},
 		methods: {
@@ -177,8 +177,7 @@
 				WebsocketHeartbeat({
 					miniprogram: wx,
 					connectSocketParams: {
-						url:  process.env.WEBSOCKET_BASE_URL + 'mp/websocket?token=' + token
-						// url:  "ws://localhost:8081/api/mp/websocket?token=" + token
+						url:  process.env.WEBSOCKET_BASE_URL + 'mp/websocket?token=' + token || "ws://localhost:8080/api/mp/websocket?token=" + token
 					}
 				}).then(task =>{
 					_this.websocket = task
@@ -207,23 +206,26 @@
 			},
 			initData() {
 				//获取默认的地址
-				this.defaultAddress()
+				this.getDefaultAddress()
 				//获取购物车的商品
 				this.getCartData()
 			},
 			//获取默认地址
-			async defaultAddress() {
-				const res = await getDefaultAddressApi()
-				if (res.code === 0) {
-					console.log("res",res.data)
-					this.address = res.data
-				} else {
-
-					// 	uni.navigateTo({
-					// 		url:'/pages/addressEdit/addressEdit'
-
-					// 	})
-
+			async getDefaultAddress() {
+				try {
+					const res = await getDefaultAddressApi()
+					if (res.code === 0) {
+						console.log("res",res.data)
+						this.address = res.data
+					} else {
+						// 如果没有默认地址，尝试获取地址列表
+						const addressList = await addressListApi()
+						if (addressList && addressList.length > 0) {
+							this.address = addressList[0]
+						}
+					}
+				} catch (error) {
+					console.error('获取默认地址失败', error)
 				}
 			},
 			//获取送达时间
@@ -243,42 +245,77 @@
 				uni.navigateTo({
 					url: '/pages/address/address'
 				})
-
 			},
 			//获取购物车数据
 			async getCartData() {
-				const res = await cartListApi({})
-				if (res.code === 0) {
-					this.cartData = res.data
-				} else {
-					return uni.$showMsg(res.msg)
+				try {
+					const res = await cartListApi();
+					
+					if (res) {
+						this.cartData = res.items || [];
+						
+						if (this.cartData.length === 0) {
+							uni.showModal({
+								title: '提示',
+								content: '购物车为空，是否返回点餐页面？',
+								success: function(res) {
+									if (res.confirm) {
+										uni.switchTab({
+											url: '/pages/index/index'
+										});
+									}
+								}
+							});
+						}
+					} else {
+						uni.$showMsg('获取购物车失败');
+					}
+				} catch (error) {
+					console.error('获取购物车数据失败', error);
+					uni.$showMsg('获取购物车失败，请检查网络');
 				}
 			},
 			async goToPaySuccess() {
-				console.log(this.address + "收货地址")
-				if (this.address.id == null) {
-					console.log(this.address.id + '收货地址ID')
-					return uni.$showMsg('请选择收货地址', 1500, 'none')
+				if (!this.address) {
+					uni.$showMsg('请选择收货地址');
+					return;
 				}
-				const params = {
-					remark: this.note,
-					payMethod: 1,
-					addressBookId: this.address.id
+				
+				if (this.cartData.length === 0) {
+					uni.$showMsg('购物车为空，请先添加商品');
+					return;
 				}
-				const res = await addOrderApi(params)
-				if (res.code === 0) {
-					this.websocket.send({
-						data : "您有一个新的外卖订单，请及时处理！"
-					})
-					let _this = this
-					uni.navigateTo({
-						url: '../paySuccess/paySuccess',
-						success: () => {
-							_this.websocket.close()
-						}
-					})
-				} else {
-					return uni.$showMsg(res.msg)
+				
+				if (this.loading) return;
+				this.loading = true;
+				
+				try {
+					const orderData = {
+						addressBookId: this.address.id,
+						remark: this.note,
+						payMethod: 1, // 默认微信支付
+						expectedDeliveryTime: this.finishTime
+					};
+					
+					const res = await uni.$ajax.post({
+						url: 'v1/orders/submit',
+						data: orderData
+					});
+					
+					if (res) {
+						// 清空购物车
+						await clearCartApi();
+						
+						// 跳转到支付成功页面
+						uni.navigateTo({
+							url: '/pages/paySuccess/paySuccess?orderId=' + res.id
+						});
+					}
+				} catch (error) {
+					console.error('提交订单失败', error);
+					uni.$showMsg('提交订单失败，请重试');
+				} finally {
+					this.loading = false;
 				}
 			},
 		}

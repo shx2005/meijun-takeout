@@ -1,5 +1,6 @@
 package com.mo.service.aspectj;
 
+// import com.mo.common.utils.IdGenerator; // 移除未使用的导入
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -9,32 +10,25 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.UUID;
+import java.util.UUID; // 确保这个导入存在，因为 UUID 被使用了
 
-@Slf4j
 @Aspect
 @Component
+@Slf4j
 public class UuidAutoFillAspect {
 
-    @Pointcut("execution(* com.mo.service.impl.*.save*(..)) && @annotation(com.mo.service.annotation.AutoFillUuid)")
-    public void autoFillSave() {}
+    @Pointcut("execution(* com.mo.service.impl.*.*(..)) && @annotation(com.mo.service.annotation.AutoFillUuid)")
+    public void autoFill() {}
 
-    @Before("autoFillSave()")
-    public void beforeSave(JoinPoint joinPoint) {
-        log.info("[before] 开始: {}", joinPoint.getSignature());
+    @Before("autoFill()")
+    public void before(JoinPoint joinPoint) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        log.info("[before] 开始：{}", joinPoint.getSignature());
         Object[] args = joinPoint.getArgs();
-        for(Object arg : args){
-            try{
-                Method setUuid = arg.getClass().getMethod("setUuid", String.class);
-
-                String newUuid = UUID.randomUUID().toString().substring(0, 6);
-                newUuid = arg.getClass().getSimpleName() + newUuid;
-
-                setUuid.invoke(arg, newUuid);
-            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e){
-                log.warn("自动填充UUID失败,字段： {}", e.getMessage());
-                throw new RuntimeException(e);
-            }
+        for (Object arg : args) {
+            Method setUuid = arg.getClass().getMethod("setUuid", String.class);
+            String uuid = UUID.randomUUID().toString().replace("-", "");
+            setUuid.invoke(arg, uuid);
+            log.info("成功为 {} 填充了uuid：{}", arg.getClass().getSimpleName(), uuid);
         }
     }
 }

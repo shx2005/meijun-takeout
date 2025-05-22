@@ -53,12 +53,12 @@
 		async
 	} from '../../lib/runtime/runtime';
 	import {
-		addOrderApi,
-		orderListApi,
-		orderPagingApi,
+		getOrdersApi,
+		getOrderDetailApi,
+		submitOrderCommentApi,
 		orderAgainApi,
 		deleteOrderApi
-	} from '../../api/orderList.js';
+	} from '../../api/index.js';
 	export default {
 		data() {
 			return {
@@ -139,40 +139,9 @@
 			},
 			async getList() {
 				this.isloading = true;
-				const token = wx.getStorageSync('token')
-				if (token) {
-					const res = await orderPagingApi(this.paging);
-					console.log(res);
-					this.isloading = false;
-					if (res.code === 0) {
-						this.orderList.push(...res.data.list);
-						this.countToal = res.data.total;
-						let records = res.data.list;
-						if (records.length != 0) {
-							this.show = false;
-						}
-						if (records && Array.isArray(records)) {
-							records.forEach(item => {
-								let number = 0;
-								item.orderDetails.forEach(ele => {
-									number += ele.number;
-								});
-								item.sumNum = number;
-							});
-						}
-						if (this.paging.page >= res.data.pages) {
-							this.status = 'nomore';
-						}
-						this.paging.page = this.paging.page + 1;
-					} else {
-						return uni.$showMsg(res.msg);
-					}
-					if (this.loading) {
-						setTimeout(() => {
-							this.loading = false;
-						}, 1500);
-					}
-				} else {
+				const token = uni.getStorageSync('token');
+				
+				if (!token) {
 					uni.showModal({
 						title: '提示',
 						content: '请登录',
@@ -182,13 +151,70 @@
 								uni.switchTab({
 									url: '/pages/my/my'
 								});
-							} else if (res.cancel) {
-								console.log('用户点击取消');
 							}
 						}
 					});
+					this.isloading = false;
+					return;
 				}
-
+				
+				try {
+					const res = await getOrdersApi({
+						page: this.paging.page,
+						size: this.paging.pageSize
+					});
+					
+					if (res && Array.isArray(res.records)) {
+						// 处理订单数据
+						const records = res.records;
+						
+						if (records.length > 0) {
+							this.show = false;
+							
+							// 计算订单商品总数
+							records.forEach(item => {
+								let number = 0;
+								if (item.orderDetails && Array.isArray(item.orderDetails)) {
+									item.orderDetails.forEach(ele => {
+										number += ele.number;
+									});
+								}
+								item.sumNum = number;
+							});
+							
+							// 添加到订单列表
+							this.orderList.push(...records);
+							this.countToal = res.total || records.length;
+							
+							// 更新分页状态
+							if (this.paging.page >= (res.pages || Math.ceil(this.countToal / this.paging.pageSize))) {
+								this.status = 'nomore';
+							}
+							
+							this.paging.page++;
+						} else if (this.orderList.length === 0) {
+							this.show = true;
+						}
+					} else {
+						uni.$showMsg('获取订单失败');
+						if (this.orderList.length === 0) {
+							this.show = true;
+						}
+					}
+				} catch (error) {
+					console.error('获取订单列表失败', error);
+					uni.$showMsg('获取订单失败，请检查网络');
+					if (this.orderList.length === 0) {
+						this.show = true;
+					}
+				} finally {
+					this.isloading = false;
+					if (this.loading) {
+						setTimeout(() => {
+							this.loading = false;
+						}, 500);
+					}
+				}
 			},
 			onRefresh() {
 				// 清空列表数据
@@ -202,15 +228,23 @@
 				this.onLoad();
 			},
 			async addOrderAgain(order) {
-				const res = await orderAgainApi({
-					id: order.id
-				});
-				if (res.code === 0) {
-					uni.switchTab({
-						url: '/pages/index/index'
+				try {
+					uni.showLoading({
+						title: '加载中'
 					});
-				} else {
-					return uni.$showMsg(res.msg);
+					
+					const res = await orderAgainApi(order.id);
+					
+					if (res) {
+						uni.navigateTo({
+							url: '/pages/addOrder/addOrder'
+						});
+					}
+				} catch (error) {
+					console.error('再来一单失败', error);
+					uni.$showMsg('操作失败，请重试');
+				} finally {
+					uni.hideLoading();
 				}
 			},
 			beforeClose({
@@ -267,26 +301,18 @@
 					});
 			},
 			getStatus(status) {
-				let str = '';
-				switch (status) {
-					case 1:
-						str = '待付款';
-						break;
-					case 2:
-						str = '正在派送';
-
-						break;
-					case 3:
-						str = '已派送';
-						break;
-					case 4:
-						str = '已完成';
-						break;
-					case 5:
-						str = '已取消';
-						break;
-				}
-				return str;
+				const statusMap = {
+					1: '待付款',
+					2: '待接单',
+					3: '已接单',
+					4: '派送中',
+					5: '已完成',
+					6: '已取消',
+					7: '退款中',
+					8: '已退款'
+				};
+				
+				return statusMap[status] || '未知状态';
 			},
 			gotoDetail(item) {
 

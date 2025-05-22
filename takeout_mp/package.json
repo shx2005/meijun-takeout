@@ -6,8 +6,8 @@
 	 	 	 	 "env": {
 	 	 	 	 	 "ENV_TYPE": "dev",
 	 	 	 	 	 "UNI_PLATFORM": "mp-weixin",
-	 	 	 	 	 "VUE_APP_BASE_URL": "http://localhost:8081/api/",
-	 	 	 	 	 "WEBSOCKET_BASE_URL": "ws://localhost:8081/api/"
+	 	 	 	 	 "VUE_APP_BASE_URL": "http://localhost:8080/api/",
+	 	 	 	 	 "WEBSOCKET_BASE_URL": "ws://localhost:8080/api/"
 	 	 	 	 }
 	 	 	 },
 	 	 	 "test": {
@@ -15,8 +15,8 @@
 	 	 	 	 "env": {
 	 	 	 	 	 "ENV_TYPE": "test",
 	 	 	 	 	 "UNI_PLATFORM": "mp-weixin",
-	 	 	 	 	 "VUE_APP_BASE_URL": "http://192.168.173.200:8081/api/",
-	 	 	 	 	 "WEBSOCKET_BASE_URL": "ws://192.168.173.200:8081/api/"
+	 	 	 	 	 "VUE_APP_BASE_URL": "http://192.168.173.200:8080/api/",
+	 	 	 	 	 "WEBSOCKET_BASE_URL": "ws://192.168.173.200:8080/api/"
 	 	 	 	 }
 	 	 	 },
 	 	 	 "pro": {
@@ -24,8 +24,8 @@
 	 	 	 	 "env": {
 	 	 	 	 	 "ENV_TYPE": "pro",
 	 	 	 	 	 "UNI_PLATFORM": "mp-weixin",
-	 	 	 	 	 "VUE_APP_BASE_URL": "http://localhost:8081/api/",
-	 	 	 	 	 "WEBSOCKET_BASE_URL": "wss://localhost:8081/api/"
+	 	 	 	 	 "VUE_APP_BASE_URL": "http://localhost:8080/api/",
+	 	 	 	 	 "WEBSOCKET_BASE_URL": "wss://localhost:8080/api/"
 	 	 	 	 }
 	 	 	 }
 	 	 }

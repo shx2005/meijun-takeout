@@ -8,17 +8,20 @@
 				<view class="u-flex u-p-l-30 u-p-r-20 u-p-t-30 u-p-b-30">
 					<block v-if="userToken">
 						<view class="u-m-r-20">
-							<image class="avatar" mode="aspectFill" :src="user.avatarUrl || '/static/logo.png'">
+							<image class="avatar" mode="aspectFill" :src="user.avatar_url || user.avatarUrl || '/static/logo.png'">
 							</image>
 						</view>
 						<view class="u-flex-1" @click="onJump">
 							<view class="nickName u-flex">
-								<view class="name u-m-r-10" style="color: #423e3e"
-									v-if="user.nickName || phoneUserName">{{user.nickName || phoneUserName}}</view>
+								<view class="name u-m-r-10" style="color: #423e3e">
+									{{user.nickName || user.username || phoneUserName || '美食用户'}}
+								</view>
 								<view class="placardVip">美食元素</view>
 							</view>
 							<view class="detail" v-if="phoneNumber">手机号：{{phoneNumber}}</view>
+							<view class="detail" v-else-if="user.phoneNum">手机号：{{user.phoneNum}}</view>
 							<view class="detail" v-else>手机号:未绑定</view>
+							<view class="detail" v-if="user.id">ID: {{user.id}}</view>
 						</view>
 					</block>
 					<block v-else>
@@ -139,18 +142,8 @@
 								placeholder-style="font-weight:normal;color:#bbbbbb;"></input>
 						</view>
 						<view class="form-row">
-							<input class="input" type="number" v-model="vCode" placeholder="请输入验证码"
+							<input class="input" type="password" v-model="password" placeholder="请输入密码"
 								placeholder-style="font-weight:normal;color:#bbbbbb;"></input>
-							<!-- <view class="getvcode" :class="{forhidden:readonly}" @click="getVcode">{{ codeText }}</view> -->
-							<!-- <u-button @tap="getCode">{{codeTips}}</u-button> -->
-<!-- 							<template slot="suffix">
-								<u-code ref="uCode" @change="codeChange" seconds="60" changeText="X秒重新获取"></u-code>
-								<u-button  @tap="getCode" :text="codeTips" type="warning" size="normal"></u-button>
-							</template> -->
-							<view class="getvcode">
-								<u-code ref="uCode" @change="codeChange" seconds="60" changeText="X秒重新获取"></u-code>
-								<u-button  color="#feca50" @tap="getCode" :text="codeTips" type="warning" size="normal"></u-button>
-							</view>
 						</view>
 						<button  class="submit" size="default" @click="onSubmit"
 							:style="{background:PrimaryColor}">确定</button>
@@ -236,7 +229,8 @@
 		logoutApi,
 		updateUserInfoApi,
 		phoneLoginApi,
-		sendValidateCodeApi
+		sendValidateCodeApi,
+		getUserInfoApi
 	} from "../../api/my.js"
 	import regeneratorRuntime from '../../lib/runtime/runtime.js';
 	export default {
@@ -261,7 +255,7 @@
 				readonly: false,
 				codeText: '获取验证码',
 				phone: '', //号码
-				vCode: '', //验证码
+				password: '', //密码
 				code: '', //uni.login获取的code
 				PrimaryColor: '#1fba1a', //主题色
 				loginPopupShow: false,
@@ -408,101 +402,118 @@
 			onNickname(e) {
 				this.nickName = e.detail.value;
 			},
-			initPhoneUserName() {
-				let num = this.phoneNumber.slice(7)
-				this.phoneUserName = '手机用户' + num
+			// 格式化手机号 (添加星号保护隐私)
+			formatPhoneNum(phone) {
+				if (!phone) return '';
+				return phone.replace(/(\d{3})\d{4}(\d{4})/, "$1****$2");
+			},
+			
+			// 修改initPhoneUserName方法
+			initPhoneUserName(phone) {
+				if (!phone) return;
+				const num = phone.slice(-4); // 使用最后4位数字
+				this.phoneUserName = '美食用户' + num;
 			},
 			// 手机号登录
-			onSubmit() {
-				if (this.phone == '') {
-					uni.showToast({
-						title: '请输入手机号~',
-						icon: 'none'
-					});
+			async onSubmit() {
+				if (!this.phone) {
+					uni.$showMsg('请输入手机号');
 					return;
 				}
-				const phoneRegular = /^(13[0-9]{9})|(15[0-9]{9})|(17[0-9]{9})|(18[0-9]{9})|(19[0-9]{9})$/;
-				if (!phoneRegular.test(this.phone)) {
-					uni.showToast({
-						title: '手机号格式不正确~',
-						icon: 'none'
-					});
+				
+				const trimmedPhone = this.phone.trim();
+				if (!/^1\d{10}$/.test(trimmedPhone)) {
+					uni.$showMsg('手机号格式不正确');
 					return;
 				}
-				if (this.vCode == '') {
-					uni.showToast({
-						title: '请输入验证码~',
-						icon: 'none'
-					});
+				
+				if (!this.password) {
+					uni.$showMsg('请输入密码');
 					return;
 				}
-				let httpData = {
-					phone: this.phone,
-					code: this.vCode
-				};
-				phoneLoginApi(httpData).then(res => {
-					if (res.code === 0) {
+				
+				this.isLoading = true;
+				
+				try {
+					// 调用登录接口
+					const result = await phoneLoginApi({
+						phone: trimmedPhone,
+						password: this.password
+					});
 
-						let userInfo = {
-							avatarUrl: res.data.avatarUrl,
-							nickName: res.data.nickName,
-							id: res.data.userId
-						}
-						wx.setStorageSync('token', res.data.token)
-						this.userToken = res.data.token
-						wx.setStorageSync('userId', res.data.userId)
-						wx.setStorageSync('phoneNumber', res.data.phone)
-						wx.setStorageSync('userInfo', userInfo)
-						this.getUserInfo()
-						this.initPhoneUserName()
-						this.isPhoneLogin = false
-						this.loginPopupShow = false
-						this.phone = ''
-						this.vCode = ''
-
-						uni.showTabBar({
-							animation: true
-						})
-						setTimeout(() => {
-							uni.showToast({
-								icon: 'success',
-								title: "登录成功"
-							})
-						}, 500)
-						clearInterval(clear);
-						this.readonly = false
-						this.codeText = '获取验证码';
-					} else {
-						return uni.$showMsg(res.msg)
-					}
-				})
-			},
-			getCode() {
-				if (this.$refs.uCode.canGetCode) {
-					// 模拟向后端请求验证码
-					let httpData = {
-						phone : this.phoneNumber
-					}
-					// 获取验证码接口
-					sendValidateCodeApi(httpData).then(res =>{
-						uni.showLoading({
-								title: '正在获取验证码'
-							})
-						if (res.code === 0) {
-							setTimeout(() => {
-								uni.hideLoading();
-								// 这里此提示会被this.start()方法中的提示覆盖
-								uni.$u.toast('验证码已发送');
-								// 通知验证码组件内部开始倒计时
-								this.$refs.uCode.start();
-							}, 1250);
+					// 检查响应状态和内容类型
+					if (result && result.statusCode === 200 && result.data && typeof result.data === 'object') {
+						// 根据后端返回的格式调整处理方式
+						// 如果返回的是整个响应对象，需要从中获取token和id
+						console.log('登录结果:', result);
+						
+						const token = result.data.token; // Assuming token is directly in data
+						const userId = result.data.id; // Assuming id is directly in data
+						
+						if (token) {
+							uni.setStorageSync('token', token);
+							uni.setStorageSync('userId', userId);
+							uni.setStorageSync('phoneNumber', trimmedPhone);
+							this.userToken = token;
+							
+							this.getUserInfo();
+							this.initData();
+							this.closeLogin();
+							
+							uni.$showMsg('登录成功', 'success');
 						} else {
-							uni.$u.toast('获取验证码失败，请重试');
+							throw new Error('未获取到有效的登录信息');
 						}
-					})
+					} else {
+						// 处理登录接口返回的错误信息
+						console.error('登录接口返回错误:', result);
+						let errorMsg = '登录失败，请稍后重试';
+						if (result && result.data && typeof result.data === 'string' && result.data.includes('<error>')) {
+							// 尝试从XML中提取错误信息
+							const match = result.data.match(/<error>(.*?)<\/error>/);
+							if (match && match[1]) {
+								errorMsg = match[1];
+							}
+						} else if (result && result.data && result.data.msg) {
+							errorMsg = result.data.msg;
+						} else if (result && result.errMsg && result.errMsg !== "request:ok") {
+							errorMsg = result.errMsg;
+						}
+						uni.$showMsg(errorMsg);
+						// throw new Error(errorMsg); // Optionally re-throw if you want the catch block below to handle it
+					}
+				} catch (error) {
+					console.error('登录失败', error);
+					uni.$showMsg('登录失败，请检查手机号和密码');
+				} finally {
+					this.isLoading = false;
+				}
+			},
+			//获取验证码
+			async getCode() {
+				if (!this.phone) {
+					uni.$showMsg('请输入手机号');
+					return;
+				}
+				
+				const trimmedPhone = this.phone.trim();
+				if (!/^1\d{10}$/.test(trimmedPhone)) {
+					uni.$showMsg('手机号格式不正确');
+					return;
+				}
+				
+				try {
+					const res = await sendValidateCodeApi({
+						phone: trimmedPhone
+					});
 					
-				} else {
-					uni.$u.toast('倒计时结束后再发送');
+					if (res) {
+						this.$refs.uCode.start();
+						uni.$showMsg('验证码发送成功', 'success');
+					}
+				} catch (error) {
+					console.error('发送验证码失败', error);
+					uni.$showMsg('发送验证码失败');
 				}
 			},
 			//验证码按钮文字状态
@@ -530,75 +541,6 @@
 			},
 			codeChange(text) {
 				this.codeTips = text;
-			},
-			getCode() {
-				if (this.$refs.uCode.canGetCode) {
-					if (this.phone == '') {
-						uni.showToast({
-							title: '请输入手机号~',
-							icon: 'none'
-						});
-						return;
-					}
-					const phoneRegular = /^(13[0-9]{9})|(15[0-9]{9})|(17[0-9]{9})|(18[0-9]{9})|(19[0-9]{9})$/;
-					if (!phoneRegular.test(this.phone)) {
-						uni.showToast({
-							title: '手机号格式不正确~',
-							icon: 'none'
-						});
-						return;
-					}
-					let httpData = {
-						phone: this.phone
-					}
-					// 获取验证码接口
-					sendValidateCodeApi(httpData).then(res =>{
-						uni.showLoading({
-								title: '正在获取验证码'
-							})
-						if (res.code === 0) {
-							setTimeout(() => {
-								uni.hideLoading();
-								// 这里此提示会被this.start()方法中的提示覆盖
-								uni.$u.toast('验证码已发送');
-								// 通知验证码组件内部开始倒计时
-								this.$refs.uCode.start();
-							}, 1250);
-						} else {
-							uni.$u.toast('获取验证码失败，请重试');
-						}
-					})
-					
-				} else {
-					uni.$u.toast('倒计时结束后再发送');
-				}
-			},
-			//获取验证码
-			getVcode() {
-				if (this.phone == '') {
-					uni.showToast({
-						title: '请输入手机号~',
-						icon: 'none'
-					});
-					return;
-				}
-				const phoneRegular = /^(13[0-9]{9})|(15[0-9]{9})|(17[0-9]{9})|(18[0-9]{9})|(19[0-9]{9})$/;
-				if (!phoneRegular.test(this.phone)) {
-					uni.showToast({
-						title: '手机号格式不正确~',
-						icon: 'none'
-					});
-					return;
-				}
-				let httpData = {
-					phone: this.phone
-				}
-				// 获取验证码接口
-				sendValidateCodeApi(httpData).then(res => {
-					if (res.code === 0) {
-						this.getCodeState(); //开始倒计时
-					}
-				})
 			},
 			async getLatestOrder() {
 				const params = {
@@ -936,33 +878,147 @@
 					wx.setStorageSync('phoneNumber', phoneNumber)
 
 					this.getUserInfo()
-					this.initPhoneUserName()
+					if (phoneNumber) {
+						this.initPhoneUserName(phoneNumber)
+					}
 					this.initData()
 
 				} else {
 					return uni.$showMsg(res.msg == 'token不能为空'? '未登录' : res.msg);
 				}
 			},
-			getUserInfo() {
-				this.user = wx.getStorageSync('userInfo')
-				this.phoneNumber = wx.getStorageSync('phoneNumber').replace(/(\d{3})\d{4}(\d{4})/, "$1****$2")
-				this.userToken = wx.getStorageSync('token')
-				console.log('用户信息={}', this.user)
+			async getUserInfo() {
+				try {
+					if (!uni.getStorageSync('token')) {
+						this.user = {};
+						this.phoneNumber = '';
+						this.userToken = '';
+						return;
+					}
+					
+					// 直接使用从my.js导入的getUserInfoApi函数
+					const response = await getUserInfoApi();
+					console.log('获取用户信息结果:', response);
+					
+					// 检查响应是否符合预期
+					if (response && response.code === 0 && response.data) {
+						this.user = response.data;
+						
+						// 处理电话号码 - 优先使用数据库中的phoneNum
+						const phone = this.user.phoneNum || uni.getStorageSync('phoneNumber');
+						if (phone) {
+							this.phoneNumber = this.formatPhoneNum(phone);
+						}
+						
+						// 如果没有用户名，使用手机号生成一个
+						if (!this.user.nickName && !this.user.username && phone) {
+							this.initPhoneUserName(phone);
+						}
+						
+						this.userToken = uni.getStorageSync('token');
+					} else {
+						console.error('获取用户信息失败:', response && response.msg ? response.msg : '未知错误');
+						// 如果是未登录或用户不存在，清除本地存储
+						if (response && response.msg && 
+							(response.msg.includes('未登录') || response.msg.includes('不存在'))) {
+							uni.clearStorageSync();
+							this.user = {};
+							this.phoneNumber = '';
+							this.userToken = '';
+						}
+					}
+				} catch (error) {
+					console.error('获取用户信息失败', error);
+					// 只在开发环境显示错误提示
+					// #ifdef APP-PLUS
+					uni.$showMsg('获取用户信息失败，请重试');
+					// #endif
+				}
 			},
 			async logout() {
-				console.log("userId", wx.getStorageSync('userId'))
-				this.logoutshow = true
+				uni.showModal({
+					title: '提示',
+					content: '确定要退出登录吗？',
+					success: async (res) => {
+						if (res.confirm) {
+							try {
+								// 使用从my.js导入的logoutApi函数
+								const result = await logoutApi();
+								console.log('退出登录结果:', result);
+								
+								// 无论服务器响应如何，都清除本地存储
+								uni.clearStorageSync();
+								
+								// 重置用户相关数据
+								this.userToken = '';
+								this.user = {};
+								this.phoneNumber = '';
+								
+								// 显示退出成功提示
+								uni.$showMsg('已退出登录', 'success');
+								
+								// 重启应用 - 返回到首页
+								setTimeout(() => {
+									uni.reLaunch({
+										url: '/pages/index/index'
+									});
+								}, 500);
+							} catch (error) {
+								console.error('退出登录失败', error);
+								
+								// 即使服务器端退出失败，也清除本地存储强制退出
+								uni.clearStorageSync();
+								this.userToken = '';
+								this.user = {};
+								this.phoneNumber = '';
+								
+								uni.$showMsg('已强制退出登录');
+								setTimeout(() => {
+									uni.reLaunch({
+										url: '/pages/index/index'
+									});
+								}, 500);
+							}
+						}
+					}
+				});
 			},
 			async logoutConfirm() {
-				const res = await logoutApi({})
-				if (res.code === 0) {
-					this.logoutshow = false
+				try {
+					const res = await logoutApi();
+					this.logoutshow = false;
+					
+					// 清除所有本地存储
+					uni.clearStorageSync();
+					this.userToken = '';
+					this.user = {};
+					this.phoneNumber = '';
+					
+					// 显示退出成功提示
+					uni.$showMsg('已退出登录', 'success');
+					
+					// 重启应用 - 返回到首页
 					setTimeout(() => {
-						wx.clearStorageSync()
-						this.getUserInfo()
-					}, 500)
-				} else {
-					return uni.$showMsg(res.msg == 'token不能为空'? '未登录' : res.msg);
+						uni.reLaunch({
+							url: '/pages/index/index'
+						});
+					}, 500);
+				} catch (error) {
+					console.error('退出登录失败', error);
+					
+					// 即使服务器端退出失败，也清除本地存储强制退出
+					this.logoutshow = false;
+					uni.clearStorageSync();
+					this.userToken = '';
+					this.user = {};
+					this.phoneNumber = '';
+					
+					uni.$showMsg('已强制退出登录');
+					setTimeout(() => {
+						uni.reLaunch({
+							url: '/pages/index/index'
+						});
+					}, 500);
 				}
 			},
 			logoutCancel(){
