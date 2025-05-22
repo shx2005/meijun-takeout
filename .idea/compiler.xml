@@ -24,6 +24,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="meijun-ordering" options="-parameters" />
       <module name="mo-api" options="-parameters" />
       <module name="mo-core" options="-parameters" />
       <module name="mo-service" options="-parameters" />

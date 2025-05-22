@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1/auth")
 @Tag(name = "账号管理")
 public class AuthController {
     //todo 可以改为构造器注入
@@ -45,7 +45,7 @@ public class AuthController {
     @Autowired
     private RedisTemplate<String, Object>  redisTemplate;
 
-    @PostMapping("/v1/auth/login")
+    @PostMapping("/login")
     @Tag(name = "登录")
     @Parameters({
             @Parameter(name = "authLoginDTO", description = "登录信息", required = true)
