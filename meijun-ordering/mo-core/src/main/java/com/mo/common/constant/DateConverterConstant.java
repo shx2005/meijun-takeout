@@ -49,12 +49,12 @@ public class DateConverterConstant {
     /**
      * DateTime格式化字符串 ISO 格式
      */
-    public static final String DEFAULT_DATETIME_ISO_PATTERN = "yyyy-MM-ddTHH:mm:ss";
+    public static final String DEFAULT_DATETIME_ISO_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 
     /**
      * DateTime格式化字符串 带毫秒值的 ISO 格式
      */
-    public static final String DEFAULT_DATETIME_MS_ISO_PATTERN = "yyyy-MM-ddTHH:mm:ss.SSS";
+    public static final String DEFAULT_DATETIME_MS_ISO_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
     /**
      * Date格式化字符串
