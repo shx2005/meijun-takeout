@@ -1,5 +1,7 @@
 package com.mo.entity;
 
+import com.mo.common.enumeration.ItemType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
@@ -9,6 +11,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+@Schema(description = "订单详情")
 @Data
 @Builder
 @AllArgsConstructor
@@ -17,21 +20,22 @@ public class OrderDetail implements Serializable{
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "订单详情id")
     private Long id;
-    //名称
+    @Schema(description = "订单详情名称")
     private String name;
-    //订单id
+    @Schema(description = "订单id")
     private Long orderId;
-    //菜品id
-    private Long dishId;
-    //套餐id
-    private Long setmealId;
-    //口味
+    @Schema(description = "菜品id")
+    private Long ItemId;
+    @Schema(description = "菜品类型")
+    private ItemType itemType;
+    @Schema(description = "菜品口味")
     private String dishFlavor;
-    //数量
-    private Integer number;
-    //金额
+    @Schema(description = "数量")
+    private Integer quantity;
+    @Schema(description = "单价")
     private BigDecimal amount;
-    //图片
+    @Schema(description = "图片")
     private String image;
 }

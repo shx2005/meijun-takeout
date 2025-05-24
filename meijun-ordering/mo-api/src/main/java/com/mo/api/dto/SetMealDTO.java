@@ -1,46 +1,46 @@
-package com.mo.entity;
+package com.mo.api.dto;
 
+import com.mo.entity.SetMealItem;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-@Schema(description = "套餐")
+/**
+ * 套餐数据传输
+ */
+@Schema(name = "套餐信息")
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class SetMeal implements Serializable {
+public class SetMealDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "主键")
+    @Schema(description = "套餐id")
     private Long id;
+    //分类id
     @Schema(description = "分类id")
     private Long categoryId;
+    //套餐名称
     @Schema(description = "套餐名称")
     private String name;
+    //套餐价格
     @Schema(description = "套餐价格")
     private BigDecimal price;
-    @Schema(description = "状态 0 停售 1 起售")
+    //状态 0:停用 1:启用
+    @Schema(description = "状态 0:停用 1:启用")
     private Integer status;
-    @Schema(description = "描述")
+    //描述信息
+    @Schema(description = "描述信息")
     private String description;
+    //图片
     @Schema(description = "图片")
     private String image;
-    @Schema(description = "菜品项")
-    List<Long> dishes;
+    //套餐菜品关系
+    @Schema(description = "套餐菜品关系")
+    private List<SetMealItem> setMealItems = new ArrayList<>();
 
-    private LocalDateTime createTime;
-    private LocalDateTime updateTime;
-
-    private String createUser;
-    private String updateUser;
 }

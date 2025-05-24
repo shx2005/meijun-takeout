@@ -1,5 +1,8 @@
 package com.mo.entity;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.SchemaProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +14,7 @@ import java.io.Serializable;
 /**
  * 地址簿
  */
+@Schema(description = "地址簿")
 @Data
 @Builder
 @AllArgsConstructor
@@ -19,32 +23,32 @@ public class AddressBook implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
-
+    @Schema(description = "主键")
     private Long id;
-    //用户id
+    @Schema(description = "用户id")
     private Long userId;
-    //收货人
+    @Schema(description = "收货人")
     private String consignee;
-    //手机号
+    @Schema(description = "手机号")
     private String phone;
-    //性别 0 女 1 男
+    @Schema(description = "性别")
     private String sex;
-    //省级区划编号
+    @Schema(description = "省级区划编号")
     private String provinceCode;
-    //省级名称
+    @Schema(description = "省级名称")
     private String provinceName;
-    //市级区划编号
+    @Schema(description = "市级区划编号")
     private String cityCode;
-    //市级名称
+    @Schema(description = "市级名称")
     private String cityName;
-    //区级区划编号
+    @Schema(description = "区级区划编号")
     private String districtCode;
-    //区级名称
+    @Schema(description = "区级名称")
     private String districtName;
-    //详细地址
+    @Schema(description = "详细地址")
     private String detail;
-    //标签
+    @Schema(description = "标签")
     private String label;
-    //是否默认 0否 1是
+    @Schema(description = "默认 0 否 1是")
     private Integer isDefault;
 }

@@ -11,6 +11,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+@Schema(name = "用户", description = "用户基础类")
 @Data
 @SuperBuilder
 @AllArgsConstructor
@@ -18,31 +19,28 @@ import java.time.LocalDateTime;
 public class User implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    //自增主键
+
+    @Schema(description = "主键")
     protected Long id;
-    //唯一标识
+    @Schema(description = "用户唯一标识")
     protected String uuid;
-    //微信用户唯一标识
+    @Schema(description = "openid")
     protected String openid;
-    //姓名
+    @Schema(description = "姓名")
     protected String name;
-    //用户名
+    @Schema(description = "用户名")
     protected String username;
-    //密码
+    @Schema(description = "密码")
     protected String password;
-    //身份
+    @Schema(description = "用户身份")
     protected UserIdentity identity;
-    //创建时间
-    protected LocalDateTime createTime;
-    //更新时间
-    protected LocalDateTime updateTime;
-    //状态
+    @Schema(description = "状态 0 禁用 1 启用")
     protected Integer status;
-    //手机号
+    @Schema(description = "手机号")
     protected String phoneNum;
-    //性别
+    @Schema(description = "性别")
     protected String gender;
-    //地址
+    @Schema(description = "地址")
     protected String address;
     @Schema(description = "商家id")
     protected Long merchantId;
@@ -50,4 +48,7 @@ public class User implements Serializable {
     protected String avatar_url;
     @Schema(description = "jwt令牌")
     protected String token;
+
+    protected LocalDateTime createTime;
+    protected LocalDateTime updateTime;
 }

@@ -1,21 +1,20 @@
 package com.mo.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import java.io.Serializable;
 
-/**
- * 分类前端返回对象
- */
+@Schema(name = "分类信息")
 @Data
 public class CategoryDTO implements Serializable {
 
-    //主键
+    @Schema(description = "分类id")
     private Long id;
-    //类型 1 菜品分类 2 套餐分类
+    @Schema(name = "分类类型", description = "0标识菜品分类 1标识套餐分类", allowableValues = "0,1")
     private Integer type;
-    //分类名称
+    @Schema(description = "分类名称")
     private String name;
-    //排序
+    @Schema(description = "排序")
     private Integer sort;
 
 }

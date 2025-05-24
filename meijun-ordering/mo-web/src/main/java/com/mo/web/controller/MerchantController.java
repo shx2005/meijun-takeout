@@ -12,6 +12,12 @@ import com.mo.common.result.Result;
 import com.mo.entity.Employee;
 import com.mo.entity.Order;
 import com.mo.entity.Store;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -35,6 +41,11 @@ public class MerchantController {
     @Autowired
     private StoreService storeService;
 
+    @Operation(summary = "获取商户订单列表")
+    @Parameters({
+            @Parameter(name = "orderId", description = "订单ID", required = true)
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Order.class)))
     @GetMapping("/{orderId}")
     public Result<Order> getOrderById( @PathVariable Long orderId){
         log.info("查询订单{}", orderId);
@@ -46,6 +57,12 @@ public class MerchantController {
         return Result.success(order);
     }
 
+    @Operation(summary = "获取订单详情", description = "获取指定订单的详细信息")
+    @Parameters({
+            @Parameter(name = "orderId", description = "订单ID", required = true),
+            @Parameter(name = "status", description = "订单状态", required = true)
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Order.class)))
     @PutMapping("/orders/{orderId}/status")
     Result<Order> updateOrderStatus(@PathVariable Long orderId, Integer status){
         Order order = (Order) redisTemplate.opsForValue().get("order:" + orderId);
@@ -61,6 +78,8 @@ public class MerchantController {
         return Result.success(order);
     }
 
+    @Operation(summary = "获取所有员工")
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Employee.class)))
     @GetMapping("/staff")
     public Result<List<Employee>> getEmployee(){
         List<Employee> list = employeeService.getAllEmployee();
@@ -68,6 +87,11 @@ public class MerchantController {
         return Result.success(list);
     }
 
+    @Operation(summary = "获取员工分页")
+    @Parameters({
+            @Parameter(name = "employeePageQueryDTO", schema = @Schema(implementation = EmployeePageQueryDTO.class))
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Employee.class)))
     @GetMapping("/staff/page")
     public PageResult getEmployeePage(EmployeePageQueryDTO employeePageQueryDTO){
         int pageNum = employeePageQueryDTO.getPageNum();
@@ -80,6 +104,11 @@ public class MerchantController {
         return PageResult.success();
     }
 
+    @Operation(summary = "保存员工信息")
+    @Parameters({
+            @Parameter(name = "employee", schema = @Schema(implementation = Employee.class))
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Employee.class)))
     @PostMapping("/staff")
     public Result<Employee> saveEmployee(EmployeeDTO employeeDTO){
         Employee employee = new Employee();
@@ -89,6 +118,12 @@ public class MerchantController {
         return Result.success(employee);
     }
 
+    @Operation(summary = "修改员工信息")
+    @Parameters({
+            @Parameter(name = "id", description = "员工ID", required = true),
+            @Parameter(name = "employeeDTO", description = "员工参数", required = true, schema = @Schema(implementation = EmployeeDTO.class))
+    })
+    @ApiResponse(responseCode = "200", description = "成功")
     @PutMapping("/staff/{id}")
     public Result<String> updateEmployee(@PathVariable Long id, EmployeeDTO employeeDTO){
         Employee employee = new Employee();
@@ -99,6 +134,11 @@ public class MerchantController {
         return Result.success();
     }
 
+    @Operation(summary = "删除员工")
+    @Parameters({
+            @Parameter(name = "id", description = "员工ID", required = true)
+    })
+    @ApiResponse(responseCode = "200", description = "成功")
     @DeleteMapping("/staff/{id}")
     public Result<String> deleteEmployee(@PathVariable Long id){
         employeeService.deleteEmployee(id);
@@ -106,6 +146,8 @@ public class MerchantController {
         return Result.success();
     }
 
+    @Operation(summary = "获取门店列表")
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Store.class)))
     @GetMapping("/stores")
     public Result<List<Store>> getStore(){
         List<Store> list = storeService.getStore();
@@ -113,6 +155,12 @@ public class MerchantController {
         return Result.success(list);
     }
 
+    @Operation(summary = "修改门店信息")
+    @Parameters({
+            @Parameter(name = "id", description = "门店ID", required = true),
+            @Parameter(name = "storeDTO", description = "门店参数", required = true, schema = @Schema(implementation = StoreDTO.class))
+    })
+    @ApiResponse(responseCode = "200", description = "成功")
     @PutMapping("/stores/{id}")
     public Result<String> updateStore(@PathVariable Long id, StoreDTO storeDTO){
         Store store = new Store();

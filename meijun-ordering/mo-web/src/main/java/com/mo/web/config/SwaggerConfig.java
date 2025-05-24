@@ -16,10 +16,10 @@ public class SwaggerConfig {
                         .title("APT Document")
                         .version("1.0")
                         .description("APT Document")
-                        .termsOfService("http://www.mo.com")
+                        .termsOfService("https://www.mo.com")
                         .license(new License()
                                 .name("Apache 2.0")
-                                .url("http://www.mo.com")
+                                .url("https://www.mo.com")
                         )
                 );
     }

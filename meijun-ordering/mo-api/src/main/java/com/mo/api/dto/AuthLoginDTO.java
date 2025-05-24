@@ -8,7 +8,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-@Tag(name = "登录请求参数")
+@Schema(name = "登录信息")
 public class AuthLoginDTO implements Serializable {
     @Schema(description = "用户名")
     private String username;
