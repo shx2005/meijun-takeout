@@ -3,28 +3,21 @@
 		<view class="add_order">
 			<view class="divContent">
 				<view class="divAddress">
-					<view @click="toAddressPage">
+					<view>
 						<view class="address">
 							<view v-if="address == null">
 								<text style="color: gainsboro;font-size: 36rpx">请选择收货地址</text>
-
 							</view>
 							<view v-else>
 								{{address.detail}}
-							</view>
-							<view class="icon">
-								<u-icon name="arrow-right"></u-icon>
 							</view>
 						</view>
 
 						<view class="name">
 							<text
-								v-if="address != null">{{address.consignee}}{{address.gender === 1 ? '女士':'先生'}}</text>
-							<text>{{address.phone}}</text>
-
-
+								v-if="address != null && address.consignee">{{address.consignee}}{{address.gender === 1 ? '女士':'先生'}}</text>
+							<text v-if="address != null && address.phone">{{address.phone}}</text>
 						</view>
-
 					</view>
 					<view class="divSplit"></view>
 					<view class="divFinishTime">预计{{finishTime}}送达</view>
@@ -102,6 +95,7 @@
 	import {
 		addOrderApi
 	} from '../../api/addOrder.js'
+	import request from '@/utils/request.js';
 
 	export default {
 		data() {
@@ -210,22 +204,70 @@
 				//获取购物车的商品
 				this.getCartData()
 			},
-			//获取默认地址
+			//获取默认地址 (现在主要从用户信息获取，再尝试地址列表)
 			async getDefaultAddress() {
 				try {
-					const res = await getDefaultAddressApi()
-					if (res.code === 0) {
-						console.log("res",res.data)
-						this.address = res.data
-					} else {
-						// 如果没有默认地址，尝试获取地址列表
-						const addressList = await addressListApi()
-						if (addressList && addressList.length > 0) {
-							this.address = addressList[0]
+					console.log("尝试从用户信息接口获取地址...");
+					const userInfoRes = await request({ 
+						url: '/api/v1/user/info',
+						method: 'GET'
+					});
+
+					if (userInfoRes && (userInfoRes.code === 0 || userInfoRes.code === 1 || userInfoRes.code === 200) && userInfoRes.data && userInfoRes.data.address) {
+						console.log("从用户信息中获取到地址:", userInfoRes.data.address);
+						this.address = {
+							detail: userInfoRes.data.address, // 主要显示这个
+							consignee: userInfoRes.data.name || (userInfoRes.data.nickName || ''), // 尝试用用户名或昵称
+							phone: userInfoRes.data.phone || '',   // 尝试用用户电话
+							// id: undefined, // 明确这个地址不是来自地址簿，没有id
+						};
+						return; // 成功获取到用户地址，直接返回
+					}
+
+					// 如果用户信息中没有地址，或者接口调用有问题，尝试从地址列表获取
+					console.log("用户信息中未找到地址或获取失败，尝试从地址列表获取...");
+					const addressListRes = await addressListApi(); // 确保 addressListApi 已导入
+					// 检查 addressListRes 的具体结构，API文档中未明确，常见结构为 res.data 是数组或 res 直接是数组
+					let addresses = [];
+					if (addressListRes) {
+						if (Array.isArray(addressListRes.data) && addressListRes.data.length > 0) {
+							addresses = addressListRes.data;
+						} else if (Array.isArray(addressListRes) && addressListRes.length > 0) { // 兼容直接返回数组的情况
+							addresses = addressListRes;
 						}
 					}
+
+					if (addresses.length > 0) {
+						console.log("从地址列表获取到地址:", addresses[0]);
+						this.address = addresses[0]; // 使用地址列表的第一个
+					} else {
+						console.log("地址列表也为空或获取失败");
+						this.address = null; // 都没有获取到，则为null
+					}
+
 				} catch (error) {
-					console.error('获取默认地址失败', error)
+					console.error('获取地址过程中发生错误（可能是用户信息接口或地址列表接口）:', error);
+					// 即使上面出错，也尝试一下地址列表作为最终手段，以防万一
+					try {
+						console.log("捕获异常后，最后尝试从地址列表获取...");
+						const addressListRes = await addressListApi();
+						let addresses = [];
+						if (addressListRes) {
+							if (Array.isArray(addressListRes.data) && addressListRes.data.length > 0) {
+								addresses = addressListRes.data;
+							} else if (Array.isArray(addressListRes) && addressListRes.length > 0) {
+								addresses = addressListRes;
+							}
+						}
+						if (addresses.length > 0) {
+							this.address = addresses[0];
+						} else {
+							this.address = null;
+						}
+					} catch (finalFallbackError) {
+						console.error("最终尝试从地址列表获取也失败:", finalFallbackError);
+						this.address = null; // 最终确保为null
+					}
 				}
 			},
 			//获取送达时间
@@ -241,38 +283,55 @@
 				}
 				this.finishTime = hour + ':' + minute
 			},
-			toAddressPage() {
+			/* toAddressPage() { // 方法已不再需要，可以删除或注释掉
 				uni.navigateTo({
 					url: '/pages/address/address'
 				})
-			},
+			}, */
 			//获取购物车数据
 			async getCartData() {
 				try {
-					const res = await cartListApi();
+					// const res = await cartListApi(); // 旧的API调用，将被替换
+					console.log("尝试调用新的 getCart 接口...");
+					const res = await request({ // 使用全局的 request 实例
+						url: '/api/v1/cart',     // 假设这是新的获取购物车接口URL
+						method: 'GET'
+					});
 					
-					if (res) {
-						this.cartData = res.items || [];
+					// 根据新的接口响应结构处理数据
+					// 假设成功时 res.code 为 0, 1 或 200, 且 res.data 是 CartItem 数组
+					if (res && (res.code === 0 || res.code === 1 || res.code === 200) && Array.isArray(res.data)) {
+						this.cartData = res.data;
+						console.log("新接口获取购物车数据成功:", this.cartData);
+
+						// 如果后端返回的是 { code: ..., data: { items: [...] } } 结构
+						// else if (res && (res.code === 0 || res.code === 1 || res.code === 200) && res.data && Array.isArray(res.data.items)) {
+						//   this.cartData = res.data.items;
+						//   console.log("新接口获取购物车数据成功 (items 字段):", this.cartData);
+						// }
 						
 						if (this.cartData.length === 0) {
 							uni.showModal({
 								title: '提示',
 								content: '购物车为空，是否返回点餐页面？',
-								success: function(res) {
-									if (res.confirm) {
+								success: function(modalRes) {
+									if (modalRes.confirm) {
 										uni.switchTab({
-											url: '/pages/index/index'
+											url: '/pages/index/index' // 假设首页是点餐页
 										});
 									}
 								}
 							});
 						}
 					} else {
-						uni.$showMsg('获取购物车失败');
+						console.error("新接口获取购物车数据失败或格式不正确:", res);
+						uni.$showMsg(res.msg || '获取购物车失败');
+						this.cartData = []; // 清空旧数据以防显示错误
 					}
 				} catch (error) {
-					console.error('获取购物车数据失败', error);
+					console.error('调用新 getCart 接口失败:', error);
 					uni.$showMsg('获取购物车失败，请检查网络');
+					this.cartData = [];
 				}
 			},
 			async goToPaySuccess() {

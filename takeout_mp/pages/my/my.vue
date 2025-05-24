@@ -35,7 +35,7 @@
 							<view class="detail" style="color: #423e3e">登录后享受更好的服务体验</view>
 						</view>
 					</block>
-					<view>
+					<view @click="onJump">
 						<u-icon v-if="userToken" name="arrow-right" color="#fff" size="13"></u-icon>
 					</view>
 				</view>
@@ -49,35 +49,13 @@
 
 				<view class="divContent">
 					<view class="divLinks">
-						<view @click="toAddress" class="item">
-							<image src="../../static/index_image/dingwei.png"></image>
-							<text>我的地址</text>
-							<view>
-								<u-icon name="arrow-right"></u-icon>
-							</view>
-						</view>
-						
-						<view class="divSplit"></view>
-						
-						<view @click="toOrderList" class="item">
+						<view @click="allOrder" class="item">
 							<image src="../../static/me/dingdan.png"></image>
-							<text>历史订单</text>
+							<text>全部订单</text>
 							<view>
 								<u-icon name="arrow-right"></u-icon>
 							</view>
 						</view>
-						
-						<view class="divSplit"></view>
-						
-						<view @click="toCoupon" class="item">
-							<image src="../../static/index_image/coupon.png"></image>
-							<text>优惠券</text>
-							<view>
-								<u-icon name="arrow-right"></u-icon>
-							</view>
-						</view>
-
-
 					</view>
 					<view class="divOrders" v-if="flag && user">
 						<view class="title">最新订单</view>
@@ -103,6 +81,12 @@
 					<view v-if="userToken" class="foot">
 						<view @click="logout" class="logout">
 							退出登录
+						</view>
+					</view>
+					
+					<view class="merchant-login-container">
+						<view @click="toMerchantLogin" class="merchant-login-btn">
+							商家登录
 						</view>
 					</view>
 				</view>
@@ -147,6 +131,8 @@
 						</view>
 						<button  class="submit" size="default" @click="onSubmit"
 							:style="{background:PrimaryColor}">确定</button>
+						<button class="register" size="default" @click="toRegister"
+							:style="{background:'#fff',color:PrimaryColor,border:'2rpx solid '+PrimaryColor}">注册</button>
 						<!-- #ifdef MP-WEIXIN -->
 						<view class="tips">
 							<view @click="isPhoneLogin = !isPhoneLogin" class="goBuy" :style="{color:PrimaryColor}">
@@ -294,9 +280,15 @@
 
 			};
 		},
+		computed: {
+			judgeLogin() {
+				return !!uni.getStorageSync('token');
+			}
+		},
 		created() {
-
-			this.getUserInfo()
+			// 自动登录
+			this.autoLogin();
+			this.getUserInfo();
 		},
 		onShow() {
 			this.checkLogin()
@@ -332,7 +324,7 @@
 			onJump() {
 				console.log("点击了跳转")
 				uni.navigateTo({
-					url: '/pages/setting/setting'
+					url: '/pages/userInfo/userInfo'
 				})
 			},
 			onAuthorization() {
@@ -591,9 +583,21 @@
 			toAddress() {
 				const token = wx.getStorageSync('token');
 				if (token) {
-					uni.navigateTo({
-						url: '/pages/address2/address2'
-					})
+					if (this.user.address) {
+						uni.showModal({
+							title: '我的地址',
+							content: this.user.address,
+							showCancel: false,
+							confirmText: '确定'
+						});
+					} else {
+						uni.showModal({
+							title: '提示',
+							content: '您还没有设置地址',
+							showCancel: false,
+							confirmText: '确定'
+						});
+					}
 				} else {
 					uni.showModal({
 						title: '提示',
@@ -609,7 +613,6 @@
 						}
 					});
 				}
-
 			},
 			toCoupon() {
 				const token = wx.getStorageSync('token');
@@ -633,11 +636,15 @@
 					});
 				}
 			},
-			toOrderList() {
+			allOrder() {
+				// 添加DEBUG_MODE常量，与orderList2页面保持一致
+				const DEBUG_MODE = true; // 设置为true开启调试模式，跳过登录验证
+				
 				const token = wx.getStorageSync('token');
-				if (token) {
+				// 如果已登录或者处于调试模式，直接进入订单页面
+				if (token || DEBUG_MODE) {
 					uni.navigateTo({
-						url: '/pages/orderList2/orderList2'
+						url: "/pages/orderList2/orderList2"
 					})
 				} else {
 					uni.showModal({
@@ -1023,7 +1030,60 @@
 			},
 			logoutCancel(){
 				this.logoutshow = false
-			}
+			},
+			// 添加自动登录方法
+			async autoLogin() {
+				try {
+					const loginData = {
+						phone: '17344402975',
+						password: '20050311'
+					};
+					
+					const result = await phoneLoginApi(loginData);
+					console.log('自动登录响应:', result);
+					
+					if (result && result.code === 0 && result.data) {
+						const token = result.data.token;
+						const userId = result.data.id;
+						
+						if (token) {
+							uni.setStorageSync('token', token);
+							uni.setStorageSync('userId', userId);
+							uni.setStorageSync('phoneNumber', loginData.phone);
+							this.userToken = token;
+							
+							await this.getUserInfo();
+							await this.initData();
+							
+							console.log('自动登录成功');
+						}
+					} else {
+						console.error('自动登录失败:', result && result.msg ? result.msg : '未知错误');
+					}
+				} catch (error) {
+					console.error('自动登录失败', error);
+				}
+			},
+			// 跳转到注册页面
+			toRegister() {
+				// 先关闭登录弹窗
+				this.loginPopupShow = false;
+				// 延迟一下再跳转，避免弹窗关闭动画影响
+				setTimeout(() => {
+					uni.navigateTo({
+						url: '/pages/register/register',
+						fail: (err) => {
+							console.error('跳转失败:', err);
+							uni.$showMsg('页面跳转失败');
+						}
+					});
+				}, 300);
+			},
+			toMerchantLogin() {
+				uni.navigateTo({
+					url: '/pages/merchantLogin/merchantLogin'
+				})
+			},
 		},
 
 	}
@@ -1350,5 +1410,32 @@
 		color: #fff;
 		font-size: 32rpx;
 		background: #E83F3C;
+	}
+	
+	.register {
+		margin-top: 24rpx;
+		width: 100%;
+		height: 92rpx;
+		border-radius: 10rpx;
+		text-align: center;
+		line-height: 92rpx;
+		font-size: 32rpx;
+		background: #fff;
+	}
+
+	.merchant-login-container {
+		position: fixed;
+		bottom: 30rpx;
+		right: 30rpx;
+		z-index: 99;
+	}
+
+	.merchant-login-btn {
+		background-color: #FF8C00;
+		color: #fff;
+		padding: 16rpx 30rpx;
+		border-radius: 40rpx;
+		font-size: 26rpx;
+		box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.1);
 	}
 </style>

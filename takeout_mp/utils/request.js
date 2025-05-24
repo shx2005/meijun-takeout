@@ -20,6 +20,9 @@ instance.interceptors.request.use(
     }
     // 添加用户类型标识
     config.header['userType'] = '3' // 3 代表 CUSTOMER
+    // 明确指定请求和响应都用 JSON
+    config.header['Accept'] = 'application/json'
+    config.header['Content-Type'] = 'application/json'
     return config
   },
   error => {
