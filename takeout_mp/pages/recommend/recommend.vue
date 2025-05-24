@@ -1,0 +1,431 @@
+<template>
+  <view class="recommend-container">
+		<!-- 顶部导航栏 -->
+		<view class="status-bar"></view>
+		<view class="nav-bar">
+			<view class="logo">
+				<image src="/static/images/logo.png" mode="aspectFit"></image>
+				<text>美食元素</text>
+			</view>
+		</view>
+		
+		<scroll-view scroll-y="true" class="content-scroll" refresher-enabled="true" :refresher-triggered="isRefreshing" @refresherrefresh="onRefresh">
+			<!-- 轮播图 -->
+			<swiper class="banner-swiper" autoplay circular :indicator-dots="true" indicator-active-color="#ff9500" indicator-color="#e0e0e0">
+				<swiper-item v-for="(item, index) in bannerList" :key="index" @tap="goToIndex()">
+					<image :src="item.imageUrl" mode="aspectFill"></image>
+				</swiper-item>
+			</swiper>
+			
+			<!-- 分类导航 -->
+			<view class="category-nav">
+				<view 
+					v-for="(item, index) in categoryList" 
+					:key="index" 
+					class="category-item"
+					@tap="goToIndex()"
+				>
+					<view class="category-icon">
+						<image :src="item.iconUrl" mode="aspectFit"></image>
+					</view>
+					<text class="category-name">{{ item.name }}</text>
+				</view>
+			</view>
+			
+			<!-- 热门推荐 -->
+			<view class="section popular">
+				<view class="section-header">
+					<text class="section-title">热门推荐</text>
+					<view class="more-link" @tap="goToIndex()">
+						<text>更多</text>
+						<u-icon name="arrow-right" size="24" color="#999"></u-icon>
+					</view>
+				</view>
+				<view class="dish-grid">
+					<view 
+						v-for="(item, index) in displayPopularList" 
+						:key="index" 
+						class="dish-item"
+						@tap="goToIndex()"
+					>
+						<image class="dish-image" :src="item.imageUrl" mode="aspectFill"></image>
+						<view class="dish-info">
+							<text class="dish-name">{{ item.name }}</text>
+							<text class="dish-desc">{{ item.description }}</text>
+							<view class="dish-bottom">
+								<text class="dish-price">￥{{ (item.price / 100).toFixed(2) }}</text>
+								<view class="add-btn">
+									<u-icon name="plus" color="#fff" size="24"></u-icon>
+								</view>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+			
+			<!-- 底线提示 -->
+			<view class="bottom-line">
+				<text>— 我是有底线的 —</text>
+			</view>
+		</scroll-view>
+  </view>
+</template>
+
+<script>
+export default {
+  data() {
+			return {
+				isRefreshing: false,
+				bannerList: [
+					{ 
+						id: 1, 
+						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg'
+					},
+					{ 
+						id: 2, 
+						imageUrl: 'https://img.yzcdn.cn/vant/apple-1.jpg'
+					},
+					{ 
+						id: 3, 
+						imageUrl: 'https://img.yzcdn.cn/vant/apple-2.jpg'
+					}
+				],
+				categoryList: [
+					{ id: 1, name: '盖饭', iconUrl: 'https://img.yzcdn.cn/vant/cat.jpeg' },
+					{ id: 2, name: '小炒', iconUrl: 'https://img.yzcdn.cn/vant/cat.jpeg' },
+					{ id: 3, name: '面食', iconUrl: 'https://img.yzcdn.cn/vant/cat.jpeg' },
+					{ id: 4, name: '饮品', iconUrl: 'https://img.yzcdn.cn/vant/cat.jpeg' },
+					{ id: 5, name: '套餐', iconUrl: 'https://img.yzcdn.cn/vant/cat.jpeg' }
+				],
+				popularList: [
+					{
+						id: 201,
+						name: '麻婆豆腐',
+						description: '麻辣鲜香，入口即化',
+						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+						price: 1880,
+						sales: 456
+					},
+					{
+						id: 202,
+						name: '回锅肉',
+						description: '肥而不腻，香气四溢',
+						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+						price: 2580,
+						sales: 389
+					},
+					{
+						id: 203,
+						name: '水煮肉片',
+						description: '麻辣鲜香，肉质鲜嫩',
+						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+						price: 2880,
+						sales: 321
+					},
+					{
+						id: 204,
+						name: '糖醋里脊',
+						description: '外酥里嫩，酸甜可口',
+						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+						price: 2680,
+						sales: 287
+					},
+					{
+						id: 205,
+						name: '宫保鸡丁',
+						description: '酥香爽辣，经典川菜',
+						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+						price: 2280,
+						sales: 498
+					},
+					{
+						id: 206,
+						name: '鱼香肉丝',
+						description: '开胃下饭，家常菜代表',
+						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+						price: 1980,
+						sales: 452
+					},
+					{
+						id: 207,
+						name: '红烧排骨',
+						description: '肉质鲜嫩，味道浓郁',
+						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+						price: 3280,
+						sales: 376
+					},
+					{
+						id: 208,
+						name: '干煸四季豆',
+						description: '香脆可口，下饭必备',
+						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+						price: 1580,
+						sales: 412
+					},
+					{
+						id: 209,
+						name: '酸菜鱼',
+						description: '酸辣开胃，鱼肉细嫩',
+						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+						price: 3680,
+						sales: 324
+					},
+					{
+						id: 210,
+						name: '油焖大虾',
+						description: '鲜香美味，回味无穷',
+						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+						price: 6880,
+						sales: 256
+					}
+				]
+			};
+		},
+		computed: {
+			// 只展示前8个热门推荐菜品
+			displayPopularList() {
+				return this.popularList.slice(0, 8);
+			}
+		},
+		onLoad() {
+			this.getStatusBarHeight();
+		},
+		methods: {
+			// 获取状态栏高度
+			getStatusBarHeight() {
+				const systemInfo = uni.getSystemInfoSync();
+				const statusBarHeight = systemInfo.statusBarHeight;
+				document.documentElement.style.setProperty('--status-bar-height', statusBarHeight + 'px');
+			},
+			
+			// 下拉刷新
+			onRefresh() {
+				this.isRefreshing = true;
+				setTimeout(() => {
+					this.isRefreshing = false;
+					uni.showToast({
+						title: '刷新成功',
+						icon: 'none'
+					});
+				}, 1000);
+			},
+			
+			// 跳转到点单页面
+			goToIndex() {
+				uni.switchTab({
+					url: '/pages/index/index'
+				});
+			}
+  }
+}
+</script>
+
+<style>
+	/* 页面容器 */
+.recommend-container {
+		background-color: #f5f5f5;
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
+	}
+	
+	/* 内容滚动区域 */
+	.content-scroll {
+		flex: 1;
+		height: calc(100vh - 80px);
+	}
+	
+	/* 状态栏高度 */
+	.status-bar {
+		height: var(--status-bar-height, 20px);
+		width: 100%;
+		background-color: #fff;
+	}
+	
+	/* 导航栏 */
+	.nav-bar {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		padding: 20rpx 30rpx;
+		background-color: #fff;
+	}
+	
+	.logo {
+		display: flex;
+		align-items: center;
+	}
+	
+	.logo image {
+		width: 60rpx;
+		height: 60rpx;
+		margin-right: 10rpx;
+	}
+	
+	.logo text {
+		font-size: 32rpx;
+		font-weight: bold;
+		color: #333;
+	}
+	
+	/* 轮播图 */
+	.banner-swiper {
+		width: 100%;
+		height: 300rpx;
+	}
+	
+	.banner-swiper image {
+		width: 100%;
+		height: 100%;
+	}
+	
+	/* 分类导航 */
+	.category-nav {
+		display: flex;
+		justify-content: space-between;
+		padding: 30rpx;
+		background-color: #fff;
+		border-radius: 16rpx;
+		margin: 20rpx;
+	}
+	
+	.category-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		width: 120rpx;
+	}
+	
+	.category-icon {
+		width: 80rpx;
+		height: 80rpx;
+		border-radius: 50%;
+		background-color: #fff7e6;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-bottom: 10rpx;
+	}
+	
+	.category-icon image {
+		width: 48rpx;
+		height: 48rpx;
+	}
+	
+	.category-name {
+		font-size: 24rpx;
+		color: #333;
+	}
+	
+	/* 公共区块样式 */
+	.section {
+		background-color: #fff;
+		border-radius: 16rpx;
+		margin: 20rpx;
+		padding: 30rpx;
+	}
+	
+	.section-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 20rpx;
+	}
+	
+	.section-title {
+		font-size: 32rpx;
+  font-weight: bold;
+		color: #333;
+		position: relative;
+		padding-left: 20rpx;
+	}
+	
+	.section-title::before {
+		content: "";
+		position: absolute;
+		left: 0;
+		top: 6rpx;
+		width: 8rpx;
+		height: 32rpx;
+		background-color: #ff9500;
+		border-radius: 4rpx;
+}
+	
+	.more-link {
+		display: flex;
+		align-items: center;
+		font-size: 24rpx;
+		color: #999;
+	}
+	
+	/* 热门推荐 */
+	.dish-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 20rpx;
+	}
+	
+	.dish-item {
+		background-color: #fff;
+		border-radius: 12rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+		overflow: hidden;
+	}
+	
+	.dish-image {
+		width: 100%;
+		height: 200rpx;
+	}
+	
+	.dish-info {
+		padding: 16rpx;
+	}
+	
+	.dish-name {
+  font-size: 28rpx;
+		color: #333;
+		font-weight: bold;
+		margin-bottom: 6rpx;
+		display: block;
+	}
+	
+	.dish-desc {
+		font-size: 24rpx;
+		color: #999;
+		margin-bottom: 12rpx;
+		display: block;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	
+	.dish-bottom {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	
+	.dish-price {
+		font-size: 30rpx;
+		color: #ff5050;
+		font-weight: bold;
+	}
+	
+	.add-btn {
+		width: 50rpx;
+		height: 50rpx;
+		background-color: #ff9500;
+		border-radius: 50%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	
+	/* 底线提示 */
+	.bottom-line {
+		text-align: center;
+		padding: 30rpx 0;
+		color: #999;
+		font-size: 24rpx;
+}
+</style> 

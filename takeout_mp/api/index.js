@@ -1,43 +1,52 @@
 import regeneratorRuntime, { async } from '../lib/runtime/runtime';
+import request from '../utils/request'
 
 // 购物车相关接口
 export const addCartApi = (data) => {
-	return uni.$ajax.post({
-		url: 'v1/cart/add',
-		data: data
+	return request({
+		url: '/api/v1/cart',
+		method: 'post',
+		data
 	})
 }
 
 export const updateCartApi = (data) => {
-	return uni.$ajax.post({
-		url: 'v1/cart/update',
-		data: data
+	return request({
+		url: '/api/v1/cart',
+		method: 'put',
+		data
 	})
 }
 
 export const clearCartApi = () => {
-	return uni.$ajax.delete({
-		url: 'v1/cart/delete',
+	return request({
+		url: '/api/v1/cart',
+		method: 'delete'
 	})
 }
 
-export const cartListApi = () => {
-	return uni.$ajax.get({
-		url: "v1/cart",
+export const cartListApi = (params) => {
+	return request({
+		url: '/api/v1/cart',
+		method: 'get',
+		params
 	})
 }
 
 // 菜品相关接口
-export const dishListApi = (data) => {
-	return uni.$ajax.get({
-		url: 'v1/dishes/page',
-		data: { ...data }
+export const dishListApi = (params) => {
+	return request({
+		url: '/api/v1/dishes',
+		method: 'get',
+		params
 	})
 }
 
-export const categoryListApi = () => {
-	return uni.$ajax.get({
-		url: "v1/dishes/categories",
+export const categoryListApi = (params) => {
+	return request({
+		url: '/api/v1/dishes/categories',
+		method: 'get',
+		params
 	})
 }
 
@@ -51,7 +60,7 @@ export const loginApi = (data) => {
 
 export const registerApi = (data) => {
 	return uni.$ajax.post({
-		url: "v1/auth/register",
+		url: "register",
 		data: data
 	})
 }
@@ -90,14 +99,22 @@ export const submitOrderCommentApi = (data) => {
 }
 
 export const setMealDishDetailsApi = (id) => {
-	return uni.$ajax.get({
-		url: `mp/setmeal/${id}`,
+	return request({
+		url: `/api/v1/setmeals/${id}`,
+		method: 'get'
 	})
 }
 
-export const setmealListApi = (data) => {
+export const setmealListApi = (params) => {
+	return request({
+		url: '/api/v1/setmeals',
+		method: 'get',
+		params
+	})
+}
+
+export const recommendationsApi = () => {
 	return uni.$ajax.get({
-		url: 'mp/setmeal/list',
-		data: { ...data }
+		url: 'v1/dishes/recommendations'
 	})
 }
