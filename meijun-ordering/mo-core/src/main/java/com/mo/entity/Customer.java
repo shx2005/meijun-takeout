@@ -1,4 +1,5 @@
 package com.mo.entity;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.mo.common.enumeration.UserIdentity;
 import lombok.*;
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import java.io.Serial;
 import java.time.LocalDateTime;
 
+@Tag(name = "客户信息")
 @EqualsAndHashCode(callSuper = true)
 @Setter
 @Getter
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 public class Customer extends User{
     @Serial
     private static final long serialVersionUID = 1L;
+    @Builder.Default
     private UserIdentity identity = UserIdentity.CUSTOMER;
     private double balance;
 

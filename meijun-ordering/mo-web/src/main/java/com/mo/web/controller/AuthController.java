@@ -15,8 +15,12 @@ import com.mo.common.properties.JwtProperties;
 import com.mo.common.result.Result;
 import com.mo.common.utils.JwtUtil;
 import com.mo.entity.User;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -45,11 +49,12 @@ public class AuthController {
     @Autowired
     private RedisTemplate<String, Object>  redisTemplate;
 
-    @PostMapping("/login")
-    @Tag(name = "登录")
+    @Operation(summary = "登录")
     @Parameters({
-            @Parameter(name = "authLoginDTO", description = "登录信息", required = true)
+            @Parameter(name = "AuthLoginDTO", description = "登录参数", required = true, schema = @Schema(implementation = AuthLoginDTO.class))
     })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = AuthLoginVo.class)))
+    @PostMapping("/login")
     public Result<AuthLoginVo> login(@RequestBody AuthLoginDTO authLoginDTO) {
         log.info("login:{}", authLoginDTO);
 
@@ -82,8 +87,11 @@ public class AuthController {
         return Result.success(authLoginVo);
     }
 
+    @Operation(summary = "微信小程序登录")
+    @Parameters({
+            @Parameter(name = "loginData", description = "登录参数", required = true, schema = @Schema(implementation = Map.class))
+    })
     @PostMapping("/mp/login")
-    @Tag(name = "微信小程序登录")
     public Result<AuthLoginVo> mpLogin(@RequestBody Map<String, String> loginData) {
         log.info("微信小程序登录: {}", loginData);
         
@@ -127,6 +135,11 @@ public class AuthController {
         return Result.success(authLoginVo);
     }
 
+    @Operation(summary = "微信小程序登录")
+    @Parameters({
+            @Parameter(name = "AuthRegisterDTO", description = "注册参数", required = true, schema = @Schema(implementation = AuthRegisterDTO.class))
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = User.class)))
     @PostMapping("/register")
     public Result<User> register(@RequestBody AuthRegisterDTO authRegisterDTO) {
         log.info("register:{}", authRegisterDTO);
@@ -138,6 +151,7 @@ public class AuthController {
         return Result.success(user);
     }
 
+    @Operation(summary = "退出登录")
     @PostMapping("/logout")
     public Result<String> logout(){
         String uuid = BaseContext.getCurrentId();
@@ -148,6 +162,7 @@ public class AuthController {
         return Result.success();
     }
 
+    @Operation(summary = "刷新jwt")
     @PostMapping("/refresh-token")
     public Result<String> refreshToken(){
         String uuid = BaseContext.getCurrentId();

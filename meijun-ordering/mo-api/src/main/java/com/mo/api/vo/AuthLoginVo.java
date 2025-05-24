@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serial;
 import java.io.Serializable;
 
+@Schema(name = "登录返回参数")
 @Data
 @Builder
 @AllArgsConstructor
@@ -16,6 +17,7 @@ import java.io.Serializable;
 public class AuthLoginVo implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
+
     @Schema(description = "主键值")
     private Long id;
     @Schema(description = "用户名")

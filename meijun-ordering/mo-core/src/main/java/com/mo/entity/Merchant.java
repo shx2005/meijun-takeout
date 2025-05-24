@@ -16,6 +16,7 @@ import java.io.Serial;
 public class Merchant extends User{
     @Serial
     private static final long serialVersionUID = 1L;
+    @Builder.Default
     private UserIdentity identity = UserIdentity.MERCHANT;
     private String address;
 

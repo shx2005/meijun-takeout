@@ -6,8 +6,12 @@ import com.mo.common.context.BaseContext;
 import com.mo.common.exception.UserNotLoginException;
 import com.mo.common.result.Result;
 import com.mo.entity.User;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,10 +29,8 @@ public class UserController {
     private RedisTemplate<String, Object> redisTemplate;
 
     @GetMapping("/info")
-    @Tag(name = "获取用户信息")
-    @Parameters({
-            @Parameter(name = "uuid", description = "用户ID", required = true)
-    })
+    @Operation(summary = "获取用户信息")
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = User.class)))
     public Result<User> info(){
         String uuid = BaseContext.getCurrentId();
         if(uuid == null) {

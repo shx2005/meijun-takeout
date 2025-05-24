@@ -1,4 +1,6 @@
 package com.mo.entity;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import lombok.Data;
 import lombok.Builder;
@@ -8,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serial;
 import java.io.Serializable;
 
+@Schema(description = "菜品口味关系表")
 @Data
 @Builder
 @AllArgsConstructor

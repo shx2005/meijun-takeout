@@ -1,4 +1,6 @@
 package com.mo.entity;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.mo.common.enumeration.UserIdentity;
 import lombok.*;
@@ -6,7 +8,9 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serial;
+import lombok.Builder.Default;
 
+@Schema(name = "管理员信息")
 @EqualsAndHashCode(callSuper = true)
 @Setter
 @Getter
@@ -16,7 +20,9 @@ import java.io.Serial;
 public class Admin extends User{
     @Serial
     private static final long serialVersionUID = 1L;
+    @Builder.Default
     private UserIdentity identity = UserIdentity.ADMIN;
+    @Builder.Default
     private Role role = Role.admin;
 
     public static Admin fromUser(User user){

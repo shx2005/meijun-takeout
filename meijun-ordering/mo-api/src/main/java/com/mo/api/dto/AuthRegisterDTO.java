@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
 
 @Data
-@Tag(name = "注册请求参数")
+@Schema(name = "注册请求参数")
 public class AuthRegisterDTO {
     @Schema(name = "用户名")
     private String username;
@@ -26,7 +26,6 @@ public class AuthRegisterDTO {
     //商家
     @Schema(name = "地址")
     private String address;
-
     //店员
     @Schema(name = "商家用户名")
     private String merchantUsername;

@@ -10,6 +10,12 @@ import com.mo.common.result.Result;
 import com.mo.entity.AfterSale;
 import com.mo.entity.Order;
 import com.mo.entity.OrderComment;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -29,6 +35,8 @@ public class OrderController {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Operation(summary = "获取订单列表")
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Order.class)))
     @GetMapping("/overview")
     public Result<List<Order>> getAll(){
         List<Order> orders = orderService.getAll();
@@ -36,6 +44,10 @@ public class OrderController {
         return Result.success(orders);
     }
 
+    @Operation(summary = "获取订单分页")
+    @Parameters({
+            @Parameter(name = "orderPageQueryDTO", schema = @Schema(implementation = OrderPageQueryDTO.class))
+    })
     @GetMapping("/page")
     public PageResult getPage(OrderPageQueryDTO orderPageQueryDTO){
         int pageNum = orderPageQueryDTO.getPage();
@@ -49,6 +61,11 @@ public class OrderController {
         return PageResult.success(orders.size(), orders, pageNum, pageSize);
     }
 
+    @Operation(summary = "获取订单详情")
+    @Parameters({
+            @Parameter(name = "orderId", description = "订单ID", required = true)
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Order.class)))
     @GetMapping("/{orderId}")
     public Result<Order> getOrderById( @PathVariable Long orderId){
         Order order = orderService.getOrderById(orderId);
@@ -56,6 +73,11 @@ public class OrderController {
         return Result.success(order);
     }
 
+    @Operation(summary = "获取订单分页")
+    @Parameters({
+            @Parameter(name = "orderCommentQueryDTO", schema = @Schema(implementation = OrderCommentDTO.class))
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = OrderComment.class)))
     @PostMapping("/comment")
     public Result<OrderComment> saveOrderComment(OrderCommentDTO orderCommentDTO){
         Long orderId = orderCommentDTO.getOrderId();
@@ -65,6 +87,10 @@ public class OrderController {
         return Result.success(orderComment);
     }
 
+    @Operation(summary = "保存订单评价")
+    @Parameters({
+            @Parameter(name = "orderAfterSaleDTO", description = "订单售后参数", required = true, schema = @Schema(implementation = AfterSaleDTO.class))
+    })
     @PostMapping("/after-sale")
     public Result<String> applyForAfterSale(AfterSaleDTO afterSaleDTO){
         AfterSale afterSale = new AfterSale();
