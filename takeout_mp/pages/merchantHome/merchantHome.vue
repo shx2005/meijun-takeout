@@ -17,7 +17,7 @@
 		</view>
 		
 		<!-- 订单模块 -->
-		<view v-if="activeMainNav === 0">
+		<scroll-view v-if="activeMainNav === 0" scroll-y class="module-scroll-view">
 			<view class="order-status-tabs">
 				<view 
 					v-for="(tab, index) in tabs" 
@@ -79,105 +79,146 @@
 					<text class="empty-text">暂无相关订单</text>
 				</view>
 			</view>
-		</view>
+		</scroll-view>
 		
 		<!-- 数据模块 -->
-		<view v-if="activeMainNav === 1" class="data-module">
-			<view class="data-cards">
-				<view class="data-card">
-					<view class="data-title">今日订单</view>
-					<view class="data-value">15</view>
-					<view class="data-change up">+20%</view>
+		<scroll-view v-if="activeMainNav === 1" scroll-y class="module-scroll-view">
+			<view class="data-module">
+				<view class="data-cards">
+					<view class="data-card">
+						<view class="data-title">今日订单</view>
+						<view class="data-value">15</view>
+						<view class="data-change up">+20%</view>
+					</view>
+					<view class="data-card">
+						<view class="data-title">今日销售额</view>
+						<view class="data-value">¥1,280</view>
+						<view class="data-change up">+15%</view>
+					</view>
+					<view class="data-card">
+						<view class="data-title">热销菜品</view>
+						<view class="data-value">宫保鸡丁</view>
+						<view class="data-sub">已售28份</view>
+					</view>
 				</view>
-				<view class="data-card">
-					<view class="data-title">今日销售额</view>
-					<view class="data-value">¥1,280</view>
-					<view class="data-change up">+15%</view>
+				
+				<view class="sales-chart">
+					<view class="chart-title">近7天销售统计</view>
+					<view class="chart-placeholder">
+						<view class="chart-bar" style="height: 60%;"></view>
+						<view class="chart-bar" style="height: 80%;"></view>
+						<view class="chart-bar" style="height: 40%;"></view>
+						<view class="chart-bar" style="height: 90%;"></view>
+						<view class="chart-bar" style="height: 70%;"></view>
+						<view class="chart-bar" style="height: 50%;"></view>
+						<view class="chart-bar" style="height: 85%;"></view>
+					</view>
+					<view class="chart-labels">
+						<text>周一</text>
+						<text>周二</text>
+						<text>周三</text>
+						<text>周四</text>
+						<text>周五</text>
+						<text>周六</text>
+						<text>周日</text>
+					</view>
 				</view>
-				<view class="data-card">
-					<view class="data-title">热销菜品</view>
-					<view class="data-value">宫保鸡丁</view>
-					<view class="data-sub">已售28份</view>
+				
+				<view class="sales-chart">
+					<view class="chart-title">热销菜品排行</view>
+					<view class="rank-list">
+						<view class="rank-item">
+							<view class="rank-num">1</view>
+							<view class="rank-info">
+								<view class="rank-name">宫保鸡丁</view>
+								<view class="rank-sales">销量: 28份</view>
+							</view>
+							<view class="rank-price">¥38</view>
+						</view>
+						<view class="rank-item">
+							<view class="rank-num">2</view>
+							<view class="rank-info">
+								<view class="rank-name">水煮肉片</view>
+								<view class="rank-sales">销量: 25份</view>
+							</view>
+							<view class="rank-price">¥48</view>
+						</view>
+						<view class="rank-item">
+							<view class="rank-num">3</view>
+							<view class="rank-info">
+								<view class="rank-name">干锅牛蛙</view>
+								<view class="rank-sales">销量: 22份</view>
+							</view>
+							<view class="rank-price">¥68</view>
+						</view>
+					</view>
 				</view>
 			</view>
-			
-			<view class="sales-chart">
-				<view class="chart-title">近7天销售统计</view>
-				<view class="chart-placeholder">
-					<view class="chart-bar" style="height: 60%;"></view>
-					<view class="chart-bar" style="height: 80%;"></view>
-					<view class="chart-bar" style="height: 40%;"></view>
-					<view class="chart-bar" style="height: 90%;"></view>
-					<view class="chart-bar" style="height: 70%;"></view>
-					<view class="chart-bar" style="height: 50%;"></view>
-					<view class="chart-bar" style="height: 85%;"></view>
-				</view>
-				<view class="chart-labels">
-					<text>周一</text>
-					<text>周二</text>
-					<text>周三</text>
-					<text>周四</text>
-					<text>周五</text>
-					<text>周六</text>
-					<text>周日</text>
-				</view>
-			</view>
-		</view>
+		</scroll-view>
 		
 		<!-- 管理模块 -->
-		<view v-if="activeMainNav === 2" class="manage-module">
-			<view class="manage-menu">
-				<view class="manage-item" @click="navigateToSubPage('staff')">
-					<view class="manage-icon">👨‍💼</view>
-					<view class="manage-text">
-						<view class="manage-title">员工管理</view>
-						<view class="manage-desc">员工信息、权限设置</view>
+		<scroll-view v-if="activeMainNav === 2" scroll-y class="module-scroll-view">
+			<view class="manage-module">
+				<view class="manage-menu">
+					<view class="manage-item" @click="navigateToSubPage('staff')">
+						<view class="manage-icon">👨‍💼</view>
+						<view class="manage-text">
+							<view class="manage-title">员工管理</view>
+							<view class="manage-desc">员工信息、权限设置</view>
+						</view>
+						<view class="manage-arrow">
+							<u-icon name="arrow-right" color="#999" size="24"></u-icon>
+						</view>
 					</view>
-					<view class="manage-arrow">
-						<u-icon name="arrow-right" color="#999" size="24"></u-icon>
+					
+					<view class="manage-item" @click="navigateToSubPage('dish')">
+						<view class="manage-icon">🍲</view>
+						<view class="manage-text">
+							<view class="manage-title">菜品管理</view>
+							<view class="manage-desc">菜品维护、价格设置</view>
+						</view>
+						<view class="manage-arrow">
+							<u-icon name="arrow-right" color="#999" size="24"></u-icon>
+						</view>
+					</view>
+					
+					<view class="manage-item" @click="navigateToSubPage('afterSale')">
+						<view class="manage-icon">🛎️</view>
+						<view class="manage-text">
+							<view class="manage-title">售后管理</view>
+							<view class="manage-desc">退款处理、投诉处理</view>
+						</view>
+						<view class="manage-arrow">
+							<u-icon name="arrow-right" color="#999" size="24"></u-icon>
+						</view>
 					</view>
 				</view>
 				
-				<view class="manage-item" @click="navigateToSubPage('dish')">
-					<view class="manage-icon">🍲</view>
-					<view class="manage-text">
-						<view class="manage-title">菜品管理</view>
-						<view class="manage-desc">菜品维护、价格设置</view>
+				<view class="manage-menu" style="margin-top: 20rpx;">
+					<view class="manage-item" @click="navigateToSubPage('settings')">
+						<view class="manage-icon">⚙️</view>
+						<view class="manage-text">
+							<view class="manage-title">店铺设置</view>
+							<view class="manage-desc">营业时间、配送范围</view>
+						</view>
+						<view class="manage-arrow">
+							<u-icon name="arrow-right" color="#999" size="24"></u-icon>
+						</view>
 					</view>
-					<view class="manage-arrow">
-						<u-icon name="arrow-right" color="#999" size="24"></u-icon>
+					
+					<view class="manage-item" @click="navigateToSubPage('finance')">
+						<view class="manage-icon">💰</view>
+						<view class="manage-text">
+							<view class="manage-title">财务管理</view>
+							<view class="manage-desc">收支明细、账务统计</view>
+						</view>
+						<view class="manage-arrow">
+							<u-icon name="arrow-right" color="#999" size="24"></u-icon>
+						</view>
 					</view>
-				</view>
-				
-				<view class="manage-item" @click="navigateToSubPage('afterSale')">
-					<view class="manage-icon">🛎️</view>
-					<view class="manage-text">
-						<view class="manage-title">售后管理</view>
-						<view class="manage-desc">退款处理、投诉处理</view>
-					</view>
-					<view class="manage-arrow">
-						<u-icon name="arrow-right" color="#999" size="24"></u-icon>
-					</view>
-				</view>
-			</view>
-		</view>
-		
-		<!-- 底部TabBar -->
-		<view class="tabbar">
-			<view 
-				v-for="(nav, index) in mainNavs" 
-				:key="index" 
-				:class="['tabbar-item', activeMainNav === index ? 'active' : '']"
-				@click="changeMainNav(index)"
-			>
-				<view class="tabbar-icon">
-					<u-icon :name="nav.icon" :color="activeMainNav === index ? '#FF8C00' : '#666'" size="40"></u-icon>
-				</view>
-				<view class="tabbar-text" :style="{color: activeMainNav === index ? '#FF8C00' : '#666'}">
-					{{nav.name}}
 				</view>
 			</view>
-		</view>
+		</scroll-view>
 	</view>
 </template>
 
@@ -419,7 +460,7 @@
 	.merchant-home-container {
 		background-color: #f5f5f5;
 		min-height: 100vh;
-		padding-bottom: 120rpx; /* 为底部导航留出空间 */
+		padding-bottom: 20rpx;
 	}
 	
 	.header {
@@ -441,6 +482,7 @@
 		background-color: #fff;
 		padding: 0 20rpx;
 		margin-bottom: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 		
 		.nav-item {
 			flex: 1;
@@ -466,6 +508,11 @@
 				}
 			}
 		}
+	}
+	
+	/* 添加可滚动区域样式 */
+	.module-scroll-view {
+		height: calc(100vh - 170rpx); /* 减去顶部标题栏和主导航栏的高度 */
 	}
 	
 	.order-status-tabs {
@@ -707,6 +754,7 @@
 		background-color: #fff;
 		border-radius: 12rpx;
 		padding: 30rpx;
+		margin-bottom: 20rpx;
 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 		
 		.chart-title {
@@ -739,6 +787,58 @@
 				font-size: 22rpx;
 				color: #999;
 			}
+		}
+	}
+	
+	/* 排行榜样式 */
+	.rank-list {
+		margin-top: 20rpx;
+	}
+	
+	.rank-item {
+		display: flex;
+		align-items: center;
+		padding: 20rpx 0;
+		border-bottom: 2rpx solid #f5f5f5;
+		
+		&:last-child {
+			border-bottom: none;
+		}
+		
+		.rank-num {
+			width: 40rpx;
+			height: 40rpx;
+			border-radius: 50%;
+			background-color: #FF8C00;
+			color: #fff;
+			font-size: 24rpx;
+			font-weight: bold;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-right: 20rpx;
+		}
+		
+		.rank-info {
+			flex: 1;
+			
+			.rank-name {
+				font-size: 28rpx;
+				color: #333;
+				font-weight: 500;
+				margin-bottom: 6rpx;
+			}
+			
+			.rank-sales {
+				font-size: 24rpx;
+				color: #999;
+			}
+		}
+		
+		.rank-price {
+			font-size: 28rpx;
+			color: #FF5722;
+			font-weight: bold;
 		}
 	}
 	
@@ -781,35 +881,6 @@
 			.manage-desc {
 				font-size: 24rpx;
 				color: #999;
-			}
-		}
-	}
-	
-	/* 底部TabBar样式 */
-	.tabbar {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		height: 100rpx;
-		background-color: #fff;
-		display: flex;
-		border-top: 2rpx solid #eee;
-		z-index: 99;
-		
-		.tabbar-item {
-			flex: 1;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			
-			.tabbar-icon {
-				margin-bottom: 6rpx;
-			}
-			
-			.tabbar-text {
-				font-size: 24rpx;
 			}
 		}
 	}
