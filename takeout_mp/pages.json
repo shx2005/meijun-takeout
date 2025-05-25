@@ -2,9 +2,16 @@
 	"pages": [ 
 		
 		{
+			"path": "pages/recommend/recommend",
+			"style": {
+				"navigationBarTitleText": "首页推荐",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "美食元素",
+				"navigationBarTitleText": "点单",
 				"navigationStyle": "custom"
 			}
 		},
@@ -89,7 +96,7 @@
 		{
 			"path": "pages/orderDetail/orderDetail",
 			"style": {
-				"navigationBarTitleText": "",
+				"navigationBarTitleText": "订单详情",
 				"enablePullDownRefresh": false
 			}
 		},
@@ -104,41 +111,96 @@
 		    "path" : "pages/orderList2/orderList2",
 		    "style" :                                                                                    
 		    {
-		        "navigationBarTitleText": "订单列表"
-		        
+		        "navigationBarTitleText": "历史订单",
+		        "enablePullDownRefresh": false
 		    }
 		    
+		},
+		{
+			"path": "pages/afterSale/afterSale",
+			"style": {
+				"navigationBarTitleText": "申请售后",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/refund/refund",
+			"style": {
+				"navigationBarTitleText": "申请退款",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/category/category",
+			"style": {
+				"navigationBarTitleText": "分类菜品",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/dishDetail/dishDetail",
+			"style": {
+				"navigationBarTitleText": "菜品详情",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/setting/changeIdNumber/changeIdNumber",
+			"style": {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+		},
+		{
+			"path": "pages/setting/changeName/changeName",
+			"style": {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+		},
+		{
+			"path": "pages/coupon/coupon",
+			"style": {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+        },
+		{
+			"path": "pages/userInfo/userInfo",
+			"style": {
+				"navigationBarTitleText": "用户信息",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/register/register",
+			"style": {
+				"navigationBarTitleText": "注册账号",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/payConfirm/payConfirm",
+			"style": {
+				"navigationBarTitleText": "确认支付",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/merchantLogin/merchantLogin",
+			"style": {
+				"navigationBarTitleText": "商家登录",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/merchantHome/merchantHome",
+			"style": {
+				"navigationBarTitleText": "商家管理系统",
+				"enablePullDownRefresh": false
+			}
 		}
-
-            
-        
-        ,{
-            "path" : "pages/setting/changeIdNumber/changeIdNumber",
-            "style" :                                                                                    
-            {
-                "navigationBarTitleText": "",
-                "enablePullDownRefresh": false
-            }
-            
-        }
-        ,{
-            "path" : "pages/setting/changeName/changeName",
-            "style" :                                                                                    
-            {
-                "navigationBarTitleText": "",
-                "enablePullDownRefresh": false
-            }
-            
-        }
-        ,{
-            "path" : "pages/coupon/coupon",
-            "style" :                                                                                    
-            {
-                "navigationBarTitleText": "",
-                "enablePullDownRefresh": false
-            }
-            
-        }
     ],
 	"subPackages": [
 		{
@@ -156,17 +218,17 @@
 		"selectedColor": "#feca50",
 		"list": [
 			{
-				"pagePath": "pages/index/index",
-				"text": "首页",
+				"pagePath": "pages/recommend/recommend",
+				"text": "首页推荐",
 				"iconPath": "static/index_image/index.png",
 				"selectedIconPath": "static/index_image/index_active.png"
 			},
-			// {
-			// 	"pagePath": "pages/orderList/orderList",
-			// 	"text": "订单",
-			// 	"iconPath": "static/index_image/order.png",
-			// 	"selectedIconPath": "static/index_image/order_active.png"
-			// },
+			{
+				"pagePath": "pages/index/index",
+				"text": "点单",
+				"iconPath": "static/index_image/order.png",
+				"selectedIconPath": "static/index_image/order_active.png"
+			},
 			{
 				"pagePath": "pages/my/my",
 				"text": "我的",

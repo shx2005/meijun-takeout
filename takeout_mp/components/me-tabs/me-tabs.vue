@@ -16,6 +16,7 @@
 
 <script>
 	export default {
+		name: 'me-tabs',
 		props:{
 			tabs: { // 支持格式: ['全部', '待付款'] 或 [{name:'全部'}, {name:'待付款'}]
 				type: Array,
@@ -32,7 +33,10 @@
 				default: 0
 			},
 			fixed: Boolean, // 是否悬浮,默认false
-			tabWidth: Number, // 每个tab的宽度,默认不设置值,为flex平均分配; 如果指定宽度,则不使用flex,每个tab居左,超过则水平滑动(单位默认rpx)
+			tabWidth: { // 每个tab的宽度,默认不设置值,为flex平均分配; 如果指定宽度,则不使用flex,每个tab居左,超过则水平滑动(单位默认rpx)
+				type: Number,
+				default: 130
+			},
 			height: { // 高度,单位rpx
 				type: Number,
 				default: 64

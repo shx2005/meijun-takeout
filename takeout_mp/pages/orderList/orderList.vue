@@ -139,24 +139,24 @@
 			},
 			async getList() {
 				this.isloading = true;
-				const token = uni.getStorageSync('token');
+				// const token = uni.getStorageSync('token'); // 获取token的语句可以保留或删除
 				
-				if (!token) {
-					uni.showModal({
-						title: '提示',
-						content: '请登录',
-						showCancel: false,
-						success: function(res) {
-							if (res.confirm) {
-								uni.switchTab({
-									url: '/pages/my/my'
-								});
-							}
-						}
-					});
-					this.isloading = false;
-					return;
-				}
+				// if (!token) { // 移除或注释掉登录检查和强制跳转
+				// 	uni.showModal({
+				// 		title: '提示',
+				// 		content: '请登录',
+				// 		showCancel: false,
+				// 		success: function(res) {
+				// 			if (res.confirm) {
+				// 				uni.switchTab({
+				// 					url: '/pages/my/my'
+				// 				});
+				// 			}
+				// 		}
+				// 	});
+				// 	this.isloading = false;
+				// 	return;
+				// }
 				
 				try {
 					const res = await getOrdersApi({
