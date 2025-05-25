@@ -2,6 +2,7 @@ package com.mo.web.controller;
 
 import com.mo.api.dto.AuthLoginDTO;
 import com.mo.api.dto.AuthRegisterDTO;
+import com.mo.api.service.RedisService;
 import com.mo.api.vo.AuthLoginVo;
 import com.mo.common.constant.JwtClaimsConstant;
 import com.mo.common.constant.MessageConstant;
@@ -48,6 +49,8 @@ public class AuthController {
     private JwtProperties jwtProperties;
     @Autowired
     private RedisTemplate<String, Object>  redisTemplate;
+    @Autowired
+    private RedisService redisService;
 
     @Operation(summary = "登录")
     @Parameters({
@@ -62,7 +65,7 @@ public class AuthController {
 
         Map<String, Object> claims = new HashMap<>();
         String id = JwtClaimsConstant.getId(user.getIdentity());
-        claims.put(id, user.getId());
+        claims.put(id, user.getUuid());
 
         // 生成JWT令牌
         String token = JwtUtil.createJwt(
@@ -71,9 +74,10 @@ public class AuthController {
                 claims);
 
         //放入当前线程
-        redisTemplate.opsForValue().set(RedisKeyConstant.USER_ID, user.getId());
-        redisTemplate.opsForValue().set(user.getUuid(), user, getTtl(user.getIdentity()), TimeUnit.MILLISECONDS);
-        BaseContext.setCurrentId(user.getUuid());
+        String uuid = user.getUuid();
+        redisService.hSet(RedisKeyConstant.USER_IDENTITY, uuid.substring(0,4), user.getIdentity().getName());
+        redisService.setEntity(uuid, user);
+        BaseContext.setCurrentId(uuid);
         //todo 检查输入是否合法
         //todo 验证码
         AuthLoginVo authLoginVo = AuthLoginVo.builder()

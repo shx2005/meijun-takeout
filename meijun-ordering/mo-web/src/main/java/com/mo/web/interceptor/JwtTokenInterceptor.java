@@ -1,6 +1,7 @@
 package com.mo.web.interceptor;
 
 import com.mo.common.constant.JwtClaimsConstant;
+import com.mo.common.context.BaseContext;
 import com.mo.common.enumeration.UserIdentity;
 import com.mo.common.properties.JwtProperties;
 import com.mo.common.utils.JwtUtil;
@@ -46,7 +47,7 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
         }
 
         String token = request.getHeader(jwtProperties.getTokenNameByType(identity));
-        String key = request.getHeader(jwtProperties.getSecretKeyByType(identity));
+        String key = jwtProperties.getSecretKeyByType(identity);
 
         if(token == null || token.isEmpty()) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "missing token");
@@ -57,7 +58,8 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
             Jws<Claims> jws = JwtUtil.parseJwt(key, token);
             Claims claims = jws.getPayload();
             request.setAttribute("claims:", claims);
-            Long id = claims.get(JwtClaimsConstant.getId(identity), Long.class);
+            String id = claims.get(JwtClaimsConstant.getId(identity), String.class);
+            BaseContext.setCurrentId(id);
             log.info("当前{} ： {}", JwtClaimsConstant.getName(identity) ,id);
             return true;
         }

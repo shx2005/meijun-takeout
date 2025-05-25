@@ -16,6 +16,8 @@ public interface RedisService {
      */
     void set(String key, Object value, long time);
 
+    void setEntity(String key, Object value);
+
     /**
      * 保存属性
      */
@@ -25,6 +27,8 @@ public interface RedisService {
      * 获取属性
      */
     Object get(String key);
+
+    Object getEntity(String key, Class<?> clazz);
 
     /**
      * 删除属性
