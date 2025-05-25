@@ -433,50 +433,93 @@
 						password: this.password
 					});
 
-					// 检查响应状态和内容类型
-					if (result && result.statusCode === 200 && result.data && typeof result.data === 'object') {
-						// 根据后端返回的格式调整处理方式
-						// 如果返回的是整个响应对象，需要从中获取token和id
 						console.log('登录结果:', result);
 						
-						const token = result.data.token; // Assuming token is directly in data
-						const userId = result.data.id; // Assuming id is directly in data
+					// 检查响应状态
+					if (result && result.statusCode === 200 && result.data) {
+						// 根据响应格式提取token和userId
+						const responseData = result.data;
+						let token = null;
+						let userId = null;
+						
+						// 尝试从不同可能的响应格式中提取token
+						if (responseData.token) {
+							// 直接包含token的格式
+							token = responseData.token;
+							userId = responseData.id || responseData.userId || responseData.user_id;
+						} else if (responseData.data && responseData.data.token) {
+							// 嵌套在data字段中的格式
+							token = responseData.data.token;
+							userId = responseData.data.id || responseData.data.userId || responseData.data.user_id;
+						} else if (responseData.access_token) {
+							// OAuth2格式
+							token = responseData.access_token;
+							userId = responseData.user_id;
+						}
 						
 						if (token) {
+							// 保存登录信息
 							uni.setStorageSync('token', token);
-							uni.setStorageSync('userId', userId);
+							if (userId) uni.setStorageSync('userId', userId);
 							uni.setStorageSync('phoneNumber', trimmedPhone);
 							this.userToken = token;
 							
+							// 初始化用户名
+							this.initPhoneUserName(trimmedPhone);
+							
+							// 获取用户信息并刷新界面
 							this.getUserInfo();
 							this.initData();
 							this.closeLogin();
 							
 							uni.$showMsg('登录成功', 'success');
 						} else {
-							throw new Error('未获取到有效的登录信息');
+							// 无法从响应中提取token
+							uni.$showMsg('登录成功但未获取到有效的登录凭证，请联系管理员');
 						}
 					} else {
-						// 处理登录接口返回的错误信息
-						console.error('登录接口返回错误:', result);
+						// 处理错误
 						let errorMsg = '登录失败，请稍后重试';
-						if (result && result.data && typeof result.data === 'string' && result.data.includes('<error>')) {
-							// 尝试从XML中提取错误信息
-							const match = result.data.match(/<error>(.*?)<\/error>/);
-							if (match && match[1]) {
-								errorMsg = match[1];
+						
+						// 检查是否有错误信息
+						if (result.data) {
+							if (typeof result.data === 'string') {
+								// 字符串形式的错误
+								if (result.data.includes('Internal Server Error')) {
+									errorMsg = '服务器内部错误，请稍后再试';
+								} else if (result.data.includes('<error>')) {
+									const errorMatch = result.data.match(/<error>(.*?)<\/error>/);
+									if (errorMatch && errorMatch[1]) {
+										errorMsg = errorMatch[1];
+									}
 							}
-						} else if (result && result.data && result.data.msg) {
+							} else if (typeof result.data === 'object') {
+								// JSON格式的错误
+								if (result.data.message) {
+									errorMsg = result.data.message;
+								} else if (result.data.error) {
+									errorMsg = result.data.error;
+								} else if (result.data.msg) {
 							errorMsg = result.data.msg;
-						} else if (result && result.errMsg && result.errMsg !== "request:ok") {
-							errorMsg = result.errMsg;
+								}
+							}
 						}
+						
+						// 针对常见的登录错误给出更友好的提示
+						if (errorMsg.toLowerCase().includes('password') || 
+							errorMsg.toLowerCase().includes('密码')) {
+							errorMsg = '密码不正确，请重试';
+						} else if (errorMsg.toLowerCase().includes('user') || 
+								 errorMsg.toLowerCase().includes('username') || 
+								 errorMsg.toLowerCase().includes('用户')) {
+							errorMsg = '用户不存在，请检查手机号';
+						}
+						
 						uni.$showMsg(errorMsg);
-						// throw new Error(errorMsg); // Optionally re-throw if you want the catch block below to handle it
 					}
 				} catch (error) {
 					console.error('登录失败', error);
-					uni.$showMsg('登录失败，请检查手机号和密码');
+					uni.$showMsg('登录失败，请检查网络连接');
 				} finally {
 					this.isLoading = false;
 				}

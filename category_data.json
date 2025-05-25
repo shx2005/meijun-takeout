@@ -1,0 +1,65 @@
+[
+  {
+    "id": 1,
+    "type": 1,
+    "name": "家常菜",
+    "sort": 1,
+    "status": 1
+  },
+  {
+    "id": 2,
+    "type": 1,
+    "name": "盖饭",
+    "sort": 2,
+    "status": 1
+  },
+  {
+    "id": 3,
+    "type": 1,
+    "name": "米饭",
+    "sort": 3,
+    "status": 1
+  },
+  {
+    "id": 4,
+    "type": 1,
+    "name": "特色菜",
+    "sort": 4,
+    "status": 1
+  },
+  {
+    "id": 5,
+    "type": 1,
+    "name": "干锅",
+    "sort": 5,
+    "status": 1
+  },
+  {
+    "id": 6,
+    "type": 1,
+    "name": "家常菜系列",
+    "sort": 6,
+    "status": 1
+  },
+  {
+    "id": 7,
+    "type": 1,
+    "name": "汤菜",
+    "sort": 7,
+    "status": 1
+  },
+  {
+    "id": 8,
+    "type": 1,
+    "name": "素菜系列",
+    "sort": 8,
+    "status": 1
+  },
+  {
+    "id": 9,
+    "type": 2,
+    "name": "套餐",
+    "sort": 9,
+    "status": 1
+  }
+] 

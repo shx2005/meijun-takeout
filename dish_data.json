@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "name": "鱼香肉丝",
+    "categoryId": 1,
+    "price": 28.00,
+    "image": "/static/images/dish1.jpg",
+    "description": "主料：猪肉、胡萝卜、青椒、木耳",
+    "status": 1,
+    "sale": 128
+  },
+  {
+    "id": 2,
+    "name": "宫保鸡丁",
+    "categoryId": 1,
+    "price": 26.00,
+    "image": "/static/images/dish2.jpg",
+    "description": "主料：鸡胸肉、花生米、黄瓜、胡萝卜",
+    "status": 1,
+    "sale": 105
+  },
+  {
+    "id": 3,
+    "name": "红烧排骨",
+    "categoryId": 1,
+    "price": 32.00,
+    "image": "/static/images/dish3.jpg",
+    "description": "主料：猪排骨、土豆、胡萝卜",
+    "status": 1,
+    "sale": 98
+  },
+  {
+    "id": 4,
+    "name": "麻婆豆腐",
+    "categoryId": 2,
+    "price": 22.00,
+    "image": "/static/images/dish4.jpg",
+    "description": "主料：豆腐、肉末、豆瓣酱",
+    "status": 1,
+    "sale": 85
+  },
+  {
+    "id": 5,
+    "name": "干锅土豆片",
+    "categoryId": 5,
+    "price": 28.00,
+    "image": "/static/images/dish5.jpg",
+    "description": "主料：土豆、辣椒、木耳、肉片",
+    "status": 1,
+    "sale": 75
+  },
+  {
+    "id": 6,
+    "name": "水煮肉片",
+    "categoryId": 4,
+    "price": 32.00,
+    "image": "/static/images/dish6.jpg",
+    "description": "主料：猪肉、豆芽、白菜",
+    "status": 1,
+    "sale": 65
+  },
+  {
+    "id": 7,
+    "name": "蒜蓉蒸茄子",
+    "categoryId": 8,
+    "price": 18.00,
+    "image": "/static/images/dish7.jpg",
+    "description": "主料：茄子、蒜蓉",
+    "status": 1,
+    "sale": 55
+  },
+  {
+    "id": 8,
+    "name": "白米饭",
+    "categoryId": 3,
+    "price": 2.00,
+    "image": "/static/images/dish8.jpg",
+    "description": "精选东北大米",
+    "status": 1,
+    "sale": 200
+  },
+  {
+    "id": 9,
+    "name": "番茄蛋花汤",
+    "categoryId": 7,
+    "price": 15.00,
+    "image": "/static/images/dish9.jpg",
+    "description": "主料：番茄、鸡蛋",
+    "status": 1,
+    "sale": 60
+  },
+  {
+    "id": 10,
+    "name": "回锅肉",
+    "categoryId": 1,
+    "price": 28.00,
+    "image": "/static/images/dish10.jpg",
+    "description": "主料：五花肉、青椒",
+    "status": 1,
+    "sale": 89
+  },
+  {
+    "id": 11,
+    "name": "青椒土豆丝",
+    "categoryId": 8,
+    "price": 16.00,
+    "image": "/static/images/dish11.jpg",
+    "description": "主料：土豆、青椒",
+    "status": 1,
+    "sale": 50
+  },
+  {
+    "id": 12,
+    "name": "干煸四季豆",
+    "categoryId": 8,
+    "price": 18.00,
+    "image": "/static/images/dish12.jpg",
+    "description": "主料：四季豆、辣椒",
+    "status": 1,
+    "sale": 45
+  }
+] 

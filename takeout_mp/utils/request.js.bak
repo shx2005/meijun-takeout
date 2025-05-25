@@ -10,39 +10,33 @@ const instance = ajax.create({
 })
 
 // 添加请求拦截器
-   // 添加请求拦截器
-   instance.interceptors.request.use(
-    config => {
-      // 在发送请求前做些什么
-      const token = uni.getStorageSync('token')
-      console.log('发送请求时的token:', token)
-      
-      if (token) {
-        // 根据API文档要求，使用tokenName头而不是Authorization
-        config.header['tokenName'] = token
-        // 移除旧的授权头
-        delete config.header['Authorization']
-        delete config.header['token']
-      }
-      
-      // 添加用户类型标识
-      config.header['userType'] = '3' // 3 代表 CUSTOMER
-      // 明确指定请求和响应都用 JSON
-      config.header['Accept'] = 'application/json'
-      
-      // 设置Content-Type头
-      if (config.method && (config.method.toUpperCase() === 'POST' || config.method.toUpperCase() === 'PUT')) {
-        config.header['Content-Type'] = 'application/json;charset=UTF-8'
-      } else {
-        config.header['Content-Type'] = 'application/json'
-      }
-      
-      return config
-    },
-    error => {
-      return Promise.reject(error)
+instance.interceptors.request.use(
+  config => {
+    // 在发送请求前做些什么
+    const token = uni.getStorageSync('token')
+    if (token) {
+      config.header['token'] = token
+      config.header['Authorization'] = `Bearer ${token}`
     }
-  )
+    // 添加用户类型标识
+    config.header['userType'] = '3' // 3 代表 CUSTOMER
+    // 明确指定请求和响应都用 JSON
+    config.header['Accept'] = 'application/json'
+    
+    // 设置Content-Type头，确保传输格式正确
+    if (config.method && (config.method.toUpperCase() === 'POST' || config.method.toUpperCase() === 'PUT')) {
+      config.header['Content-Type'] = 'application/json;charset=UTF-8'
+    } else {
+      config.header['Content-Type'] = 'application/json'
+    }
+    
+    return config
+  },
+  error => {
+    // 对请求错误做些什么
+    return Promise.reject(error)
+  }
+)
 
 // 添加响应拦截器
 instance.interceptors.response.use(

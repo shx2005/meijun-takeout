@@ -55,52 +55,50 @@
 				</scroll-view>
 			</view>
 			
-			<!-- 右侧菜品列表 -->
-			<scroll-view scroll-y class="dish-container">
-				<block v-if="!dishList || dishList.length === 0">
-					<view class="dish-item" v-for="(item, index) in testDishes" :key="index" @click="dishDetails(item)">
-						<image class="dish-image" :src="item.image || '../../static/images/noImg.png'" mode="aspectFill"></image>
-						<view class="dish-content">
-							<view class="dish-info">
-								<view class="dish-name">{{ item.name }}</view>
-								<view class="dish-desc" v-if="item.description">{{ item.description }}</view>
-								<view class="dish-sales">月售 {{ item.sales || 0 }}</view>
-							</view>
-							<view class="dish-action">
-								<view class="dish-price">
-									<text class="price-symbol">￥</text>
-									<text class="price-value">{{ (item.price/100).toFixed(2) }}</text>
-								</view>
-								<view class="add-button" @click.stop="addCart(item,$event)">
-									<image src="../../static/images/add.png"></image>
-								</view>
-							</view>
+			<!-- 右侧菜品列表 - 修改为分类展示 -->
+			<scroll-view 
+				scroll-y 
+				class="dish-container" 
+				id="dishContainer" 
+				:scroll-into-view="scrollIntoViewId"
+				@scroll="onDishScroll">
+				<block v-for="(category, catIndex) in categoryList" :key="'cat_'+catIndex">
+					<view :id="'category-'+category.id" class="category-title" :data-category-id="category.id">{{ category.name }}</view>
+					
+					<view class="dish-group">
+						<!-- 该分类下没有菜品时显示提示 -->
+						<view class="no-dish-tip" v-if="getDishesForCategory(category.id).length === 0">
+							暂无菜品
 						</view>
-					</view>
-				</block>
-				<block v-else>
-					<view class="dish-item" v-for="(item, index) in dishList" :key="index" @click="dishDetails(item)">
-						<image class="dish-image" :src="item.image || '../../static/images/noImg.png'" mode="aspectFill"></image>
-						<view class="dish-content">
-							<view class="dish-info">
-								<view class="dish-name">{{ item.name }}</view>
-								<view class="dish-desc" v-if="item.description">{{ item.description }}</view>
-								<view class="dish-sales">月售 {{ item.sales || 0 }}</view>
-							</view>
-							<view class="dish-action">
-								<view class="dish-price">
-									<text class="price-symbol">￥</text>
-									<text class="price-value">{{ (item.price/100).toFixed(2) }}</text>
+						
+						<!-- 该分类下的菜品列表 -->
+						<view 
+							class="dish-item" 
+							v-for="(item, index) in getDishesForCategory(category.id)" 
+							:key="'dish_'+item.id"
+							@click="dishDetails(item)">
+							<image class="dish-image" :src="item.image || '../../static/images/noImg.png'" mode="aspectFill"></image>
+							<view class="dish-content">
+								<view class="dish-info">
+									<view class="dish-name">{{ item.name }}</view>
+									<view class="dish-desc" v-if="item.description">{{ item.description }}</view>
+									<view class="dish-sales">月售 {{ item.sales || item.sale || 0 }}</view>
 								</view>
-								<view class="dish-controls">
-									<view class="subtract-button" v-if="getItemCount(item.id) >= 1" @click.stop.prevent="subtractCart(item)">
-										<image src="../../static/images/subtract.png"></image>
+								<view class="dish-action">
+									<view class="dish-price">
+										<text class="price-symbol">￥</text>
+										<text class="price-value">{{ (item.price).toFixed(2) }}</text>
 									</view>
-									<view class="dish-count" v-if="getItemCount(item.id) >= 1">{{ getItemCount(item.id) }}</view>
-									<view class="flavor-button" v-if="item.flavors && item.flavors.length > 0 && !getItemCount(item.id)"
-										@click.stop.prevent="chooseFlavorClick(item)">选择规格</view>
-									<view class="add-button" v-else @click.stop.prevent="addCart(item,$event)">
-										<image src="../../static/images/add.png"></image>
+									<view class="dish-controls">
+										<view class="subtract-button" v-if="getItemCount(item.id) >= 1" @click.stop.prevent="subtractCart(item)">
+											<image src="../../static/images/subtract.png"></image>
+										</view>
+										<view class="dish-count" v-if="getItemCount(item.id) >= 1">{{ getItemCount(item.id) }}</view>
+										<view class="flavor-button" v-if="item.flavors && item.flavors.length > 0 && !getItemCount(item.id)"
+											@click.stop.prevent="chooseFlavorClick(item)">选择规格</view>
+										<view class="add-button" v-else @click.stop.prevent="addCart(item,$event)">
+											<image src="../../static/images/add.png"></image>
+										</view>
 									</view>
 								</view>
 							</view>
@@ -153,109 +151,15 @@
 				tabIndex: 0,
 				tabs: ['点餐', '评价', '商家'],
 				activeType: 0,
-				categoryList: [
-					{ id: 1, name: '家常菜', type: 1 },
-					{ id: 2, name: '盖饭', type: 1 },
-					{ id: 3, name: '米饭', type: 1 },
-					{ id: 4, name: '特色菜', type: 1 },
-					{ id: 5, name: '干锅', type: 1 },
-					{ id: 6, name: '家常菜系列', type: 1 },
-					{ id: 7, name: '汤菜', type: 1 },
-					{ id: 8, name: '素菜系列', type: 1 },
-					{ id: 9, name: '套餐', type: 2 }
-				],
+				categoryList: [],
 				dishList: [],
 				totalPrice: '0.00',
 				cartCount: 0,
 				cartItems: [], // 购物车本地存储项
-				
-				// 占位菜品数据
-				testDishes: [
-					{
-						id: 1,
-						name: "鱼香肉丝套餐",
-						description: "主料：猪肉、胡萝卜、青椒、木耳，配米饭一份",
-						image: "../../static/images/dish1.jpg",
-						price: 2800,
-						sales: 128,
-						categoryId: 1
-					},
-					{
-						id: 2,
-						name: "宫保鸡丁套餐",
-						description: "主料：鸡胸肉、花生米、黄瓜、胡萝卜，配米饭一份",
-						image: "../../static/images/dish2.jpg",
-						price: 2600,
-						sales: 105,
-						categoryId: 1
-					},
-					{
-						id: 3,
-						name: "红烧排骨套餐",
-						description: "主料：猪排骨、土豆、胡萝卜，配米饭一份",
-						image: "../../static/images/dish3.jpg",
-						price: 3200,
-						sales: 98,
-						categoryId: 1
-					},
-					{
-						id: 4,
-						name: "麻婆豆腐套餐",
-						description: "主料：豆腐、肉末、豆瓣酱，配米饭一份",
-						image: "../../static/images/dish4.jpg",
-						price: 2200,
-						sales: 85,
-						categoryId: 2
-					},
-					{
-						id: 5,
-						name: "干锅土豆片",
-						description: "主料：土豆、辣椒、木耳、肉片",
-						image: "../../static/images/dish5.jpg",
-						price: 2800,
-						sales: 75,
-						categoryId: 5
-					},
-					{
-						id: 6,
-						name: "水煮肉片",
-						description: "主料：猪肉、豆芽、白菜",
-						image: "../../static/images/dish6.jpg",
-						price: 3200,
-						sales: 65,
-						categoryId: 4
-					},
-					{
-						id: 7,
-						name: "蒜蓉蒸茄子",
-						description: "主料：茄子、蒜蓉",
-						image: "../../static/images/dish7.jpg",
-						price: 1800,
-						sales: 55,
-						categoryId: 8
-					},
-					{
-						id: 8,
-						name: "白米饭",
-						description: "精选东北大米",
-						image: "../../static/images/dish8.jpg",
-						price: 200,
-						sales: 200,
-						categoryId: 3
-					},
-					{
-						id: 9,
-						name: "番茄蛋花汤",
-						description: "主料：番茄、鸡蛋",
-						image: "../../static/images/dish9.jpg",
-						price: 1000,
-						sales: 45,
-						categoryId: 7
-					}
-				],
-				
-				// 模拟API返回的所有菜品
-				allDishes: []
+				allDishes: [], // 所有菜品数据
+				scrollIntoViewId: '', // 用于控制右侧滚动位置
+				scrollLock: false, // 防止连续触发滚动事件
+				categoryPositions: [] // 存储分类位置信息
 			}
 		},
 		onLoad() {
@@ -266,83 +170,279 @@
 			this.loadCartFromStorage();
 			this.calculateCartTotals();
 		},
+		mounted() {
+			// 初始化后获取分类位置信息
+			setTimeout(() => {
+				this.getCategoryPositions();
+			}, 1000);
+		},
 		methods: {
 			async init() {
 				try {
-					// 模拟获取菜品分类API
-					// const categoryRes = await this.fetchCategories();
-					// 使用本地数据代替API调用
-					const categoryRes = {
-						code: 0,
-						data: this.categoryList
-					};
+					// 加载分类数据
+					await this.loadCategoryData();
 					
-					if (categoryRes && categoryRes.code === 0) {
-						this.categoryList = categoryRes.data;
-						
-						// 模拟获取所有菜品API
-						// const allDishesRes = await this.fetchAllDishes();
-						// 使用本地数据代替API调用
-						const allDishesRes = {
-							code: 0,
-							data: this.testDishes
-						};
-						
-						if (allDishesRes && allDishesRes.code === 0) {
-							this.allDishes = allDishesRes.data;
-							
-							// 默认选中第一个分类
-						if (this.categoryList.length > 0) {
-							this.categoryClick(0, this.categoryList[0].id, this.categoryList[0].type);
-							}
+					// 加载菜品数据
+					await this.loadDishData();
+				} catch (error) {
+					console.error("初始化数据失败", error);
+					uni.$showMsg('获取数据失败，请重试');
+				}
+			},
+			
+			// 加载分类数据
+			async loadCategoryData() {
+				try {
+					// 尝试从服务器获取分类数据
+					const res = await categoryListApi({});
+					if (res && res.code === 0 && res.data) {
+						this.categoryList = res.data;
+					} else {
+						// 如果服务器获取失败，使用本地JSON数据作为备用
+						const response = await uni.request({
+							url: '/category_data.json',
+							method: 'GET'
+						});
+						if (response && response[1].data) {
+							this.categoryList = response[1].data;
+						} else {
+							// 使用硬编码的备用数据
+							this.categoryList = [
+								{ id: 1, type: 1, name: '家常菜', sort: 1, status: 1 },
+								{ id: 2, type: 1, name: '盖饭', sort: 2, status: 1 },
+								{ id: 3, type: 1, name: '米饭', sort: 3, status: 1 },
+								{ id: 4, type: 1, name: '特色菜', sort: 4, status: 1 },
+								{ id: 5, type: 1, name: '干锅', sort: 5, status: 1 },
+								{ id: 6, type: 1, name: '家常菜系列', sort: 6, status: 1 },
+								{ id: 7, type: 1, name: '汤菜', sort: 7, status: 1 },
+								{ id: 8, type: 1, name: '素菜系列', sort: 8, status: 1 },
+								{ id: 9, type: 2, name: '套餐', sort: 9, status: 1 }
+							];
 						}
 					}
 				} catch (error) {
-					console.error("初始化数据失败", error);
-					uni.$showMsg('获取分类失败，请重试');
+					console.error("加载分类数据失败:", error);
+					// 使用硬编码的备用数据
+					this.categoryList = [
+						{ id: 1, type: 1, name: '家常菜', sort: 1, status: 1 },
+						{ id: 2, type: 1, name: '盖饭', sort: 2, status: 1 },
+						{ id: 3, type: 1, name: '米饭', sort: 3, status: 1 },
+						{ id: 4, type: 1, name: '特色菜', sort: 4, status: 1 },
+						{ id: 5, type: 1, name: '干锅', sort: 5, status: 1 },
+						{ id: 6, type: 1, name: '家常菜系列', sort: 6, status: 1 },
+						{ id: 7, type: 1, name: '汤菜', sort: 7, status: 1 },
+						{ id: 8, type: 1, name: '素菜系列', sort: 8, status: 1 },
+						{ id: 9, type: 2, name: '套餐', sort: 9, status: 1 }
+					];
 				}
+				
+				// 按sort字段排序
+				this.categoryList.sort((a, b) => a.sort - b.sort);
 			},
 			
-			// 模拟获取菜品分类API
-			async fetchCategories() {
-				// 实际项目中应该调用真实API
-				// return await categoryListApi({});
-				
-				// 模拟API返回
-				return {
-					code: 0,
-					data: this.categoryList
-				};
-			},
-			
-			// 模拟获取所有菜品API
-			async fetchAllDishes() {
-				// 实际项目中应该调用真实API
-				// return await dishListApi({});
-				
-				// 模拟API返回
-				return {
-					code: 0,
-					data: this.testDishes
-				};
-			},
-			
-			async categoryClick(index, id, type) {
-				this.activeType = index;
-				
+			// 加载菜品数据
+			async loadDishData() {
 				try {
-					// 根据分类ID过滤菜品
-					if (type === 1) { // 菜品
-						this.dishList = this.allDishes.filter(dish => dish.categoryId === id);
-					} else { // 套餐
-						// 这里可以模拟套餐数据，或者使用同样的测试数据
-						this.dishList = this.allDishes.filter(dish => dish.categoryId === id);
+					// 尝试从服务器获取菜品数据
+					const res = await dishListApi({});
+					if (res && res.code === 0 && res.data) {
+						this.allDishes = res.data;
+					} else {
+						// 如果服务器获取失败，使用本地JSON数据作为备用
+						const response = await uni.request({
+							url: '/dish_data.json',
+							method: 'GET'
+						});
+						if (response && response[1].data) {
+							this.allDishes = response[1].data;
+						} else {
+							// 使用硬编码的备用数据
+							this.allDishes = [
+								{
+									id: 1,
+									name: "鱼香肉丝",
+									categoryId: 1,
+									price: 28.00,
+									image: "/static/images/dish1.jpg",
+									description: "主料：猪肉、胡萝卜、青椒、木耳",
+									status: 1,
+									sale: 128
+								},
+								{
+									id: 2,
+									name: "宫保鸡丁",
+									categoryId: 1,
+									price: 26.00,
+									image: "/static/images/dish2.jpg",
+									description: "主料：鸡胸肉、花生米、黄瓜、胡萝卜",
+									status: 1,
+									sale: 105
+								},
+								// 更多备用数据...
+							];
+						}
 					}
 				} catch (error) {
-					console.error("获取菜品失败", error);
-					uni.$showMsg('获取菜品失败，请重试');
-					this.dishList = [];
+					console.error("加载菜品数据失败:", error);
+					// 使用备用数据
+					this.allDishes = [
+						{
+							id: 1,
+							name: "鱼香肉丝",
+							categoryId: 1,
+							price: 28.00,
+							image: "/static/images/dish1.jpg",
+							description: "主料：猪肉、胡萝卜、青椒、木耳",
+							status: 1,
+							sale: 128
+						},
+						{
+							id: 2,
+							name: "宫保鸡丁",
+							categoryId: 1,
+							price: 26.00,
+							image: "/static/images/dish2.jpg",
+							description: "主料：鸡胸肉、花生米、黄瓜、胡萝卜",
+							status: 1,
+							sale: 105
+						},
+						{
+							id: 3,
+							name: "红烧排骨",
+							categoryId: 1,
+							price: 32.00,
+							image: "/static/images/dish3.jpg",
+							description: "主料：猪排骨、土豆、胡萝卜",
+							status: 1,
+							sale: 98
+						},
+						{
+							id: 4,
+							name: "麻婆豆腐",
+							categoryId: 2,
+							price: 22.00,
+							image: "/static/images/dish4.jpg",
+							description: "主料：豆腐、肉末、豆瓣酱",
+							status: 1,
+							sale: 85
+						},
+						{
+							id: 5,
+							name: "干锅土豆片",
+							categoryId: 5,
+							price: 28.00,
+							image: "/static/images/dish5.jpg",
+							description: "主料：土豆、辣椒、木耳、肉片",
+							status: 1,
+							sale: 75
+						},
+						{
+							id: 6,
+							name: "水煮肉片",
+							categoryId: 4,
+							price: 32.00,
+							image: "/static/images/dish6.jpg",
+							description: "主料：猪肉、豆芽、白菜",
+							status: 1,
+							sale: 65
+						},
+						{
+							id: 7,
+							name: "蒜蓉蒸茄子",
+							categoryId: 8,
+							price: 18.00,
+							image: "/static/images/dish7.jpg",
+							description: "主料：茄子、蒜蓉",
+							status: 1,
+							sale: 55
+						},
+						{
+							id: 8,
+							name: "白米饭",
+							categoryId: 3,
+							price: 2.00,
+							image: "/static/images/dish8.jpg",
+							description: "精选东北大米",
+							status: 1,
+							sale: 200
+						},
+						{
+							id: 9,
+							name: "番茄蛋花汤",
+							categoryId: 7,
+							price: 15.00,
+							image: "/static/images/dish9.jpg",
+							description: "主料：番茄、鸡蛋",
+							status: 1,
+							sale: 60
+						}
+					];
 				}
+			},
+			
+			// 按分类id获取该分类下的所有菜品
+			getDishesForCategory(categoryId) {
+				return this.allDishes.filter(dish => dish.categoryId === categoryId);
+			},
+			
+			// 获取所有分类标题的位置信息
+			getCategoryPositions() {
+				const query = uni.createSelectorQuery().in(this);
+				query.selectAll('.category-title').boundingClientRect(rects => {
+					if (!rects || rects.length === 0) return;
+					
+					// 存储每个分类的位置信息
+					this.categoryPositions = rects.map(rect => {
+						return {
+							id: parseInt(rect.dataset.categoryId),
+							top: rect.top
+						};
+					});
+				}).exec();
+			},
+			
+			// 监听右侧滚动，同步左侧菜单选中状态
+			onDishScroll(e) {
+				// 防止频繁触发
+				if (this.scrollLock) return;
+				this.scrollLock = true;
+				
+				// 延迟执行，降低频率
+				setTimeout(() => {
+					this.scrollLock = false;
+					
+					// 重新获取分类位置
+					this.getCategoryPositions();
+					
+					// 计算当前应该选中哪个分类
+					if (this.categoryPositions && this.categoryPositions.length > 0) {
+						// 找到第一个在可视区域内的分类
+						const currentInView = this.categoryPositions.find(item => item.top > 100);
+						
+						if (currentInView) {
+							// 找到该分类在左侧菜单的索引
+							const index = this.categoryList.findIndex(cat => cat.id === currentInView.id);
+							if (index !== -1 && index !== this.activeType) {
+								// 更新选中分类
+								this.activeType = index;
+							}
+						}
+					}
+				}, 200);
+			},
+			
+			// 分类点击事件 - 滚动到对应分类区域
+			categoryClick(index, id, type) {
+				this.activeType = index;
+				
+				// 滚动到对应的分类区域
+				this.scrollIntoViewId = `category-${id}`;
+                
+                // 防止连续触发滚动事件
+                this.scrollLock = true;
+                setTimeout(() => {
+                    this.scrollLock = false;
+                }, 500);
 			},
 			
 			// 从本地存储加载购物车数据
@@ -383,7 +483,7 @@
 				});
 				
 				this.cartCount = count;
-				this.totalPrice = (price / 100).toFixed(2);
+				this.totalPrice = price.toFixed(2);
 			},
 			
 			// 获取特定菜品在购物车中的数量
@@ -393,90 +493,89 @@
 			},
 			
 			// 添加菜品到购物车
-			async addCart(item, event) {
+			addCart(item, event) {
 				try {
 					// 查找购物车中是否已有该菜品
 					const index = this.cartItems.findIndex(cartItem => cartItem.id === item.id);
 					
-					if (index !== -1) {
-						// 已存在，数量+1
+					if (index >= 0) {
+						// 已有该菜品，增加数量
 						this.cartItems[index].number += 1;
 					} else {
-						// 不存在，添加新项
+						// 没有该菜品，添加新项
 						this.cartItems.push({
 							id: item.id,
 							name: item.name,
-							image: item.image,
 							price: item.price,
-							number: 1
+							image: item.image,
+							number: 1,
+							categoryId: item.categoryId
 						});
 					}
 					
-					// 保存到本地存储
+					// 保存到本地存储并更新总计
 					this.saveCartToStorage();
-					// 重新计算总数和总价
 					this.calculateCartTotals();
 					
-					// 显示提示
-					uni.$showMsg('已加入购物车');
-				} catch (error) {
-					console.error('加入购物车失败', error);
-					uni.$showMsg('加入购物车失败，请重试');
+					// 可以添加添加成功的视觉反馈
+					uni.$showMsg('已添加到购物车');
+				} catch (e) {
+					console.error("添加到购物车失败", e);
+					uni.$showMsg('添加失败，请重试');
 				}
 			},
 			
-			// 从购物车减少菜品
-			async subtractCart(item) {
+			// 从购物车中减少菜品
+			subtractCart(item) {
 				try {
-					// 查找购物车中的菜品
 					const index = this.cartItems.findIndex(cartItem => cartItem.id === item.id);
 					
-					if (index !== -1) {
+					if (index >= 0) {
 						if (this.cartItems[index].number > 1) {
-							// 数量大于1，减少1
+							// 数量大于1，减少数量
 							this.cartItems[index].number -= 1;
 						} else {
-							// 数量为1，移除项
+							// 数量为1，从购物车移除
 							this.cartItems.splice(index, 1);
 						}
 						
-						// 保存到本地存储
+						// 保存到本地存储并更新总计
 						this.saveCartToStorage();
-						// 重新计算总数和总价
 						this.calculateCartTotals();
 					}
-				} catch (error) {
-					console.error('减少购物车失败', error);
+				} catch (e) {
+					console.error("从购物车移除失败", e);
 					uni.$showMsg('操作失败，请重试');
 				}
 			},
 			
-			chooseFlavorClick(item) {
-				uni.$showMsg('选择规格功能开发中');
-			},
-			
-			submitOrder() {
-				if (this.cartCount <= 0) {
-					uni.$showMsg('请先选择菜品');
-					return;
-				}
+			// 跳转到菜品详情页
+			dishDetails(dish) {
 				uni.navigateTo({
-					url: '/pages/addOrder/addOrder'
+					url: `/pages/dishDetail/dishDetail?id=${dish.id}`
 				});
 			},
 			
-			dishDetails(item) {
-				uni.$showMsg('菜品详情功能开发中');
-			},
-			
+			// 前往购物车页面或结算页面
 			goToCart() {
-				if (this.cartCount <= 0) {
-					uni.$showMsg('购物车为空');
-					return;
+				if (this.cartCount > 0) {
+					uni.navigateTo({
+						url: '/pages/payConfirm/payConfirm'
+					});
+				} else {
+					uni.$showMsg('购物车是空的哦~');
 				}
-				uni.navigateTo({
-					url: '/pages/addOrder/addOrder'
-				});
+			},
+			
+			// 提交订单
+			submitOrder() {
+				if (this.cartCount > 0) {
+					uni.navigateTo({
+						url: '/pages/payConfirm/payConfirm'
+					});
+				} else {
+					uni.$showMsg('请先选择菜品');
+				}
 			}
 		}
 	}
