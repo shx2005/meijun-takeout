@@ -58,18 +58,44 @@ export const phoneLoginApi = (data) => {
 				
 				// 检查状态码
 				if (res.statusCode === 200) {
+					// 处理登录响应
+					let token = null;
+					let userId = null;
+					let username = null;
+					
+					// 从响应中解析数据
 					if (res.data && res.data.data && res.data.data.token) {
-						const token = res.data.data.token;
-						console.log('保存token成功:', token);
+						token = res.data.data.token;
+						userId = res.data.data.id;
+						username = res.data.data.username;
+					} else if (res.data && res.data.token) {
+						token = res.data.token;
+						userId = res.data.id;
+						username = res.data.username;
+					}
+					
+					if (token) {
+						// 将原始token直接存储，不再进行Base64编码和结构化处理
+						console.log('后端返回的原始token:', token);
+						uni.setStorageSync('originalToken', token);
 						uni.setStorageSync('token', token);
-					  } else if (res.data && res.data.token) {
-						const token = res.data.token;
-						console.log('保存token成功:', token);
-						uni.setStorageSync('token', token);
-					  }
-					// 成功，优先尝试JSON解析
+						
+						// 保存用户ID，确保为数字类型
+						if (userId) {
+							// 确保ID是数字类型
+							if (typeof userId === 'string') {
+								try {
+									userId = parseInt(userId);
+								} catch (e) {
+									console.error('解析用户ID失败:', e);
+								}
+							}
+							uni.setStorageSync('userId', userId);
+						}
+					}
+					
+					// 返回响应对象
 					if (typeof res.data === 'object') {
-						// 如果已经是对象，直接返回
 						resolve({ 
 							statusCode: res.statusCode, 
 							data: res.data 
@@ -81,14 +107,14 @@ export const phoneLoginApi = (data) => {
 							const idMatch = res.data.match(/<id>(.*?)<\/id>/);
 							const uuidMatch = res.data.match(/<uuid>(.*?)<\/uuid>/);
 							const usernameMatch = res.data.match(/<username>(.*?)<\/username>/);
-							const nameMatch = res.data.match(/<name>(.*?)<\/name>/);
+							const nameMatch = res.data.match(/<n>(.*?)<\/name>/);
 							
 							if (tokenMatch && tokenMatch[1]) {
 								const result = {
 									statusCode: res.statusCode,
 									data: {
 										token: tokenMatch[1],
-										id: idMatch && idMatch[1] ? idMatch[1] : null,
+										id: idMatch && idMatch[1] ? parseInt(idMatch[1]) : null,
 										uuid: uuidMatch && uuidMatch[1] ? uuidMatch[1] : null,
 										username: usernameMatch && usernameMatch[1] ? usernameMatch[1] : null,
 										name: nameMatch && nameMatch[1] ? nameMatch[1] : null

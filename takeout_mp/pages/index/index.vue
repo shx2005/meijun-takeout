@@ -30,7 +30,7 @@
 		</view>
 		
 		<!-- 主体内容区域 -->
-		<view class="main-content">
+		<view class="main-content" v-if="tabIndex === 0">
 			<!-- 左侧分类导航 -->
 			<view class="category-sidebar">
 				<scroll-view scroll-y class="category-scroll">
@@ -69,7 +69,7 @@
 						<!-- 该分类下没有菜品时显示提示 -->
 						<view class="no-dish-tip" v-if="getDishesForCategory(category.id).length === 0">
 							暂无菜品
-						</view>
+							</view>
 						
 						<!-- 该分类下的菜品列表 -->
 						<view 
@@ -88,7 +88,7 @@
 									<view class="dish-price">
 										<text class="price-symbol">￥</text>
 										<text class="price-value">{{ (item.price).toFixed(2) }}</text>
-									</view>
+								</view>
 									<view class="dish-controls">
 										<view class="subtract-button" v-if="getItemCount(item.id) >= 1" @click.stop.prevent="subtractCart(item)">
 											<image src="../../static/images/subtract.png"></image>
@@ -107,26 +107,98 @@
 				</block>
 				<view class="bottom-space"></view>
 			</scroll-view>
+							</view>
+		
+		<!-- 评价页面内容 -->
+		<view class="main-content" v-if="tabIndex === 1">
+			<view class="review-container">
+				<view class="review-header">
+					<view class="review-title">顾客评价</view>
+					<view class="review-stats">
+						<text class="review-score">4.8</text>
+						<text class="review-count">共 {{commentList.length}} 条评价</text>
+								</view>
+									</view>
+				
+				<view class="review-list">
+					<view v-if="commentList.length === 0" class="no-reviews">
+						<image src="/static/images/no-review.png" mode="aspectFit" class="no-review-image"></image>
+						<text>暂无评价</text>
+									</view>
+					<view v-else class="review-item" v-for="(item, index) in commentList" :key="index">
+						<view class="review-user">
+							<image class="user-avatar" src="/static/images/avatar.png" mode="aspectFill"></image>
+							<view class="user-info">
+								<view class="user-name">顾客{{index+1}}</view>
+								<view class="review-time">{{formatDate(item.createTime)}}</view>
+								</view>
+							</view>
+						<view class="review-content">{{item.comment || item.content}}</view>
+						<view class="review-order-info">
+							<view class="review-order-id">订单号: {{item.orderId}}</view>
+						</view>
+					</view>
+		</view>
+			</view>
+		</view>
+		
+		<!-- 商家页面内容 (删除门店信息按钮) -->
+		<view class="main-content" v-if="tabIndex === 2">
+			<view class="merchant-container">
+				<view class="merchant-header">
+					<image class="merchant-logo" src="/static/images/logo.png" mode="aspectFill"></image>
+					<view class="merchant-info">
+						<view class="merchant-name">美食元素餐厅</view>
+						<view class="merchant-desc">营业时间: 10:00-22:00</view>
+					</view>
+				</view>
+				
+				<view class="merchant-details">
+					<view class="merchant-section">
+						<view class="section-title">商家介绍</view>
+						<view class="section-content">
+							"美食元素"是一家致力于为顾客提供高品质、健康美食的餐厅。我们坚持选用新鲜食材，菜品种类丰富，包括多种家常菜、特色菜和创新菜品。我们的厨师团队经验丰富，每一道菜品都精心制作，保证口味独特、营养均衡。
+						</view>
+					</view>
+					
+					<view class="merchant-section">
+						<view class="section-title">联系方式</view>
+						<view class="section-content">
+							<view class="contact-item">
+								<image src="/static/images/phone.png" mode="aspectFit"></image>
+								<text>电话：13800138000</text>
+							</view>
+							<view class="contact-item">
+								<image src="/static/images/location.png" mode="aspectFit"></image>
+								<text>地址：上海市浦东新区张江高科技园区</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
 		</view>
 		
 		<!-- 浮动购物车图标 -->
 		<view class="floating-cart" @click="goToCart">
-			<image src="/static/index_image/cart.png" class="floating-cart-icon"></image>
-			<view class="floating-cart-badge" v-if="cartCount > 0">{{ cartCount }}</view>
+			<view class="cart-icon-container">
+				<text class="cart-emoji">🛒</text>
+				<view class="floating-cart-badge" v-if="cartCount > 0">{{ cartCount }}</view>
+			</view>
 		</view>
 		
 		<!-- 底部购物车 -->
 		<view class="cart-bar">
 			<view class="cart-left">
 				<view class="cart-icon-wrapper" @click="goToCart">
-					<image src="/static/index_image/cart.png" class="cart-icon"></image>
+					<text class="cart-emoji">🛒</text>
 					<view class="cart-badge" v-if="cartCount > 0">{{ cartCount }}</view>
 				</view>
 				<view class="cart-price">
 				<text>￥{{ totalPrice || '0.00' }}</text>
-				</view>
+			</view>
 			</view>
 			<view class="cart-button" :class="{'cart-button-active': cartCount > 0}" @click="submitOrder">
+				<text class="cart-emoji-small">🛒</text>
 				去结算{{ cartCount > 0 ? `(${cartCount})` : '' }}
 			</view>
 		</view>
@@ -142,7 +214,8 @@
 		clearCartApi,
 		updateCartApi,
 		setMealDishDetailsApi,
-		addCartApi
+		addCartApi,
+		submitOrderCommentApi
 	} from '../../api/index';
 	
 	export default {
@@ -159,7 +232,8 @@
 				allDishes: [], // 所有菜品数据
 				scrollIntoViewId: '', // 用于控制右侧滚动位置
 				scrollLock: false, // 防止连续触发滚动事件
-				categoryPositions: [] // 存储分类位置信息
+				categoryPositions: [], // 存储分类位置信息
+				commentList: [] // 存储评价数据
 			}
 		},
 		onLoad() {
@@ -176,24 +250,202 @@
 				this.getCategoryPositions();
 			}, 1000);
 		},
+		watch: {
+			tabIndex(newVal) {
+				// 当切换到评价页面时，加载评价数据
+				if (newVal === 1) {
+					this.getComments();
+				}
+			}
+		},
 		methods: {
 			async init() {
 				try {
-					// 加载分类数据
-					await this.loadCategoryData();
+					// 尝试并行加载所有数据
+					const promises = [
+						this.loadCategoryData().catch(err => {
+							console.error("加载分类数据失败:", err);
+							// 使用硬编码的备用数据
+							this.categoryList = [
+								{ id: 1, type: 1, name: '家常菜', sort: 1, status: 1 },
+								{ id: 2, type: 1, name: '盖饭', sort: 2, status: 1 },
+								{ id: 3, type: 1, name: '米饭', sort: 3, status: 1 },
+								{ id: 4, type: 1, name: '特色菜', sort: 4, status: 1 },
+								{ id: 5, type: 1, name: '干锅', sort: 5, status: 1 },
+								{ id: 6, type: 1, name: '家常菜系列', sort: 6, status: 1 },
+								{ id: 7, type: 1, name: '汤菜', sort: 7, status: 1 },
+								{ id: 8, type: 1, name: '素菜系列', sort: 8, status: 1 },
+								{ id: 9, type: 2, name: '套餐', sort: 9, status: 1 }
+							];
+							return this.categoryList;
+						}),
+						this.loadDishData().catch(err => {
+							console.error("加载菜品数据失败:", err);
+							// 使用硬编码的备用数据
+							this.allDishes = [
+					{
+						id: 1,
+									name: "鱼香肉丝",
+									categoryId: 1,
+									price: 28.00,
+									image: "/static/images/dish1.jpg",
+									description: "主料：猪肉、胡萝卜、青椒、木耳",
+									status: 1,
+									sale: 128
+					},
+					{
+						id: 2,
+									name: "宫保鸡丁",
+									categoryId: 1,
+									price: 26.00,
+									image: "/static/images/dish2.jpg",
+									description: "主料：鸡胸肉、花生米、黄瓜、胡萝卜",
+									status: 1,
+									sale: 105
+					},
+								// 其他备用菜品数据
+					{
+						id: 3,
+									name: "红烧排骨",
+									categoryId: 1,
+									price: 32.00,
+									image: "/static/images/dish3.jpg",
+									description: "主料：猪排骨、土豆、胡萝卜",
+									status: 1,
+									sale: 98
+								},
+								{
+									id: 4,
+									name: "麻婆豆腐",
+									categoryId: 2,
+									price: 22.00,
+									image: "/static/images/dish4.jpg",
+									description: "主料：豆腐、肉末、豆瓣酱",
+									status: 1,
+									sale: 85
+								},
+								{
+									id: 5,
+									name: "干锅土豆片",
+									categoryId: 5,
+									price: 28.00,
+									image: "/static/images/dish5.jpg",
+									description: "主料：土豆、辣椒、木耳、肉片",
+									status: 1,
+									sale: 75
+					}
+							];
+							// 将硬编码的备用数据保存到本地存储
+							uni.setStorageSync('allDishes', JSON.stringify(this.allDishes));
+							return this.allDishes;
+						})
+					];
 					
-					// 加载菜品数据
-					await this.loadDishData();
+					// 等待所有请求完成
+					await Promise.all(promises);
+					
+					// 确保菜品数据按分类正确显示
+					this.updateDishDisplay();
+					
 				} catch (error) {
 					console.error("初始化数据失败", error);
-					uni.$showMsg('获取数据失败，请重试');
+					uni.$showMsg('获取数据失败，已使用本地数据');
+				}
+			},
+			
+			// 更新菜品显示 - 确保数据一致
+			updateDishDisplay() {
+				// 如果没有分类数据，使用备用数据
+				if (!this.categoryList || this.categoryList.length === 0) {
+					this.categoryList = [
+						{ id: 1, type: 1, name: '家常菜', sort: 1, status: 1 },
+						{ id: 2, type: 1, name: '盖饭', sort: 2, status: 1 },
+						{ id: 3, type: 1, name: '米饭', sort: 3, status: 1 },
+						{ id: 4, type: 1, name: '特色菜', sort: 4, status: 1 },
+						{ id: 5, type: 1, name: '干锅', sort: 5, status: 1 },
+						{ id: 6, type: 1, name: '家常菜系列', sort: 6, status: 1 },
+						{ id: 7, type: 1, name: '汤菜', sort: 7, status: 1 },
+						{ id: 8, type: 1, name: '素菜系列', sort: 8, status: 1 },
+						{ id: 9, type: 2, name: '套餐', sort: 9, status: 1 }
+					];
+				}
+				
+				// 按sort字段排序
+				this.categoryList.sort((a, b) => a.sort - b.sort);
+				
+				// 如果没有菜品数据，尝试从本地存储获取
+				if (!this.allDishes || this.allDishes.length === 0) {
+				try {
+						const storedDishes = uni.getStorageSync('allDishes');
+						if (storedDishes) {
+							this.allDishes = JSON.parse(storedDishes);
+						}
+					} catch (e) {
+						console.error('从本地存储获取菜品数据失败', e);
+					}
+				}
+				
+				// 如果还是没有菜品数据，使用备用数据
+				if (!this.allDishes || this.allDishes.length === 0) {
+					this.allDishes = [
+						{
+							id: 1,
+							name: "鱼香肉丝",
+							categoryId: 1,
+							price: 28.00,
+							image: "/static/images/dish1.jpg",
+							description: "主料：猪肉、胡萝卜、青椒、木耳",
+							status: 1,
+							sale: 128
+						},
+						{
+							id: 2,
+							name: "宫保鸡丁",
+							categoryId: 1,
+							price: 26.00,
+							image: "/static/images/dish2.jpg",
+							description: "主料：鸡胸肉、花生米、黄瓜、胡萝卜",
+							status: 1,
+							sale: 105
+						},
+						{
+							id: 3,
+							name: "红烧排骨",
+							categoryId: 1,
+							price: 32.00,
+							image: "/static/images/dish3.jpg",
+							description: "主料：猪排骨、土豆、胡萝卜",
+							status: 1,
+							sale: 98
+						}
+					];
+					// 将备用数据保存到本地存储
+					uni.setStorageSync('allDishes', JSON.stringify(this.allDishes));
 				}
 			},
 			
 			// 加载分类数据
 			async loadCategoryData() {
 				try {
-					// 尝试从服务器获取分类数据
+					// 先检查是否有登录时预加载的分类数据
+					const cachedCategoryData = uni.getStorageSync('categoryData');
+					if (cachedCategoryData) {
+						try {
+							const parsedData = JSON.parse(cachedCategoryData);
+							// 检查数据是否在24小时内（86400000毫秒）
+							if (parsedData.timestamp && Date.now() - parsedData.timestamp < 86400000) {
+								console.log('使用预加载的菜品分类数据');
+								this.categoryList = parsedData.data;
+								// 数据有效，直接返回
+								return;
+							}
+						} catch (e) {
+							console.error('解析预加载的菜品分类数据失败:', e);
+						}
+					}
+					
+					// 如果没有预加载数据或数据已过期，则继续请求API
+					console.log('尝试从API获取分类数据');
 					const res = await categoryListApi({});
 					if (res && res.code === 0 && res.data) {
 						this.categoryList = res.data;
@@ -243,10 +495,31 @@
 			// 加载菜品数据
 			async loadDishData() {
 				try {
+					// 先检查是否有登录时预加载的菜品数据
+					const cachedDishData = uni.getStorageSync('dishData');
+					if (cachedDishData) {
+						try {
+							const parsedData = JSON.parse(cachedDishData);
+							// 检查数据是否在24小时内（86400000毫秒）
+							if (parsedData.timestamp && Date.now() - parsedData.timestamp < 86400000) {
+								console.log('使用预加载的菜品列表数据');
+								this.allDishes = parsedData.data;
+								// 数据有效，直接返回
+								return;
+							}
+						} catch (e) {
+							console.error('解析预加载的菜品列表数据失败:', e);
+						}
+					}
+					
+					// 如果没有预加载数据或数据已过期，则继续请求API
+					console.log('尝试从API获取菜品数据');
 					// 尝试从服务器获取菜品数据
 					const res = await dishListApi({});
 					if (res && res.code === 0 && res.data) {
 						this.allDishes = res.data;
+						// 将所有菜品数据保存到本地存储
+						uni.setStorageSync('allDishes', JSON.stringify(this.allDishes));
 					} else {
 						// 如果服务器获取失败，使用本地JSON数据作为备用
 						const response = await uni.request({
@@ -255,6 +528,8 @@
 						});
 						if (response && response[1].data) {
 							this.allDishes = response[1].data;
+							// 将备用数据也保存到本地存储
+							uni.setStorageSync('allDishes', JSON.stringify(this.allDishes));
 						} else {
 							// 使用硬编码的备用数据
 							this.allDishes = [
@@ -278,8 +553,20 @@
 									status: 1,
 									sale: 105
 								},
-								// 更多备用数据...
+								// 其他备用菜品...
+								{
+									id: 3,
+									name: "红烧排骨",
+									categoryId: 1,
+									price: 32.00,
+									image: "/static/images/dish3.jpg",
+									description: "主料：猪排骨、土豆、胡萝卜",
+									status: 1,
+									sale: 98
+								}
 							];
+							// 将硬编码的备用数据保存到本地存储
+							uni.setStorageSync('allDishes', JSON.stringify(this.allDishes));
 						}
 					}
 				} catch (error) {
@@ -305,78 +592,10 @@
 							description: "主料：鸡胸肉、花生米、黄瓜、胡萝卜",
 							status: 1,
 							sale: 105
-						},
-						{
-							id: 3,
-							name: "红烧排骨",
-							categoryId: 1,
-							price: 32.00,
-							image: "/static/images/dish3.jpg",
-							description: "主料：猪排骨、土豆、胡萝卜",
-							status: 1,
-							sale: 98
-						},
-						{
-							id: 4,
-							name: "麻婆豆腐",
-							categoryId: 2,
-							price: 22.00,
-							image: "/static/images/dish4.jpg",
-							description: "主料：豆腐、肉末、豆瓣酱",
-							status: 1,
-							sale: 85
-						},
-						{
-							id: 5,
-							name: "干锅土豆片",
-							categoryId: 5,
-							price: 28.00,
-							image: "/static/images/dish5.jpg",
-							description: "主料：土豆、辣椒、木耳、肉片",
-							status: 1,
-							sale: 75
-						},
-						{
-							id: 6,
-							name: "水煮肉片",
-							categoryId: 4,
-							price: 32.00,
-							image: "/static/images/dish6.jpg",
-							description: "主料：猪肉、豆芽、白菜",
-							status: 1,
-							sale: 65
-						},
-						{
-							id: 7,
-							name: "蒜蓉蒸茄子",
-							categoryId: 8,
-							price: 18.00,
-							image: "/static/images/dish7.jpg",
-							description: "主料：茄子、蒜蓉",
-							status: 1,
-							sale: 55
-						},
-						{
-							id: 8,
-							name: "白米饭",
-							categoryId: 3,
-							price: 2.00,
-							image: "/static/images/dish8.jpg",
-							description: "精选东北大米",
-							status: 1,
-							sale: 200
-						},
-						{
-							id: 9,
-							name: "番茄蛋花汤",
-							categoryId: 7,
-							price: 15.00,
-							image: "/static/images/dish9.jpg",
-							description: "主料：番茄、鸡蛋",
-							status: 1,
-							sale: 60
 						}
 					];
+					// 将备用数据保存到本地存储
+					uni.setStorageSync('allDishes', JSON.stringify(this.allDishes));
 				}
 			},
 			
@@ -427,7 +646,7 @@
 								this.activeType = index;
 							}
 						}
-					}
+				}
 				}, 200);
 			},
 			
@@ -448,13 +667,20 @@
 			// 从本地存储加载购物车数据
 			loadCartFromStorage() {
 				try {
+					// 优先使用本地存储的购物车数据
 					const cartData = uni.getStorageSync('cartItems');
 					if (cartData) {
+						// 解析JSON格式的购物车数据
 						this.cartItems = JSON.parse(cartData);
+						console.log('从本地存储加载购物车数据成功:', this.cartItems);
+						this.calculateCartTotals();
 					} else {
+						// 本地没有购物车数据，初始化为空数组
 						this.cartItems = [];
+						this.cartCount = 0;
+						this.totalPrice = '0.00';
+						console.log('本地不存在购物车数据，已初始化为空');
 					}
-					this.calculateCartTotals();
 				} catch (e) {
 					console.error("读取购物车数据失败", e);
 					this.cartItems = [];
@@ -474,15 +700,15 @@
 			
 			// 计算购物车总数和总价
 			calculateCartTotals() {
-				let count = 0;
-				let price = 0;
+						let count = 0;
+						let price = 0;
 				
 				this.cartItems.forEach(item => {
-					count += item.number;
-					price += item.number * item.price;
-				});
+							count += item.number;
+							price += item.number * item.price;
+						});
 				
-				this.cartCount = count;
+						this.cartCount = count;
 				this.totalPrice = price.toFixed(2);
 			},
 			
@@ -517,6 +743,15 @@
 					this.saveCartToStorage();
 					this.calculateCartTotals();
 					
+					// 向后端同步数据（即使失败，本地存储也已更新）
+					addCartApi({
+						itemId: item.id,
+						itemType: "DISH", // 默认为菜品类型
+						quantity: 1
+					}).catch(err => {
+						console.warn('API同步购物车失败，但本地购物车已更新');
+					});
+					
 					// 可以添加添加成功的视觉反馈
 					uni.$showMsg('已添加到购物车');
 				} catch (e) {
@@ -534,7 +769,7 @@
 						if (this.cartItems[index].number > 1) {
 							// 数量大于1，减少数量
 							this.cartItems[index].number -= 1;
-						} else {
+					} else {
 							// 数量为1，从购物车移除
 							this.cartItems.splice(index, 1);
 						}
@@ -542,6 +777,14 @@
 						// 保存到本地存储并更新总计
 						this.saveCartToStorage();
 						this.calculateCartTotals();
+						
+						// 向后端同步数据
+						updateCartApi({
+							id: item.id,
+							quantity: index >= 0 ? this.cartItems[index]?.number || 0 : 0
+						}).catch(err => {
+							console.warn('API同步购物车失败，但本地购物车已更新');
+						});
 					}
 				} catch (e) {
 					console.error("从购物车移除失败", e);
@@ -559,8 +802,11 @@
 			// 前往购物车页面或结算页面
 			goToCart() {
 				if (this.cartCount > 0) {
-					uni.navigateTo({
-						url: '/pages/payConfirm/payConfirm'
+					// 确保购物车数据已保存到本地和服务器
+					this.syncCartData().then(() => {
+						uni.navigateTo({
+							url: '/pages/cart/cart'
+						});
 					});
 				} else {
 					uni.$showMsg('购物车是空的哦~');
@@ -570,11 +816,100 @@
 			// 提交订单
 			submitOrder() {
 				if (this.cartCount > 0) {
+					// 确保购物车数据已保存到本地和服务器
+					this.syncCartData().then(() => {
 					uni.navigateTo({
-						url: '/pages/payConfirm/payConfirm'
+							url: '/pages/cart/cart'
+						});
 					});
 				} else {
 					uni.$showMsg('请先选择菜品');
+				}
+			},
+			
+			// 同步购物车数据到服务器
+			async syncCartData() {
+				try {
+					// 显示加载状态
+					uni.showLoading({ title: '处理中...' });
+					
+					// 由于后端API可能不可用，我们只确保本地存储是最新的
+					this.saveCartToStorage();
+					
+					// 尝试将每个购物车项同步到服务器，但不阻止用户操作
+					for (const item of this.cartItems) {
+						addCartApi({
+							itemId: item.id,
+							itemType: "DISH",
+							quantity: item.number
+						}).catch(err => {
+							console.warn(`同步商品ID ${item.id} 到服务器失败，将使用本地数据`);
+						});
+					}
+					
+					uni.hideLoading();
+					return Promise.resolve();
+				} catch (error) {
+					console.error('同步购物车数据失败:', error);
+					uni.hideLoading();
+					// 即使同步失败我们也继续，因为本地存储已更新
+					uni.$showMsg('同步数据失败，将使用本地数据');
+					return Promise.resolve();
+				}
+			},
+			
+			// 获取订单评价数据
+			async getComments() {
+				try {
+					// 模拟调用API获取评价数据
+					const commentData = [
+						{
+							id: 1,
+							orderId: 10001,
+							comment: '菜品味道很好，服务也很周到',
+							createTime: '2023-12-01 12:30:45'
+						},
+						{
+							id: 2,
+							orderId: 10002,
+							comment: '红烧排骨很入味，汤也很好喝',
+							createTime: '2023-12-02 18:22:31'
+						},
+						{
+							id: 3,
+							orderId: 10003,
+							comment: '干锅土豆片非常好吃，下次还会再点',
+							createTime: '2023-12-03 19:15:27'
+						},
+						{
+							id: 4,
+							orderId: 10004,
+							comment: '糖醋排骨的味道很不错',
+							createTime: '2023-12-04 13:45:18'
+						}
+					];
+					
+					// 设置评价数据
+					this.commentList = commentData;
+					
+				} catch (error) {
+					console.error('获取评价数据失败：', error);
+					uni.showToast({
+						title: '获取评价数据失败',
+						icon: 'none'
+					});
+				}
+			},
+			
+			// 日期格式化工具
+			formatDate(dateStr) {
+				if (!dateStr) return '';
+				
+				try {
+					const date = new Date(dateStr);
+					return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+				} catch (e) {
+					return dateStr;
 				}
 			}
 		}
@@ -818,83 +1153,77 @@
 	position: fixed;
 	right: 30rpx;
 	bottom: 160rpx;
-	width: 90rpx;
-	height: 90rpx;
-	background-color: #fff;
-	border-radius: 50%;
-	box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.15);
-	display: flex;
-	justify-content: center;
-	align-items: center;
 	z-index: 99;
 }
 
-.floating-cart-icon {
-	width: 60rpx;
-	height: 60rpx;
+.cart-icon-container {
+	width: 90rpx;
+	height: 90rpx;
+	background-color: #feca50;
+	border-radius: 50%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+	box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.2);
+}
+
+.cart-emoji {
+	font-size: 50rpx;
+}
+
+.cart-emoji-small {
+	font-size: 40rpx;
+	margin-right: 10rpx;
 }
 
 .floating-cart-badge {
 	position: absolute;
-	top: -10rpx;
-	right: -10rpx;
-	background-color: #ff5722;
-	color: #fff;
-	font-size: 20rpx;
-	min-width: 36rpx;
-	height: 36rpx;
-	border-radius: 18rpx;
+	top: -12rpx;
+	right: -12rpx;
+	background-color: #ff5252;
+	color: #ffffff;
+	border-radius: 50%;
+	width: 40rpx;
+	height: 40rpx;
+	font-size: 24rpx;
 	display: flex;
-	align-items: center;
 	justify-content: center;
-	font-weight: bold;
+	align-items: center;
 }
 
 /* 底部购物车 */
 .cart-bar {
 	position: fixed;
-	bottom: 0;
 	left: 0;
-	right: 0;
+	bottom: 0;
+	width: 100%;
 	height: 100rpx;
-	background-color: #fff;
+	background-color: #ffffff;
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	padding: 0 30rpx;
-	box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
-	z-index: 100;
+	padding: 0 20rpx;
+	box-sizing: border-box;
+	box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+	z-index: 10;
 }
 
 .cart-left {
+	flex: 1;
 	display: flex;
 	align-items: center;
 }
 
 .cart-icon-wrapper {
+	width: 80rpx;
+	height: 80rpx;
+	background-color: #feca50;
+	border-radius: 50%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	position: relative;
 	margin-right: 20rpx;
-}
-
-.cart-icon {
-	width: 60rpx;
-	height: 60rpx;
-}
-
-.cart-badge {
-	position: absolute;
-	top: -10rpx;
-	right: -10rpx;
-	background-color: #ff5722;
-	color: #fff;
-	font-size: 20rpx;
-	min-width: 36rpx;
-	height: 36rpx;
-	border-radius: 18rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-weight: bold;
 }
 
 .cart-price {
@@ -915,5 +1244,201 @@
 .cart-button-active {
 	background-color: #ffb300;
 	box-shadow: 0 4rpx 8rpx rgba(255, 179, 0, 0.3);
+}
+
+.cart-button-icon {
+	width: 24rpx;
+	height: 24rpx;
+	margin-right: 10rpx;
+}
+
+/* 评价页面样式 */
+.review-container {
+	background-color: #fff;
+	padding: 20rpx;
+	height: 100%;
+	overflow-y: auto;
+}
+
+.review-header {
+	padding: 20rpx 0;
+	border-bottom: 1rpx solid #eee;
+	margin-bottom: 20rpx;
+}
+
+.review-title {
+	font-size: 32rpx;
+	font-weight: bold;
+	color: #333;
+}
+
+.review-stats {
+	margin-top: 10rpx;
+	display: flex;
+	align-items: center;
+}
+
+.review-score {
+	font-size: 36rpx;
+	color: #ff5722;
+	font-weight: bold;
+	margin-right: 10rpx;
+}
+
+.review-count {
+	font-size: 24rpx;
+	color: #999;
+}
+
+.no-reviews {
+	padding: 60rpx 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	color: #999;
+	font-size: 28rpx;
+}
+
+.no-review-image {
+	width: 200rpx;
+	height: 200rpx;
+	margin-bottom: 20rpx;
+}
+
+.review-item {
+	padding: 20rpx 0;
+	border-bottom: 1rpx solid #f5f5f5;
+}
+
+.review-user {
+	display: flex;
+	align-items: center;
+	margin-bottom: 16rpx;
+}
+
+.user-avatar {
+	width: 64rpx;
+	height: 64rpx;
+	border-radius: 50%;
+	margin-right: 16rpx;
+}
+
+.user-info {
+	flex: 1;
+}
+
+.user-name {
+	font-size: 28rpx;
+	color: #333;
+	font-weight: 500;
+}
+
+.review-time {
+	font-size: 22rpx;
+	color: #999;
+	margin-top: 4rpx;
+}
+
+.review-content {
+	font-size: 28rpx;
+	color: #333;
+	line-height: 1.6;
+	margin-bottom: 16rpx;
+}
+
+.review-order-info {
+	font-size: 24rpx;
+	color: #999;
+}
+
+/* 商家页面样式 */
+.merchant-container {
+	background-color: #fff;
+	padding: 20rpx;
+	height: 100%;
+	overflow-y: auto;
+}
+
+.merchant-header {
+	display: flex;
+	align-items: center;
+	padding: 20rpx 0;
+	border-bottom: 1rpx solid #eee;
+}
+
+.merchant-logo {
+	width: 120rpx;
+	height: 120rpx;
+	border-radius: 8rpx;
+	margin-right: 20rpx;
+}
+
+.merchant-info {
+	flex: 1;
+}
+
+.merchant-name {
+	font-size: 32rpx;
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 8rpx;
+}
+
+.merchant-desc {
+	font-size: 26rpx;
+	color: #666;
+}
+
+.merchant-details {
+	padding: 20rpx 0;
+}
+
+.merchant-section {
+	margin-bottom: 30rpx;
+}
+
+.section-title {
+	font-size: 30rpx;
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 16rpx;
+	position: relative;
+	padding-left: 20rpx;
+}
+
+.section-title::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	height: 30rpx;
+	width: 6rpx;
+	background-color: #ffb300;
+	border-radius: 3rpx;
+}
+
+.section-content {
+	font-size: 28rpx;
+	color: #666;
+	line-height: 1.6;
+}
+
+.contact-item {
+	display: flex;
+	align-items: center;
+	margin-bottom: 16rpx;
+}
+
+.contact-item image {
+	width: 36rpx;
+	height: 36rpx;
+	margin-right: 10rpx;
+}
+
+.cart-button-icon {
+	width: 36rpx;
+	height: 36rpx;
+	margin-right: 10rpx;
 }
 </style>

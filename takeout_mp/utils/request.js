@@ -10,39 +10,46 @@ const instance = ajax.create({
 })
 
 // 添加请求拦截器
-   // 添加请求拦截器
-   instance.interceptors.request.use(
-    config => {
-      // 在发送请求前做些什么
-      const token = uni.getStorageSync('token')
-      console.log('发送请求时的token:', token)
+instance.interceptors.request.use(
+  config => {
+    // 在发送请求前做些什么
+    const token = uni.getStorageSync('originalToken') || uni.getStorageSync('token')
+    console.log('发送请求时的token:', token)
+    
+    if (token) {
+      // 直接使用原始token，不再进行JSON解析和Base64编码
+      // 根据后端要求设置token请求头
+      config.header['token'] = token
       
-      if (token) {
-        // 根据API文档要求，使用tokenName头而不是Authorization
-        config.header['tokenName'] = token
-        // 移除旧的授权头
-        delete config.header['Authorization']
-        delete config.header['token']
-      }
-      
-      // 添加用户类型标识
-      config.header['userType'] = '3' // 3 代表 CUSTOMER
-      // 明确指定请求和响应都用 JSON
-      config.header['Accept'] = 'application/json'
-      
-      // 设置Content-Type头
-      if (config.method && (config.method.toUpperCase() === 'POST' || config.method.toUpperCase() === 'PUT')) {
-        config.header['Content-Type'] = 'application/json;charset=UTF-8'
-      } else {
-        config.header['Content-Type'] = 'application/json'
-      }
-      
-      return config
-    },
-    error => {
-      return Promise.reject(error)
+      // 移除不需要的头部
+      delete config.header['tokenName']
+      delete config.header['Authorization']
     }
-  )
+    
+    // 添加用户类型标识
+    config.header['userType'] = '3' // 3 代表 CUSTOMER
+    // 明确指定请求和响应都用 JSON - 强制要求服务器返回JSON
+    config.header['Accept'] = 'application/json'
+    config.header['X-Requested-With'] = 'XMLHttpRequest' // 明确表明这是AJAX请求
+    
+    // 设置Content-Type头
+    if (config.method && (config.method.toUpperCase() === 'POST' || config.method.toUpperCase() === 'PUT')) {
+      config.header['Content-Type'] = 'application/json;charset=UTF-8'
+    } else {
+      config.header['Content-Type'] = 'application/json'
+    }
+    
+    // 打印完整请求信息，帮助调试
+    console.log('完整请求URL:', config.url);
+    console.log('请求方法:', config.method);
+    console.log('请求头:', JSON.stringify(config.header));
+    
+    return config
+  },
+  error => {
+    return Promise.reject(error)
+  }
+)
 
 // 添加响应拦截器
 instance.interceptors.response.use(
@@ -62,7 +69,7 @@ instance.interceptors.response.use(
         // 尝试解析错误响应
         if (typeof res === 'string' && res.includes('<Map>')) {
           // 处理XML格式的错误响应
-          const errorMatch = res.match(/<error>(.*?)<\/error>/)
+          const errorMatch = res.match(/<e>(.*?)<\/error>/)
           if (errorMatch) {
             errMsg = errorMatch[1]
           }
@@ -77,6 +84,7 @@ instance.interceptors.response.use(
       if (response.statusCode === 401) {
         // 清除token
         uni.removeStorageSync('token')
+        uni.removeStorageSync('originalToken')
         // 跳转到登录页
         setTimeout(() => {
           uni.navigateTo({
@@ -98,6 +106,7 @@ instance.interceptors.response.use(
       if (res.code === 401) {
         // 清除token
         uni.removeStorageSync('token')
+        uni.removeStorageSync('originalToken')
         // 跳转到登录页
         setTimeout(() => {
           uni.navigateTo({
@@ -132,7 +141,7 @@ instance.interceptors.response.use(
         const res = error.response.data
         if (typeof res === 'string' && res.includes('<Map>')) {
           // 处理XML格式的错误响应
-          const errorMatch = res.match(/<error>(.*?)<\/error>/)
+          const errorMatch = res.match(/<e>(.*?)<\/error>/)
           if (errorMatch) {
             errMsg = errorMatch[1]
           }

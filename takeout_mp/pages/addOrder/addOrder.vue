@@ -66,7 +66,7 @@
 					<text>{{goodsPrice}}</text>
 				</view>
 				<view class="divPrice"></view>
-				<view class="cartData.length > 0 ? 'btnSubmitActive' : ''" @click="goToPaySuccess">去支付</view>
+				<view :class="cartData.length > 0 ? 'btnSubmitActive' : ''" @click="goToPaySuccess">去支付</view>
 			</view>
 		</view>
 	</view>
@@ -291,25 +291,42 @@
 			//获取购物车数据
 			async getCartData() {
 				try {
-					// const res = await cartListApi(); // 旧的API调用，将被替换
-					console.log("尝试调用新的 getCart 接口...");
-					const res = await request({ // 使用全局的 request 实例
-						url: '/api/v1/cart',     // 假设这是新的获取购物车接口URL
-						method: 'GET'
-					});
+					// 显示加载状态
+					uni.showLoading({ title: '加载中...' });
 					
-					// 根据新的接口响应结构处理数据
-					// 假设成功时 res.code 为 0, 1 或 200, 且 res.data 是 CartItem 数组
-					if (res && (res.code === 0 || res.code === 1 || res.code === 200) && Array.isArray(res.data)) {
-						this.cartData = res.data;
-						console.log("新接口获取购物车数据成功:", this.cartData);
-
-						// 如果后端返回的是 { code: ..., data: { items: [...] } } 结构
-						// else if (res && (res.code === 0 || res.code === 1 || res.code === 200) && res.data && Array.isArray(res.data.items)) {
-						//   this.cartData = res.data.items;
-						//   console.log("新接口获取购物车数据成功 (items 字段):", this.cartData);
-						// }
+					// 调用购物车API获取最新数据
+					const res = await cartListApi();
+					
+					// 隐藏加载状态
+					uni.hideLoading();
+					
+					// 处理API响应
+					if (res && (res.code === 0 || res.code === 1 || res.code === 200)) {
+						// 根据API响应格式提取购物车项
+						let cartItems = [];
 						
+						// 检查不同可能的数据结构
+						if (Array.isArray(res.data)) {
+							// 直接是购物车项数组
+							cartItems = res.data;
+						} else if (res.data && Array.isArray(res.data.items)) {
+							// 有items字段的购物车对象
+							cartItems = res.data.items;
+						} else if (res.items && Array.isArray(res.items)) {
+							// 直接有items字段
+							cartItems = res.items;
+						}
+						
+						// 映射购物车数据到所需格式
+						this.cartData = cartItems.map(item => ({
+							id: item.itemId || item.id,
+							name: item.name || '菜品',
+							image: item.image || '/static/images/default-food.png',
+							number: item.quantity || item.number || 1,
+							amount: item.price || item.amount || 0
+						}));
+						
+						// 检查购物车是否为空
 						if (this.cartData.length === 0) {
 							uni.showModal({
 								title: '提示',
@@ -317,20 +334,20 @@
 								success: function(modalRes) {
 									if (modalRes.confirm) {
 										uni.switchTab({
-											url: '/pages/index/index' // 假设首页是点餐页
+											url: '/pages/index/index'
 										});
 									}
 								}
 							});
 						}
 					} else {
-						console.error("新接口获取购物车数据失败或格式不正确:", res);
-						uni.$showMsg(res.msg || '获取购物车失败');
-						this.cartData = []; // 清空旧数据以防显示错误
+						uni.$showMsg(res?.msg || '获取购物车失败');
+						this.cartData = [];
 					}
 				} catch (error) {
-					console.error('调用新 getCart 接口失败:', error);
-					uni.$showMsg('获取购物车失败，请检查网络');
+					console.error('获取购物车数据失败:', error);
+					uni.hideLoading();
+					uni.$showMsg('获取购物车失败，请重试');
 					this.cartData = [];
 				}
 			},
@@ -349,6 +366,7 @@
 				this.loading = true;
 				
 				try {
+					// 准备订单数据
 					const orderData = {
 						addressBookId: this.address.id,
 						remark: this.note,
@@ -356,18 +374,16 @@
 						expectedDeliveryTime: this.finishTime
 					};
 					
+					// 提交订单数据，获取订单ID等信息
 					const res = await uni.$ajax.post({
 						url: 'v1/orders/submit',
 						data: orderData
 					});
 					
 					if (res) {
-						// 清空购物车
-						await clearCartApi();
-						
-						// 跳转到支付成功页面
+						// 将订单ID传递给支付确认页面
 						uni.navigateTo({
-							url: '/pages/paySuccess/paySuccess?orderId=' + res.id
+							url: '/pages/payConfirm/payConfirm?orderId=' + res.id
 						});
 					}
 				} catch (error) {

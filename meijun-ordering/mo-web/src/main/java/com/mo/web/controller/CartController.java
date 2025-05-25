@@ -41,11 +41,21 @@ public class CartController {
     @Operation(summary = "获取购物车", description = "获取用户最后创建的购物车")
     @GetMapping("")
     public Result<Cart> getCart(){
-        Long userId = (Long) redisTemplate.opsForValue().get(RedisKeyConstant.USER_ID);
-        List<CartItem> cartItems = cartService.getCart(userId);
+        Object userId = redisTemplate.opsForValue().get(RedisKeyConstant.USER_ID);
+        Long userIdLong;
+        
+        if (userId instanceof Integer) {
+            userIdLong = ((Integer) userId).longValue();
+        } else if (userId instanceof Long) {
+            userIdLong = (Long) userId;
+        } else {
+            return Result.error("用户ID无效");
+        }
+        
+        List<CartItem> cartItems = cartService.getCart(userIdLong);
 
         Cart cart = Cart.builder()
-                .userId(userId)
+                .userId(userIdLong)
                 .items(cartItems)
                 .build();
 
