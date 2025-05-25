@@ -1,5 +1,7 @@
 package com.mo.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mo.api.service.RedisService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -16,14 +18,26 @@ import java.util.concurrent.TimeUnit;
 public class RedisServiceImpl implements RedisService {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
 
-    public RedisServiceImpl(RedisTemplate<String, Object> redisTemplate) {
+    public RedisServiceImpl(RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public void set(String key, Object value, long time) {
         redisTemplate.opsForValue().set(key, value, time, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void setEntity(String key, Object value){
+        try{
+            String json = objectMapper.writeValueAsString(value);
+            redisTemplate.opsForValue().set(key, json);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -34,6 +48,17 @@ public class RedisServiceImpl implements RedisService {
     @Override
     public Object get(String key) {
         return redisTemplate.opsForValue().get(key);
+    }
+
+    @Override
+    public Object getEntity(String key, Class<?> clazz){
+        Object obj = redisTemplate.opsForValue().get(key);
+        if(obj == null) return null;
+        try{
+            return objectMapper.readValue(obj.toString(), clazz);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
