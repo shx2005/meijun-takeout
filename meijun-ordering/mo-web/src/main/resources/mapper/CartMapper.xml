@@ -16,4 +16,7 @@
         insert into carts (user_id, createTime, updateTime)
         values (#{cart.userId}, #{cart.createTime}, #{cart.updateTime})
     </insert>
+    <delete id="deleteCartByUserId">
+        DELETE FROM carts WHERE user_id = #{userId}
+    </delete>
 </mapper>

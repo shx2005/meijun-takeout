@@ -14,4 +14,6 @@ public interface OrderMapper {
     Order getOrderById(@Param("orderId") Long orderId);
 
     void updateOrderStatus(@Param("orderId") Long orderId, @Param("status") Integer status);
+
+    void saveOrder(Order order);
 }

@@ -9,4 +9,6 @@ import java.util.List;
 public interface CartMapper {
      void saveCart(Cart cart);
      void createCartIfNotExists(Long userId);
+
+    void deleteCartByUserId(Long userId);
 }

@@ -22,6 +22,29 @@
     <delete id="deleteCartItemById">
         DELETE FROM cart_items WHERE id = #{id}
     </delete>
+    <delete id="deleteCartItemByUserId">
+        DELETE FROM cart_items WHERE user_id = #{userId}
+    </delete>
+    <delete id="deleteCartItem">
+        DELETE FROM cart_items
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="itemId != null">
+                AND item_id = #{itemId}
+            </if>
+            <if test="itemType != null">
+                AND item_type = #{itemType}
+            </if>
+            <if test="quantity != null">
+                AND quantity = #{quantity}
+            </if>
+            <if test="dishFlavor != null">
+                AND dish_flavor = #{dishFlavor}
+            </if>
+        </where>
+    </delete>
 
     <select id="getCartItemByUserIdAndItemId" resultType="com.mo.entity.CartItem">
         SELECT * FROM cart_items

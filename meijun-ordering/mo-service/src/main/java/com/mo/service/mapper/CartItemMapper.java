@@ -13,4 +13,7 @@ public interface CartItemMapper {
     void saveCartItem(CartItem cartItem);
     void deleteCartItemById(Long id);
     void updateCartItem(CartItem cartItem1);
+
+    void deleteCartItemByUserId(Long userId);
+    void deleteCartItem(CartItem item);
 }

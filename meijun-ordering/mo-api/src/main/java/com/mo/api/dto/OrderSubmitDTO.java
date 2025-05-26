@@ -1,5 +1,6 @@
 package com.mo.api.dto;
 
+import com.mo.common.enumeration.OrderStatus;
 import com.mo.entity.OrderDetail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -12,7 +13,7 @@ import java.util.List;
 
 @Schema(name = "订单传输对象")
 @Data
-public class OrdersDTO implements Serializable {
+public class OrderSubmitDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -23,7 +24,7 @@ public class OrdersDTO implements Serializable {
     private String number;
     //订单状态 1待付款，2待派送，3已派送，4已完成，5已取消
     @Schema(description = "订单状态 1待付款，2待派送，3已派送，4已完成，5已取消")
-    private Integer status;
+    private OrderStatus status;
     //下单用户id
     @Schema(description = "下单用户id")
     private Long userId;
@@ -64,10 +65,9 @@ public class OrdersDTO implements Serializable {
     @Schema(description = "收货人")
     private String consignee;
     @Schema(description = "订单明细")
-    private List<OrderDetail> orderDetails;
+    private List<OrderDetail> items;
     //配送状态  1立即送出  0选择具体时间
     @Schema(description = "配送状态  1立即送出  0选择具体时间")
     private Integer deliveryStatus;
-
 
 }

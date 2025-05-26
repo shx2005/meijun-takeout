@@ -35,7 +35,9 @@ public class OrderDetail implements Serializable{
     @Schema(description = "数量")
     private Integer quantity;
     @Schema(description = "单价")
-    private BigDecimal amount;
+    private BigDecimal unit;
+    @Schema(description = "总价")
+    private BigDecimal total;
     @Schema(description = "图片")
     private String image;
 }

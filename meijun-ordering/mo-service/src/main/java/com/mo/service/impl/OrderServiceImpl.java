@@ -1,18 +1,21 @@
 package com.mo.service.impl;
 
 import com.mo.api.service.OrderService;
-import com.mo.entity.AfterSale;
-import com.mo.entity.Order;
-import com.mo.entity.OrderComment;
+import com.mo.api.vo.OrderSubmitVO;
+import com.mo.common.constant.MessageConstant;
+import com.mo.common.enumeration.OrderPayStaus;
+import com.mo.common.enumeration.OrderStatus;
+import com.mo.common.exception.CartBussinessException;
+import com.mo.entity.*;
 import com.mo.service.annotation.AutoFillTime;
-import com.mo.service.annotation.AutoFillUuid;
-import com.mo.service.mapper.AfterSaleMapper;
-import com.mo.service.mapper.CommentMapper;
-import com.mo.service.mapper.OrderMapper;
+import com.mo.service.mapper.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -24,6 +27,12 @@ public class OrderServiceImpl implements OrderService {
     private CommentMapper commentMapper;
     @Autowired
     private AfterSaleMapper afterSaleMapper;
+    @Autowired
+    private OrderDetailMapper orderDetailMapper;
+    @Autowired
+    private CartMapper cartMapper;
+    @Autowired
+    private CartItemMapper cartItemMapper;
 
     @Override
     public List<Order> getAll() {
@@ -61,5 +70,42 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void saveAfterSale(AfterSale afterSale){
         afterSaleMapper.saveAfterSale(afterSale);
+    }
+
+    @Override
+    public OrderSubmitVO saveOrder(Order order){
+        Long userId = order.getUserId();
+        List<CartItem> cartItems = cartItemMapper.getItemsByUserId(userId);
+        //  判断购物车是否为空
+        if(cartItems == null || cartItems.isEmpty()){
+            throw new CartBussinessException(MessageConstant.CART_NULL);
+        }
+        // 设置订单信息
+        order.setOrderTime(LocalDateTime.now());
+        order.setStatus(OrderStatus.PENDING);
+        order.setPayStatus(OrderPayStaus.UNPAID);
+        order.setOrderNumber(String.valueOf(System.currentTimeMillis()));
+
+        orderMapper.saveOrder(order);
+
+        //  保存订单详情
+        List<OrderDetail> details = new ArrayList<>();
+        for(CartItem item : cartItems){
+            OrderDetail detail = new OrderDetail();
+            BeanUtils.copyProperties(item, detail);
+            detail.setOrderId(order.getId());
+            details.add(detail);
+            orderDetailMapper.saveOrderDetail(detail);
+        }
+
+        //  删除购物车
+        cartItemMapper.deleteCartItemByUserId(userId);
+
+        return OrderSubmitVO.builder()
+                .id(order.getId())
+                .orderNumber(order.getOrderNumber())
+                .orderAmount(order.getTotal())
+                .orderTime(order.getOrderTime())
+                .build();
     }
 }
