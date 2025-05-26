@@ -1,5 +1,8 @@
 package com.mo.web.controller;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
+import com.mo.api.service.RedisService;
+import com.mo.common.context.BaseContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -27,10 +30,12 @@ public class CartController {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final CartService cartService;
+    private final RedisService redisService;
 
-    public CartController(RedisTemplate<String, Object> redisTemplate, CartService cartService) {
+    public CartController(RedisTemplate<String, Object> redisTemplate, CartService cartService, RedisService redisService) {
         this.redisTemplate = redisTemplate;
         this.cartService = cartService;
+        this.redisService = redisService;
     }
 
     /**
@@ -41,7 +46,8 @@ public class CartController {
     @Operation(summary = "获取购物车", description = "获取用户最后创建的购物车")
     @GetMapping("")
     public Result<Cart> getCart(){
-        Long userId = (Long) redisTemplate.opsForValue().get(RedisKeyConstant.USER_ID);
+        String uuid  = BaseContext.getCurrentId();
+        Long userId = (Long) redisService.hGet(RedisKeyConstant.USER_ID, uuid);
         List<CartItem> cartItems = cartService.getCart(userId);
 
         Cart cart = Cart.builder()

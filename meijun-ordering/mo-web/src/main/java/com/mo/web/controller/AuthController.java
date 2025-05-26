@@ -48,8 +48,6 @@ public class AuthController {
     @Autowired
     private JwtProperties jwtProperties;
     @Autowired
-    private RedisTemplate<String, Object>  redisTemplate;
-    @Autowired
     private RedisService redisService;
 
     @Operation(summary = "登录")
@@ -75,7 +73,8 @@ public class AuthController {
 
         //放入当前线程
         String uuid = user.getUuid();
-        redisService.hSet(RedisKeyConstant.USER_IDENTITY, uuid.substring(0,4), user.getIdentity().getName());
+        redisService.hSet(RedisKeyConstant.USER_IDENTITY, uuid , user.getIdentity().getName());
+        redisService.hSet(RedisKeyConstant.USER_ID, uuid , user.getId());
         redisService.setEntity(uuid, user);
         BaseContext.setCurrentId(uuid);
         //todo 检查输入是否合法
@@ -124,9 +123,11 @@ public class AuthController {
                 claims);
 
         //放入当前线程
-        redisTemplate.opsForValue().set(RedisKeyConstant.USER_ID, user.getId());
-        redisTemplate.opsForValue().set(user.getUuid(), user, getTtl(user.getIdentity()), TimeUnit.MILLISECONDS);
-        BaseContext.setCurrentId(user.getUuid());
+        String uuid = user.getUuid();
+        redisService.hSet(RedisKeyConstant.USER_IDENTITY, uuid, user.getIdentity().getName());
+        redisService.hSet(RedisKeyConstant.USER_ID, uuid, user.getId());
+        redisService.setEntity(uuid, user);
+        BaseContext.setCurrentId(uuid);
         
         AuthLoginVo authLoginVo = AuthLoginVo.builder()
                 .id(user.getId())
@@ -161,17 +162,21 @@ public class AuthController {
         String uuid = BaseContext.getCurrentId();
         log.info("logout: {}", uuid);
         BaseContext.removeCurrentId();
-        redisTemplate.delete(uuid);
-        redisTemplate.delete(RedisKeyConstant.USER_ID);
+        redisService.del(uuid);
+        redisService.hDel(RedisKeyConstant.USER_IDENTITY, uuid);
         return Result.success();
     }
 
     @Operation(summary = "刷新jwt")
     @PostMapping("/refresh-token")
-    public Result<String> refreshToken(){
+    public Result<String> refreshToken() throws ClassNotFoundException {
         String uuid = BaseContext.getCurrentId();
         if(uuid == null) throw new UserNotLoginException(MessageConstant.USER_NOT_LOGIN);
-        User user = (User) redisTemplate.opsForValue().get(uuid);
+        String identity = (String) redisService.hGet(RedisKeyConstant.USER_IDENTITY, uuid);
+        UserIdentity ui = UserIdentity.fromString(identity);
+
+        Class<?> clazz = Class.forName("com.mo.entity." + ui.getName());
+        User user = (User) redisService.getEntity(uuid, clazz);
         if(user == null) throw new RedisAccessException(MessageConstant.REDIS_ACCESS_ERROR);
 
         Map<String, Object> claims = new HashMap<>();
@@ -184,7 +189,7 @@ public class AuthController {
                 claims);
 
         user.setToken(token);
-        redisTemplate.opsForValue().set(uuid, user, getTtl(user.getIdentity()), TimeUnit.MILLISECONDS);
+        redisService.setEntity(uuid, user);
 
         return Result.success(token);
     }

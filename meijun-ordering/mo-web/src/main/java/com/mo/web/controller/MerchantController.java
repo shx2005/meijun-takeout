@@ -5,6 +5,7 @@ import com.mo.api.dto.EmployeePageQueryDTO;
 import com.mo.api.dto.StoreDTO;
 import com.mo.api.service.EmployeeService;
 import com.mo.api.service.OrderService;
+import com.mo.api.service.RedisService;
 import com.mo.api.service.StoreService;
 import com.mo.common.enumeration.OrderStatus;
 import com.mo.common.result.PageResult;
@@ -22,7 +23,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,11 +35,11 @@ public class MerchantController {
     @Autowired
     private OrderService orderService;
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-    @Autowired
     private EmployeeService employeeService;
     @Autowired
     private StoreService storeService;
+    @Autowired
+    private RedisService redisService;
 
     @Operation(summary = "获取商户订单列表")
     @Parameters({
@@ -49,10 +49,10 @@ public class MerchantController {
     @GetMapping("/{orderId}")
     public Result<Order> getOrderById( @PathVariable Long orderId){
         log.info("查询订单{}", orderId);
-        Order order = (Order) redisTemplate.opsForValue().get("order:" + orderId);
+        Order order = (Order) redisService.getEntity("order:" + orderId, Order.class);
         if(order == null) order = orderService.getOrderById(orderId);
         if(order == null) return Result.error();
-        redisTemplate.opsForValue().set("order:" + orderId, order);
+        redisService.setEntity("order:" + orderId, order);
 
         return Result.success(order);
     }
@@ -65,7 +65,7 @@ public class MerchantController {
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Order.class)))
     @PutMapping("/orders/{orderId}/status")
     Result<Order> updateOrderStatus(@PathVariable Long orderId, Integer status){
-        Order order = (Order) redisTemplate.opsForValue().get("order:" + orderId);
+        Order order = (Order) redisService.getEntity("order:" + orderId, Order.class);
         if(order == null) order = orderService.getOrderById(orderId);
         if(order == null) return Result.error();
 
@@ -73,7 +73,7 @@ public class MerchantController {
         order.setStatus(orderStatus);
 
         orderService.updateOrderStatus(orderId, status);
-        redisTemplate.delete("order:" + orderId);
+        redisService.del("order:" + orderId);
 
         return Result.success(order);
     }
