@@ -3,10 +3,10 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.mo.service.mapper.CartMapper">
     <insert id="createCartIfNotExists">
-        INSERT INTO cart (user_id)
+        INSERT INTO carts (user_id)
         SELECT #{userId}
         WHERE NOT EXISTS (
-            SELECT 1 FROM cart WHERE user_id = #{userId}
+            SELECT 1 FROM carts WHERE user_id = #{userId}
         )
     </insert>
     <insert id="saveCart"

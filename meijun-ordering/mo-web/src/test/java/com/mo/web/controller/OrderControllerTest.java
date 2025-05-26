@@ -46,6 +46,7 @@ public class OrderControllerTest {
     orderDTO.setPayMethod(1); // 微信支付
     orderDTO.setRemark("请尽快送达");
     orderDTO.setDeliveryStatus(1); // 立即送出
+    orderDTO.setTotal(new BigDecimal("50.00"));
 
     // 3. 调用接口并验证结果
     Result<OrderSubmitVO> result = orderController.submitOrder(orderDTO);

@@ -39,6 +39,8 @@ public class Order implements Serializable {
     private List<OrderDetail> items;  // 订单项列表
     @Schema(description = "订单号")
     private String orderNumber;
+    @Schema(description = "备注")
+    private String remark;
     // 地址、配送方式等其他字段
 
     LocalDateTime createTime;

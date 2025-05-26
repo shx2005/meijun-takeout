@@ -88,6 +88,7 @@ CREATE TABLE orders (
 );
 
 -- 创建订单详情表
+DROP TABLE IF EXISTS order_details;
 CREATE TABLE order_details (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
@@ -104,6 +105,7 @@ CREATE TABLE order_details (
 );
 
 -- 创建订单评价表
+DROP TABLE IF EXISTS order_comments;
 CREATE TABLE order_comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT,
@@ -114,6 +116,7 @@ CREATE TABLE order_comments (
 );
 
 -- 创建订单售后表
+DROP TABLE IF EXISTS order_afters;
 CREATE TABLE order_afters (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT,
@@ -129,6 +132,7 @@ CREATE TABLE order_afters (
 );
 
 -- 创建购物车表
+DROP TABLE IF EXISTS carts;
 CREATE TABLE carts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
@@ -138,6 +142,7 @@ CREATE TABLE carts (
 );
 
 -- 创建购物车条目表
+DROP TABLE IF EXISTS cart_items;
 CREATE TABLE cart_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cart_id INT,

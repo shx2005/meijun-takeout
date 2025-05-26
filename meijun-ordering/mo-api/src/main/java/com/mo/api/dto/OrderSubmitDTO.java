@@ -48,7 +48,7 @@ public class OrderSubmitDTO implements Serializable {
     private Integer payMethod;
     //实收金额
     @Schema(description = "实收金额")
-    private BigDecimal amount;
+    private BigDecimal total;
     //备注
     @Schema(description = "备注")
     private String remark;
