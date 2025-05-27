@@ -35,65 +35,121 @@ export const updateUserInfoApi = (data) => {
 // 手机密码登录
 export const phoneLoginApi = (data) => {
 	return new Promise((resolve, reject) => {
+		// 创建请求对象
+		const requestBody = {
+			username: data.phone,
+			password: data.password,
+			identity: "CUSTOMER" // 使用字符串形式的枚举值
+		};
+		
+		console.log('登录请求参数:', JSON.stringify(requestBody));
+		
 		uni.request({
 			url: 'http://localhost:8080/api/v1/auth/login',
 			method: 'POST',
-			data: {
-				username: data.phone,
-				password: data.password,
-				identity: 'CUSTOMER'
+			header: {
+				'Content-Type': 'application/json', 
+				'Accept': 'application/json',
+				'userType': '3'
 			},
+			data: requestBody,
 			success: (res) => {
 				console.log('登录响应:', res);
 				
 				// 检查状态码
 				if (res.statusCode === 200) {
-					// 成功，但需要从XML中提取数据
-					if (typeof res.data === 'string' && res.data.includes('<Result>')) {
+					// 处理登录响应
+					let token = null;
+					let userId = null;
+					let username = null;
+					
+					// 从响应中解析数据
+					if (res.data && res.data.data && res.data.data.token) {
+						token = res.data.data.token;
+						userId = res.data.data.id;
+						username = res.data.data.username;
+					} else if (res.data && res.data.token) {
+						token = res.data.token;
+						userId = res.data.id;
+						username = res.data.username;
+					}
+					
+					if (token) {
+						// 将原始token直接存储，不再进行Base64编码和结构化处理
+						console.log('后端返回的原始token:', token);
+						uni.setStorageSync('originalToken', token);
+						uni.setStorageSync('token', token);
+						
+						// 保存用户ID，确保为数字类型
+						if (userId) {
+							// 确保ID是数字类型
+							if (typeof userId === 'string') {
+								try {
+									userId = parseInt(userId);
+								} catch (e) {
+									console.error('解析用户ID失败:', e);
+								}
+							}
+							uni.setStorageSync('userId', userId);
+						}
+					}
+					
+					// 返回响应对象
+					if (typeof res.data === 'object') {
+						resolve({ 
+							statusCode: res.statusCode, 
+							data: res.data 
+						});
+					} else if (typeof res.data === 'string' && res.data.includes('<r>')) {
 						try {
-							// 简单解析XML获取token (这里用简单的字符串处理方式)
+							// 简单解析XML获取token
 							const tokenMatch = res.data.match(/<token>(.*?)<\/token>/);
 							const idMatch = res.data.match(/<id>(.*?)<\/id>/);
+							const uuidMatch = res.data.match(/<uuid>(.*?)<\/uuid>/);
+							const usernameMatch = res.data.match(/<username>(.*?)<\/username>/);
+							const nameMatch = res.data.match(/<n>(.*?)<\/name>/);
 							
 							if (tokenMatch && tokenMatch[1]) {
 								const result = {
-									statusCode: res.statusCode, // Preserve status code
-									data: { // Structure as expected by my.vue
+									statusCode: res.statusCode,
+									data: {
 										token: tokenMatch[1],
-										id: idMatch && idMatch[1] ? idMatch[1] : null
+										id: idMatch && idMatch[1] ? parseInt(idMatch[1]) : null,
+										uuid: uuidMatch && uuidMatch[1] ? uuidMatch[1] : null,
+										username: usernameMatch && usernameMatch[1] ? usernameMatch[1] : null,
+										name: nameMatch && nameMatch[1] ? nameMatch[1] : null
 									}
 								};
 								console.log('从XML中提取的数据封装后:', result);
-								resolve(result); // Resolve with the structured object
+								resolve(result);
 							} else {
-								// uni.$showMsg('解析登录响应失败'); // Let my.vue handle UI messages
-								resolve(res); // Resolve with original response if parsing fails
+								resolve(res);
 							}
 						} catch (e) {
 							console.error('解析XML失败:', e);
-							// uni.$showMsg('解析登录响应失败'); // Let my.vue handle UI messages
-							resolve(res); // Resolve with original response on error
+							resolve(res);
 						}
 					} else {
-						// 如果不是XML，直接返回，确保res.data is what my.vue expects or wrap it
-						// Assuming my.vue expects { statusCode: ..., data: { token: ..., id: ... } } for success
-						// If res.data is already in the correct { token: ..., id: ... } format, this is fine
-						// Otherwise, it might need adjustment like the XML case
 						resolve({ statusCode: res.statusCode, data: res.data }); 
 					}
 				} else {
-					// 请求成功但服务器返回错误 (e.g., 4xx, 5xx)
-					// uni.$showMsg(`登录失败: ${res.data.msg || '未知错误'}`); // Let my.vue handle UI messages
-					resolve(res); // Resolve with the full response object (including error status and data)
+					// 输出更详细的错误信息以便调试
+					if (res.data && typeof res.data === 'string' && res.data.includes('Internal Server Error')) {
+						console.error('服务器内部错误，请检查后端日志');
+					}
+					
+					// 500错误可能是后端问题，建议检查服务器日志
+					if (res.statusCode === 500) {
+						console.error('服务器内部错误(500)，详情:', res.data);
+					}
+					
+					resolve(res);
 				}
 			},
 			fail: (err) => {
 				console.error('登录请求失败:', err);
-				// uni.$showMsg('网络请求失败'); // Let my.vue handle UI messages
-				// For network errors, we should still resolve with an object that my.vue can inspect
-				// err for uni.request typically doesn't have statusCode or data, so construct a compatible error object
 				resolve({ 
-					statusCode: 0, // Or some other indicator of network error
+					statusCode: 0,
 					data: null, 
 					errMsg: (err && err.errMsg) ? err.errMsg : '网络请求失败' 
 				});

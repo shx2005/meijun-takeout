@@ -62,33 +62,33 @@
 				id="dishContainer" 
 				:scroll-into-view="scrollIntoViewId"
 				@scroll="onDishScroll">
-				<block v-for="(category, catIndex) in categoryList" :key="catIndex">
+				<block v-for="(category, catIndex) in categoryList" :key="'cat_'+catIndex">
 					<view :id="'category-'+category.id" class="category-title" :data-category-id="category.id">{{ category.name }}</view>
 					
 					<view class="dish-group">
 						<!-- 该分类下没有菜品时显示提示 -->
 						<view class="no-dish-tip" v-if="getDishesForCategory(category.id).length === 0">
 							暂无菜品
-							</view>
+						</view>
 						
 						<!-- 该分类下的菜品列表 -->
 						<view 
 							class="dish-item" 
 							v-for="(item, index) in getDishesForCategory(category.id)" 
-							:key="index"
+							:key="'dish_'+item.id"
 							@click="dishDetails(item)">
-							<image class="dish-image" :src="getImageSrc(item)" mode="aspectFill" @error="handleImageError($event, item)"></image>
+							<image class="dish-image" :src="item.image || '../../static/images/noImg.png'" mode="aspectFill"></image>
 							<view class="dish-content">
 								<view class="dish-info">
 									<view class="dish-name">{{ item.name }}</view>
 									<view class="dish-desc" v-if="item.description">{{ item.description }}</view>
 									<view class="dish-sales">月售 {{ item.sales || item.sale || 0 }}</view>
-								</view>
+							</view>
 								<view class="dish-action">
 									<view class="dish-price">
 										<text class="price-symbol">￥</text>
 										<text class="price-value">{{ (item.price).toFixed(2) }}</text>
-								</view>
+							</view>
 									<view class="dish-controls">
 										<view class="subtract-button" v-if="getItemCount(item.id) >= 1" @click.stop.prevent="subtractCart(item)">
 											<image src="../../static/images/subtract.png"></image>
@@ -101,13 +101,13 @@
 								</view>
 							</view>
 							</view>
-							</view>
+						</view>
 						</view>
 					</view>
 				</block>
 				<view class="bottom-space"></view>
 			</scroll-view>
-							</view>
+						</view>
 		
 		<!-- 评价页面内容 -->
 		<view class="main-content" v-if="tabIndex === 1">
@@ -117,28 +117,28 @@
 					<view class="review-stats">
 						<text class="review-score">4.8</text>
 						<text class="review-count">共 {{commentList.length}} 条评价</text>
-								</view>
-									</view>
+					</view>
+				</view>
 				
 				<view class="review-list">
 					<view v-if="commentList.length === 0" class="no-reviews">
 						<image src="/static/images/no-review.png" mode="aspectFit" class="no-review-image"></image>
 						<text>暂无评价</text>
-									</view>
+					</view>
 					<view v-else class="review-item" v-for="(item, index) in commentList" :key="index">
 						<view class="review-user">
 							<image class="user-avatar" src="/static/images/avatar.png" mode="aspectFill"></image>
 							<view class="user-info">
 								<view class="user-name">顾客{{index+1}}</view>
 								<view class="review-time">{{formatDate(item.createTime)}}</view>
-								</view>
-							</view>
+						</view>
+						</view>
 						<view class="review-content">{{item.comment || item.content}}</view>
 						<view class="review-order-info">
 							<view class="review-order-id">订单号: {{item.orderId}}</view>
 						</view>
 					</view>
-		</view>
+				</view>
 			</view>
 		</view>
 		
@@ -265,11 +265,6 @@
 				this.init();
 				this.loadCartFromStorage();
 				this.calculateCartTotals();
-				
-				// 调试输出
-				setTimeout(() => {
-					this.debugShowData();
-				}, 2000);
 			} else {
 				// 未登录，清空数据
 				this.categoryList = [];
@@ -314,41 +309,11 @@
 					if (!Array.isArray(this.categoryList)) this.categoryList = [];
 					if (!Array.isArray(this.cartItems)) this.cartItems = [];
 					
-					// 优先从本地缓存加载数据
-					const loadFromCache = () => {
-						// 尝试从本地缓存加载分类数据
-						try {
-							const cachedCategoryData = uni.getStorageSync('categoryData');
-							if (cachedCategoryData) {
-								const parsedData = JSON.parse(cachedCategoryData);
-								if (parsedData && Array.isArray(parsedData.data)) {
-									console.log('使用本地缓存的分类数据');
-									this.categoryList = parsedData.data;
-									// 按sort字段排序
-									this.categoryList.sort((a, b) => a.sort - b.sort);
-								}
-							}
-						} catch (e) {
-							console.error('从本地缓存加载分类数据失败:', e);
-						}
-						
-						// 尝试从本地缓存加载菜品数据
-						try {
-							const cachedDishData = uni.getStorageSync('allDishes');
-							if (cachedDishData) {
-								const parsedData = JSON.parse(cachedDishData);
-								if (parsedData && Array.isArray(parsedData)) {
-									console.log('使用本地缓存的菜品数据');
-									this.allDishes = parsedData;
-								}
-							}
-						} catch (e) {
-							console.error('从本地缓存加载菜品数据失败:', e);
-						}
-						
-						// 如果没有缓存数据，使用备用数据
-						if (!this.categoryList || this.categoryList.length === 0) {
-							console.log('使用备用分类数据');
+					// 尝试并行加载所有数据
+					const promises = [
+						this.loadCategoryData().catch(err => {
+							console.error("加载分类数据失败:", err);
+							// 使用硬编码的备用数据
 							this.categoryList = [
 								{ id: 1, type: 1, name: '家常菜', sort: 1, status: 1 },
 								{ id: 2, type: 1, name: '盖饭', sort: 2, status: 1 },
@@ -360,15 +325,11 @@
 								{ id: 8, type: 1, name: '素菜系列', sort: 8, status: 1 },
 								{ id: 9, type: 2, name: '套餐', sort: 9, status: 1 }
 							];
-							// 保存到本地缓存
-							uni.setStorageSync('categoryData', JSON.stringify({
-								data: this.categoryList,
-								timestamp: Date.now()
-							}));
-						}
-						
-						if (!this.allDishes || this.allDishes.length === 0) {
-							console.log('使用备用菜品数据');
+							return this.categoryList;
+						}),
+						this.loadDishData().catch(err => {
+							console.error("加载菜品数据失败:", err);
+							// 使用硬编码的备用数据
 							this.allDishes = [
 					{
 						id: 1,
@@ -389,7 +350,8 @@
 									description: "主料：鸡胸肉、花生米、黄瓜、胡萝卜",
 									status: 1,
 									sale: 105
-					},
+								},
+								// 其他备用菜品数据
 					{
 						id: 3,
 									name: "红烧排骨",
@@ -421,34 +383,49 @@
 									sale: 75
 								}
 							];
-							// 保存到本地缓存
+							// 将硬编码的备用数据保存到本地存储
 							uni.setStorageSync('allDishes', JSON.stringify(this.allDishes));
-						}
-					};
+							return this.allDishes;
+						})
+					];
 					
-					// 先尝试从本地缓存加载数据
-					loadFromCache();
+					// 等待所有请求完成
+					await Promise.all(promises);
 					
-					// 然后尝试从服务器获取最新数据
-					try {
-						// 并行加载分类和菜品数据
-						await Promise.all([
-							this.loadCategoryData().catch(err => {
-								console.error("加载分类数据失败:", err);
-								// 已经从缓存加载了数据，不需要额外处理
-							}),
-							this.loadDishData().catch(err => {
-								console.error("加载菜品数据失败:", err);
-								// 已经从缓存加载了数据，不需要额外处理
-							})
-						]);
-					} catch (error) {
-						console.error("从服务器加载数据失败，使用本地缓存", error);
-						// 已经从缓存加载了数据，不需要额外处理
-					}
+					// 确保数据类型正确
+					if (!Array.isArray(this.allDishes)) this.allDishes = [];
+					if (!Array.isArray(this.categoryList)) this.categoryList = [];
+					
+					// 确保菜品数据按分类正确显示
+					this.updateDishDisplay();
 					
 				} catch (error) {
 					console.error("初始化数据失败", error);
+					// 确保有备用数据
+					if (!Array.isArray(this.allDishes) || this.allDishes.length === 0) {
+						this.allDishes = [
+							{
+								id: 1,
+								name: "鱼香肉丝",
+								categoryId: 1,
+								price: 28.00,
+								image: "/static/images/dish1.jpg",
+								description: "主料：猪肉、胡萝卜、青椒、木耳",
+								status: 1,
+								sale: 128
+							},
+							{
+								id: 2,
+								name: "宫保鸡丁",
+								categoryId: 1,
+								price: 26.00,
+								image: "/static/images/dish2.jpg",
+								description: "主料：鸡胸肉、花生米、黄瓜、胡萝卜",
+								status: 1,
+								sale: 105
+							}
+						];
+					}
 					uni.$showMsg('获取数据失败，已使用本地数据');
 				}
 			},
@@ -678,151 +655,57 @@
 					// 尝试从服务器获取菜品数据
 					const res = await dishListApi({});
 					console.log('菜品数据API响应:', res);
-					
-					// 检查API响应结构
-					if (res && res.code === 200 && res.records) {
-						// 新的API结构: {total, records, current, size, code}
-						console.log('解析新API结构，records数组长度:', res.records.length);
-						this.allDishes = res.records.map(item => {
-							// 处理可能的字段名不一致问题
-							const name = item.n || item.name;
-							const categoryId = this.getCategoryIdByName(name);
-							
-							return {
-								id: item.id,
-								name: name,
-								categoryId: categoryId,
-								price: item.price,
-								image: item.image || '/static/images/noImg.png',
-								description: item.description || '',
-								status: item.status,
-								sale: item.sales || item.sale || 0
-							};
-						});
-						console.log('解析后的菜品数据:', this.allDishes);
-					} else if (res && res.code === 0 && res.data) {
-						// 旧的API结构
-						console.log('解析旧API结构');
-						this.allDishes = Array.isArray(res.data) ? res.data.map(item => {
-							const name = item.n || item.name;
-							const categoryId = this.getCategoryIdByName(name);
-							
-							return {
-								...item,
-								name: name,
-								categoryId: categoryId
-							};
-						}) : [];
-					} else if (Array.isArray(res)) {
-						// 直接返回数组
-						console.log('API直接返回数组');
-						this.allDishes = res.map(item => {
-							const name = item.n || item.name;
-							const categoryId = this.getCategoryIdByName(name);
-							
-							return {
-								...item,
-								name: name,
-								categoryId: categoryId
-							};
-						});
-					} else if (res && typeof res === 'object') {
-						// 尝试从任何对象结构中提取数据
-						console.log('尝试从复杂对象中提取数据');
-						let dishes = [];
-						
-						if (res.records && Array.isArray(res.records)) {
-							dishes = res.records;
-						} else if (res.data && Array.isArray(res.data)) {
-							dishes = res.data;
-						} else if (res.dishes && Array.isArray(res.dishes)) {
-							dishes = res.dishes;
+					// 修复：处理多种可能的响应格式
+					if (res) {
+						// 尝试提取菜品数据，处理不同的响应结构
+						let dishesData = null;
+						if (res.code === 0 && res.data) {
+							dishesData = res.data;
+						} else if (res.code === 200 && res.data) {
+							dishesData = res.data;
+						} else if (Array.isArray(res)) {
+							dishesData = res;
+						} else if (typeof res === 'object' && Object.keys(res).length > 0) {
+							// 可能直接返回数据对象
+							dishesData = res;
 						}
 						
-						this.allDishes = dishes.map(item => {
-							const name = item.n || item.name;
-							const categoryId = this.getCategoryIdByName(name);
-							
-							return {
-								...item,
-								name: name,
-								categoryId: categoryId
-							};
-						});
+						if (dishesData) {
+							// 确保数据是数组
+							this.allDishes = Array.isArray(dishesData) ? dishesData : [];
+							// 将所有菜品数据保存到本地存储
+							uni.setStorageSync('allDishes', JSON.stringify(this.allDishes));
+							return;
+						}
 					}
 					
-					// 将所有菜品数据保存到本地存储
-					if (this.allDishes && this.allDishes.length > 0) {
-						console.log(`成功获取${this.allDishes.length}个菜品，保存到本地存储`);
-						uni.setStorageSync('allDishes', JSON.stringify(this.allDishes));
-					} else {
-						console.warn('API未返回有效的菜品数据，使用备用数据');
-						// 使用备用数据
-						this.allDishes = [
-							{
-								id: 1,
-								name: "鱼香肉丝",
-								categoryId: 1,
-								price: 28.00,
-								image: "/static/images/noImg.png",
-								description: "主料：猪肉、胡萝卜、青椒、木耳",
-								status: 1,
-								sale: 128
-							},
-							{
-								id: 2,
-								name: "宫保鸡丁",
-								categoryId: 1,
-								price: 26.00,
-								image: "/static/images/noImg.png",
-								description: "主料：鸡胸肉、花生米、黄瓜、胡萝卜",
-								status: 1,
-								sale: 105
-							},
-							{
-								id: 3,
-								name: "红烧排骨",
-								categoryId: 1,
-								price: 32.00,
-								image: "/static/images/noImg.png",
-								description: "主料：猪排骨、土豆、胡萝卜",
-								status: 1,
-								sale: 98
-							},
-							{
-								id: 4,
-								name: "麻婆豆腐",
-								categoryId: 2,
-								price: 22.00,
-								image: "/static/images/noImg.png",
-								description: "主料：豆腐、肉末、豆瓣酱",
-								status: 1,
-								sale: 85
-							},
-							{
-								id: 5,
-								name: "干锅土豆片",
-								categoryId: 5,
-								price: 28.00,
-								image: "/static/images/noImg.png",
-								description: "主料：土豆、辣椒、木耳、肉片",
-								status: 1,
-								sale: 75
-							}
-						];
-						// 将备用数据保存到本地存储
-						uni.setStorageSync('allDishes', JSON.stringify(this.allDishes));
+					// 如果API请求失败或无法提取数据，尝试本地备份
+					try {
+						const response = await uni.request({
+							url: '/dish_data.json',
+							method: 'GET'
+						});
+						if (response && response[1].data) {
+							const localData = response[1].data;
+							// 确保数据是数组
+							this.allDishes = Array.isArray(localData) ? localData : [];
+							// 将备用数据也保存到本地存储
+							uni.setStorageSync('allDishes', JSON.stringify(this.allDishes));
+							return;
+						}
+					} catch(e) {
+						console.error('加载本地备份数据失败:', e);
 					}
-				} catch (error) {
-					console.error("加载菜品数据失败:", error);
-					// 使用备用数据
+					
+					// 所有来源都失败，使用硬编码的备用数据
+					console.log('使用硬编码的备用菜品数据');
 					this.allDishes = [
 						{
 							id: 1,
 							name: "鱼香肉丝",
 							categoryId: 1,
 							price: 28.00,
-							image: "/static/images/noImg.png",
+							image: "/static/images/dish1.jpg",
 							description: "主料：猪肉、胡萝卜、青椒、木耳",
 							status: 1,
 							sale: 128
@@ -832,7 +715,44 @@
 							name: "宫保鸡丁",
 							categoryId: 1,
 							price: 26.00,
-							image: "/static/images/noImg.png",
+							image: "/static/images/dish2.jpg",
+							description: "主料：鸡胸肉、花生米、黄瓜、胡萝卜",
+							status: 1,
+							sale: 105
+						},
+						{
+							id: 3,
+							name: "红烧排骨",
+							categoryId: 1,
+							price: 32.00,
+							image: "/static/images/dish3.jpg",
+							description: "主料：猪排骨、土豆、胡萝卜",
+							status: 1,
+							sale: 98
+						}
+					];
+					// 将硬编码的备用数据保存到本地存储
+					uni.setStorageSync('allDishes', JSON.stringify(this.allDishes));
+				} catch (error) {
+					console.error("加载菜品数据失败:", error);
+					// 使用备用数据
+					this.allDishes = [
+						{
+							id: 1,
+							name: "鱼香肉丝",
+							categoryId: 1,
+							price: 28.00,
+							image: "/static/images/dish1.jpg",
+							description: "主料：猪肉、胡萝卜、青椒、木耳",
+							status: 1,
+							sale: 128
+						},
+						{
+							id: 2,
+							name: "宫保鸡丁",
+							categoryId: 1,
+							price: 26.00,
+							image: "/static/images/dish2.jpg",
 							description: "主料：鸡胸肉、花生米、黄瓜、胡萝卜",
 							status: 1,
 							sale: 105
@@ -843,50 +763,6 @@
 				}
 			},
 			
-			// 根据菜品名称获取分类ID
-			getCategoryIdByName(name) {
-				if (!name) return 1;
-				
-				// 家常菜: 鱼香肉丝、宫保鸡丁、红烧排骨、回锅肉
-				if (name.includes('鱼香肉丝') || name.includes('宫保鸡丁') || 
-					name.includes('红烧排骨') || name.includes('回锅肉')) {
-					return 1;
-				}
-				
-				// 盖饭: 麻婆豆腐
-				if (name.includes('麻婆豆腐')) {
-					return 2;
-				}
-				
-				// 米饭: 白米饭
-				if (name.includes('米饭')) {
-					return 3;
-				}
-				
-				// 特色菜: 水煮肉片
-				if (name.includes('水煮肉片')) {
-					return 4;
-				}
-				
-				// 干锅: 干锅土豆片
-				if (name.includes('干锅')) {
-					return 5;
-				}
-				
-				// 汤菜: 番茄蛋花汤
-				if (name.includes('汤')) {
-					return 7;
-				}
-				
-				// 素菜系列: 蒜蓉蒸茄子、青椒土豆丝、干煸四季豆
-				if (name.includes('茄子') || name.includes('土豆丝') || name.includes('四季豆')) {
-					return 8;
-				}
-				
-				// 默认分类为家常菜
-				return 1;
-			},
-			
 			// 按分类id获取该分类下的所有菜品
 			getDishesForCategory(categoryId) {
 				// 确保 allDishes 是一个数组
@@ -894,23 +770,7 @@
 					console.error('allDishes 不是数组:', this.allDishes);
 					return [];
 				}
-				
-				// 过滤出该分类下的菜品
-				const dishes = this.allDishes.filter(dish => {
-					// 如果菜品已有分类ID且匹配，直接返回true
-					if (dish.categoryId && dish.categoryId === categoryId) {
-						return true;
-					}
-					
-					// 否则，根据名称判断分类
-					const dishCategoryId = this.getCategoryIdByName(dish.name);
-					// 更新菜品的分类ID
-					dish.categoryId = dishCategoryId;
-					return dishCategoryId === categoryId;
-				});
-				
-				console.log(`分类ID ${categoryId} 下有 ${dishes.length} 个菜品`);
-				return dishes;
+				return this.allDishes.filter(dish => dish.categoryId === categoryId);
 			},
 			
 			// 获取所有分类标题的位置信息
@@ -1230,41 +1090,6 @@
 				} catch (e) {
 					return dateStr;
 				}
-			},
-			
-			// 处理图片加载错误
-			handleImageError(event, item) {
-				console.error('图片加载失败:', item.name, item.image);
-				// 将图片源替换为本地占位图
-				item.image = '/static/images/noImg.png';
-			},
-			
-			// 获取图片源
-			getImageSrc(item) {
-				// 检查是否是本地图片路径
-				if (item.image && (item.image.startsWith('/static/images/dish') || item.image.includes('dish'))) {
-					// 本地菜品图片可能不存在，直接使用占位图
-					return '/static/images/noImg.png';
-				}
-				// 返回原始图片路径或默认占位图
-				return item.image || '/static/images/noImg.png';
-			},
-			
-			// 调试方法：显示当前分类和菜品数据
-			debugShowData() {
-				console.log('==== 调试信息 ====');
-				console.log('分类数据:', this.categoryList);
-				console.log('菜品总数:', this.allDishes.length);
-				
-				// 检查每个分类下的菜品数量
-				if (this.categoryList && this.categoryList.length > 0) {
-					this.categoryList.forEach(category => {
-						const dishes = this.getDishesForCategory(category.id);
-						console.log(`分类 ${category.name}(ID:${category.id}) 下有 ${dishes.length} 个菜品`);
-					});
-				}
-				
-				console.log('==== 调试结束 ====');
 			}
 		}
 	}

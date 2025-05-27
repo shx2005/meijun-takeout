@@ -122,160 +122,203 @@
 </template>
 
 <script>
-	export default {
-		data() {
-			return {
-				dishId: '',
-				dishInfo: {
-					id: '',
-					name: '加载中...',
-					price: 0,
-					sales: 0,
-					imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
-					description: '',
-					stars: 5,
-					ingredients: '',
-					flavors: ['不辣', '微辣', '中辣', '特辣'],
-					comments: []
+import { addCartApi } from '../../api/index';
+
+export default {
+	data() {
+		return {
+			dishId: '',
+			dishInfo: {
+				id: '',
+				name: '加载中...',
+				price: 0,
+				sales: 0,
+				imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+				description: '',
+				stars: 5,
+				ingredients: '',
+				flavors: ['不辣', '微辣', '中辣', '特辣'],
+				comments: []
+			},
+			selectedFlavor: '',
+			cartCount: 2,
+			recommendDishes: [
+				{
+					id: '101',
+					name: '黄焖鸡米饭',
+					price: 1680,
+					imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg'
 				},
-				selectedFlavor: '',
-				cartCount: 2,
-				recommendDishes: [
-					{
-						id: '101',
-						name: '黄焖鸡米饭',
-						price: 1680,
-						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg'
-					},
-					{
-						id: '102',
-						name: '宫保鸡丁',
-						price: 2280,
-						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg'
-					},
-					{
-						id: '103',
-						name: '鱼香肉丝',
-						price: 1980,
-						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg'
-					},
-					{
-						id: '104',
-						name: '麻婆豆腐',
-						price: 1480,
-						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg'
-					}
-				]
-			}
-		},
-		onLoad(options) {
-			if (options.id) {
-				this.dishId = options.id;
-				this.getDishDetail();
-			} else {
-				uni.showToast({
-					title: '菜品ID无效',
-					icon: 'none'
-				});
-				setTimeout(() => {
-					uni.navigateBack();
-				}, 1500);
-			}
-		},
-		methods: {
-			// 获取菜品详情
-			getDishDetail() {
-				// 这里是模拟数据，实际项目中应该调用API获取
-				setTimeout(() => {
-					// 使用测试数据
-					const testData = {
-						id: this.dishId,
-						name: '宫保鸡丁',
-						price: 2280,
-						originalPrice: 2880,
-						sales: 498,
-						imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
-						description: '宫保鸡丁，是一道闻名中外的特色传统名菜。鲁菜、川菜、贵州菜中都有这道菜，但各地的做法和味道有所不同。',
-						ingredients: '鸡胸肉、黄瓜、胡萝卜、花生米、干辣椒、花椒、姜、蒜等',
-						stars: 5,
-						favorRate: 98,
-						flavors: ['不辣', '微辣', '中辣', '特辣'],
-						comments: [
-							{
-								username: '用户1001',
-								avatar: 'https://img.yzcdn.cn/vant/cat.jpeg',
-								content: '超级好吃，辣度刚刚好！下次还会再来点！',
-								time: '2024-06-01 12:30'
-							},
-							{
-								username: '用户1002',
-								avatar: 'https://img.yzcdn.cn/vant/cat.jpeg',
-								content: '份量足，味道佳，下次会再来的！',
-								time: '2024-05-30 18:45'
-							}
-						]
-					};
-					
-					this.dishInfo = testData;
-					// 默认选择第一个口味
-					if (this.dishInfo.flavors && this.dishInfo.flavors.length > 0) {
-						this.selectedFlavor = this.dishInfo.flavors[0];
-					}
-				}, 500);
-			},
-			
-			// 返回上一页
-			goBack() {
+				{
+					id: '102',
+					name: '宫保鸡丁',
+					price: 2280,
+					imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg'
+				},
+				{
+					id: '103',
+					name: '鱼香肉丝',
+					price: 1980,
+					imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg'
+				},
+				{
+					id: '104',
+					name: '麻婆豆腐',
+					price: 1480,
+					imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg'
+				}
+			]
+		}
+	},
+	onLoad(options) {
+		if (options.id) {
+			this.dishId = options.id;
+			this.getDishDetail();
+		} else {
+			uni.showToast({
+				title: '菜品ID无效',
+				icon: 'none'
+			});
+			setTimeout(() => {
 				uni.navigateBack();
-			},
-			
-			// 选择口味
-			selectFlavor(flavor) {
-				this.selectedFlavor = flavor;
-			},
-			
-			// 查看全部评价
-			viewAllComments() {
-				uni.navigateTo({
-					url: `/pages/comments/comments?dishId=${this.dishId}`
-				});
-			},
-			
-			// 查看其他菜品详情
-			goToDishDetail(item) {
-				if (item.id === this.dishId) return; // 如果是当前菜品，则不跳转
+			}, 1500);
+		}
+	},
+	methods: {
+		// 获取菜品详情
+		getDishDetail() {
+			// 这里是模拟数据，实际项目中应该调用API获取
+			setTimeout(() => {
+				// 使用测试数据
+				const testData = {
+					id: this.dishId,
+					name: '宫保鸡丁',
+					price: 2280,
+					originalPrice: 2880,
+					sales: 498,
+					imageUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
+					description: '宫保鸡丁，是一道闻名中外的特色传统名菜。鲁菜、川菜、贵州菜中都有这道菜，但各地的做法和味道有所不同。',
+					ingredients: '鸡胸肉、黄瓜、胡萝卜、花生米、干辣椒、花椒、姜、蒜等',
+					stars: 5,
+					favorRate: 98,
+					flavors: ['不辣', '微辣', '中辣', '特辣'],
+					comments: [
+						{
+							username: '用户1001',
+							avatar: 'https://img.yzcdn.cn/vant/cat.jpeg',
+							content: '超级好吃，辣度刚刚好！下次还会再来点！',
+							time: '2024-06-01 12:30'
+						},
+						{
+							username: '用户1002',
+							avatar: 'https://img.yzcdn.cn/vant/cat.jpeg',
+							content: '份量足，味道佳，下次会再来的！',
+							time: '2024-05-30 18:45'
+						}
+					]
+				};
 				
-				uni.redirectTo({
-					url: `/pages/dishDetail/dishDetail?id=${item.id}`
-				});
-			},
+				this.dishInfo = testData;
+				// 默认选择第一个口味
+				if (this.dishInfo.flavors && this.dishInfo.flavors.length > 0) {
+					this.selectedFlavor = this.dishInfo.flavors[0];
+				}
+			}, 500);
+		},
+		
+		// 返回上一页
+		goBack() {
+			uni.navigateBack();
+		},
+		
+		// 选择口味
+		selectFlavor(flavor) {
+			this.selectedFlavor = flavor;
+		},
+		
+		// 查看全部评价
+		viewAllComments() {
+			uni.navigateTo({
+				url: `/pages/comments/comments?dishId=${this.dishId}`
+			});
+		},
+		
+		// 查看其他菜品详情
+		goToDishDetail(item) {
+			if (item.id === this.dishId) return; // 如果是当前菜品，则不跳转
 			
-			// 前往购物车
-			goToCart() {
-				uni.switchTab({
-					url: '/pages/index/index'
-				});
-			},
+			uni.redirectTo({
+				url: `/pages/dishDetail/dishDetail?id=${item.id}`
+			});
+		},
+		
+		// 前往购物车
+		goToCart() {
+			uni.navigateTo({
+				url: '/pages/cart/cart'
+			});
+		},
+		
+		// 加入购物车
+		addToCart() {
+			// 显示加载状态
+			uni.showLoading({ title: '添加中...' });
 			
-			// 加入购物车
-			addToCart() {
-				// 这里是模拟功能，实际项目中应该调用API
+			// 准备购物车项数据
+			const cartItem = {
+				itemId: this.dishInfo.id,
+				itemType: "DISH", // 默认为菜品类型
+				quantity: 1
+			};
+			
+			// 调用API将商品添加到购物车
+			addCartApi(cartItem).then(res => {
+				uni.hideLoading();
 				this.cartCount++;
 				uni.showToast({
 					title: '已加入购物车',
 					icon: 'success'
 				});
-			},
+			}).catch(error => {
+				uni.hideLoading();
+				console.error('添加购物车失败:', error);
+				uni.showToast({
+					title: '添加失败，请重试',
+					icon: 'none'
+				});
+			});
+		},
+		
+		// 立即购买
+		buyNow() {
+			// 显示加载状态
+			uni.showLoading({ title: '处理中...' });
 			
-			// 立即购买
-			buyNow() {
-				// 这里是模拟功能，实际项目中应该跳转到结算页面
+			// 准备购物车项数据
+			const cartItem = {
+				itemId: this.dishInfo.id,
+				itemType: "DISH", // 默认为菜品类型
+				quantity: 1
+			};
+			
+			// 先添加到购物车，然后跳转到订单页
+			addCartApi(cartItem).then(res => {
+				uni.hideLoading();
+				// 直接跳转到下单页面
 				uni.navigateTo({
 					url: '/pages/addOrder/addOrder'
 				});
-			}
+			}).catch(error => {
+				uni.hideLoading();
+				console.error('处理失败:', error);
+				uni.showToast({
+					title: '处理失败，请重试',
+					icon: 'none'
+				});
+			});
 		}
 	}
+}
 </script>
 
 <style>
