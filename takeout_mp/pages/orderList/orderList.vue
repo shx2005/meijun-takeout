@@ -9,7 +9,7 @@
 				<u-list @scrolltolower="scrolltolower" lowerThreshold="150">
 					<u-list-item v-for="(order, index) in orderList" :key="index">
 						<!-- <view class="item" @touchstart="touchstartE(order)" @touchend="touchendE(order)"> -->
-							<view class="item">
+							<view class="item" @tap="gotoDetail(order)">
 							<view class="timeStatus">
 								<view class="zuodingwei"></view>
 								<text class="time">{{ order.orderTime }}</text>
@@ -32,7 +32,7 @@
 								<text class="price">￥{{ order.amount }}</text>
 							</view>
 							<view class="btn" v-if="order.status === 4">
-								<view class="btnAgain" @click="addOrderAgain(order)">再来一单</view>
+								<view class="btnAgain" @click.stop="addOrderAgain(order)">再来一单</view>
 							</view>
 							<view class="foot"></view>
 						</view>
@@ -139,29 +139,31 @@
 			},
 			async getList() {
 				this.isloading = true;
-				// const token = uni.getStorageSync('token'); // 获取token的语句可以保留或删除
+				const token = uni.getStorageSync('token');
+				const userId = uni.getStorageSync('userId');
 				
-				// if (!token) { // 移除或注释掉登录检查和强制跳转
-				// 	uni.showModal({
-				// 		title: '提示',
-				// 		content: '请登录',
-				// 		showCancel: false,
-				// 		success: function(res) {
-				// 			if (res.confirm) {
-				// 				uni.switchTab({
-				// 					url: '/pages/my/my'
-				// 				});
-				// 			}
-				// 		}
-				// 	});
-				// 	this.isloading = false;
-				// 	return;
-				// }
+				if (!token) {
+					uni.showModal({
+						title: '提示',
+						content: '请登录',
+						showCancel: false,
+						success: function(res) {
+							if (res.confirm) {
+								uni.switchTab({
+									url: '/pages/my/my'
+								});
+							}
+						}
+					});
+					this.isloading = false;
+					return;
+				}
 				
 				try {
 					const res = await getOrdersApi({
 						page: this.paging.page,
-						size: this.paging.pageSize
+						size: this.paging.pageSize,
+						userId: userId // 添加用户ID过滤
 					});
 					
 					if (res && Array.isArray(res.records)) {
@@ -171,8 +173,11 @@
 						if (records.length > 0) {
 							this.show = false;
 							
+							// 过滤当前用户的订单
+							const filteredRecords = userId ? records.filter(item => item.customerId == userId) : records;
+							
 							// 计算订单商品总数
-							records.forEach(item => {
+							filteredRecords.forEach(item => {
 								let number = 0;
 								if (item.orderDetails && Array.isArray(item.orderDetails)) {
 									item.orderDetails.forEach(ele => {
@@ -183,8 +188,8 @@
 							});
 							
 							// 添加到订单列表
-							this.orderList.push(...records);
-							this.countToal = res.total || records.length;
+							this.orderList.push(...filteredRecords);
+							this.countToal = res.total || filteredRecords.length;
 							
 							// 更新分页状态
 							if (this.paging.page >= (res.pages || Math.ceil(this.countToal / this.paging.pageSize))) {

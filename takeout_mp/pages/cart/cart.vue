@@ -81,54 +81,17 @@ export default {
           return;
         }
 
-        // 先从本地存储获取购物车数据
-        const localCart = uni.getStorageSync('cartItems');
-        if (localCart) {
-          try {
-            this.cartItems = JSON.parse(localCart);
-            this.calculateTotal();
-            console.log('从本地存储加载购物车数据成功:', this.cartItems);
-            this.loading = false;
-            return; // 如果成功从本地加载，就不再请求API
-          } catch (parseError) {
-            console.error('解析本地购物车数据失败:', parseError);
-            // 解析失败继续执行后续代码尝试API获取
-          }
-        }
-        
-        // 本地存储没有购物车数据或解析失败，尝试从API获取
-        console.log('本地没有有效的购物车数据，从API获取');
-        uni.showLoading({ title: '加载中...' });
-        
         // 调用购物车列表API
         try {
+          uni.showLoading({ title: '加载中...' });
           const response = await cartListApi();
           uni.hideLoading();
           
           if (response && response.code === 0 && response.data) {
-            let cartData = [];
-            
-            // 提取购物车数据
-            if (Array.isArray(response.data)) {
-              cartData = response.data;
-            } else if (response.data && Array.isArray(response.data.items)) {
-              cartData = response.data.items;
-            } else if (response && Array.isArray(response.items)) {
-              cartData = response.items;
-            }
-            
-            // 格式化购物车数据
-            this.cartItems = cartData.map(item => ({
-              id: item.itemId || item.id,
-              name: item.name || '菜品',
-              price: item.price || 0,
-              image: item.image || '/static/images/default-food.png',
-              quantity: item.quantity || item.number || 1
-            }));
-            
-            // 保存到本地存储
-            uni.setStorageSync('cartItems', JSON.stringify(this.cartItems));
+            // API获取成功，使用API返回的数据
+            this.cartItems = response.data;
             this.calculateTotal();
+            console.log('从API加载购物车数据成功:', this.cartItems);
           } else {
             uni.showToast({
               title: '获取购物车数据失败',

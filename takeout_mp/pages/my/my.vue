@@ -18,9 +18,10 @@
 								</view>
 								<view class="placardVip">美食元素</view>
 							</view>
-							<view class="detail" v-if="phoneNumber">手机号：{{phoneNumber}}</view>
-							<view class="detail" v-else-if="user.phoneNum">手机号：{{user.phoneNum}}</view>
-							<view class="detail" v-else>手机号:未绑定</view>
+							<view class="detail" v-if="phoneNumber">手机号：{{formatPhoneNum(phoneNumber)}}</view>
+							<view class="detail" v-else-if="user.phoneNum">手机号：{{formatPhoneNum(user.phoneNum)}}</view>
+							<view class="detail" v-else-if="user.username && /^1\d{10}$/.test(user.username)">手机号：{{formatPhoneNum(user.username)}}</view>
+							<view class="detail" v-else>手机号：未绑定</view>
 							<view class="detail" v-if="user.id">ID: {{user.id}}</view>
 						</view>
 					</block>
@@ -303,8 +304,7 @@
 			}
 		},
 		created() {
-			// 自动登录
-			this.autoLogin();
+			// 移除不存在的autoLogin调用
 			this.getUserInfo();
 		},
 		onShow() {
@@ -450,46 +450,39 @@
 						password: this.password
 					});
 
-						console.log('登录结果:', result);
-						
+					console.log('登录结果:', result);
+					
 					// 检查响应状态
 					if (result && result.statusCode === 200 && result.data) {
-						// 根据响应格式提取token和userId
-						const responseData = result.data;
+						// 从响应中提取token
 						let token = null;
-						let userId = null;
-						
-						// 尝试从不同可能的响应格式中提取token
-						if (responseData.token) {
-							// 直接包含token的格式
-							token = responseData.token;
-							userId = responseData.id || responseData.userId || responseData.user_id;
-						} else if (responseData.data && responseData.data.token) {
-							// 嵌套在data字段中的格式
-							token = responseData.data.token;
-							userId = responseData.data.id || responseData.data.userId || responseData.data.user_id;
-						} else if (responseData.access_token) {
-							// OAuth2格式
-							token = responseData.access_token;
-							userId = responseData.user_id;
+						// 优先从 result.data.data.token 提取 token（服务器可能返回嵌套数据）
+						if (result.data.data && result.data.data.token) {
+							token = result.data.data.token;
+						} 
+						// 如果上面不存在，尝试从 result.data.token 提取
+						else if (result.data.token) {
+							token = result.data.token;
 						}
 						
 						if (token) {
-							// 保存登录信息
+							// 保存token到本地存储
 							uni.setStorageSync('token', token);
-							if (userId) uni.setStorageSync('userId', userId);
-							uni.setStorageSync('phoneNumber', trimmedPhone);
+							console.log('保存的token:', token);
+							
+							// 保存登录信息
 							this.userToken = token;
+							uni.setStorageSync('phoneNumber', trimmedPhone);
 							
 							// 初始化用户名
 							this.initPhoneUserName(trimmedPhone);
 							
 							// 获取用户信息并刷新界面
-							this.getUserInfo();
-							this.initData();
+							await this.getUserInfo();
+							await this.initData();
 							
 							// 登录成功后立即获取购物车数据并存储到本地
-							this.fetchAndSaveCartData();
+							await this.fetchAndSaveCartData();
 							
 							this.closeLogin();
 							uni.$showMsg('登录成功', 'success');
@@ -1118,39 +1111,7 @@
 			logoutCancel(){
 				this.logoutshow = false
 			},
-			// 添加自动登录方法
-			async autoLogin() {
-				try {
-					const loginData = {
-						phone: '17344402975',
-						password: '20050311'
-					};
-					
-					const result = await phoneLoginApi(loginData);
-					console.log('自动登录响应:', result);
-					
-					if (result && result.code === 0 && result.data) {
-						const token = result.data.token;
-						const userId = result.data.id;
-						
-						if (token) {
-							uni.setStorageSync('token', token);
-							uni.setStorageSync('userId', userId);
-							uni.setStorageSync('phoneNumber', loginData.phone);
-							this.userToken = token;
-							
-							await this.getUserInfo();
-							await this.initData();
-							
-							console.log('自动登录成功');
-						}
-					} else {
-						console.error('自动登录失败:', result && result.msg ? result.msg : '未知错误');
-					}
-				} catch (error) {
-					console.error('自动登录失败', error);
-				}
-			},
+				
 			// 跳转到注册页面
 			toRegister() {
 				// 先关闭登录弹窗

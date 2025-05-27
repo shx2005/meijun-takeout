@@ -49,10 +49,10 @@ export const addCartApi = (data) => {
 		const token = uni.getStorageSync('originalToken') || uni.getStorageSync('token');
 		
 		uni.request({
-			url: process.env.VUE_APP_BASE_URL + 'v1/cart/add',
+			url: 'http://localhost:8080/api/v1/cart/add',
 			method: 'POST',
 			header: {
-				'tokenName': token,
+				'customerToken': token,
 				'Accept': 'application/json',
 				'userType': '3',
 				'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ function getDishInfo(itemId) {
  * @returns {Promise} 返回更新结果
  */
 export const updateCartApi = (data) => {
-	// 先更新本地存储
+	// 更新本地存储
 	try {
 		let cartItems = [];
 		const cartData = uni.getStorageSync('cartItems');
@@ -144,57 +144,30 @@ export const updateCartApi = (data) => {
 			// 保存更新后的购物车
 			uni.setStorageSync('cartItems', JSON.stringify(cartItems));
 			console.log('本地购物车更新成功:', cartItems);
+			
+			// 更新购物车总数和总价
+			let totalCount = 0;
+			let totalPrice = 0;
+			cartItems.forEach(item => {
+				totalCount += item.number;
+				totalPrice += item.number * item.price;
+			});
+			
+			// 保存购物车汇总信息
+			uni.setStorageSync('cartCount', totalCount);
+			uni.setStorageSync('cartTotalPrice', totalPrice.toFixed(2));
 		}
+		
+		// 返回成功结果
+		return Promise.resolve({
+			code: 0,
+			data: null,
+			msg: '更新成功(本地)'
+		});
 	} catch (error) {
 		console.error('更新本地购物车失败:', error);
+		return Promise.reject(error);
 	}
-	
-	// 使用uni.request直接发送请求
-	return new Promise((resolve) => {
-		// 获取token
-		const token = uni.getStorageSync('originalToken') || uni.getStorageSync('token');
-		
-		uni.request({
-			url: process.env.VUE_APP_BASE_URL + 'v1/cart/update',
-			method: 'PUT',
-			header: {
-				'tokenName': token,
-				'Accept': 'application/json',
-				'userType': '3',
-				'Content-Type': 'application/json',
-				'X-Requested-With': 'XMLHttpRequest'
-			},
-			data: data,
-			success: (res) => {
-				console.log('更新购物车API响应:', res);
-				if (res.statusCode >= 200 && res.statusCode < 300) {
-					// 请求成功
-					resolve({
-						code: 0,
-						data: null,
-						msg: '更新成功'
-					});
-				} else {
-					console.error('更新购物车API请求失败:', res);
-					// 返回成功，因为本地购物车已更新
-					resolve({
-						code: 0,
-						data: null,
-						msg: '更新成功(仅本地)'
-					});
-				}
-			},
-			fail: (err) => {
-				console.error('更新购物车API请求错误:', err);
-				// 返回成功，因为本地购物车已更新
-				resolve({
-					code: 0,
-					data: null,
-					msg: '更新成功(仅本地)'
-				});
-			}
-		});
-	});
 }
 
 /**
@@ -216,10 +189,10 @@ export const clearCartApi = () => {
 		const token = uni.getStorageSync('token');
 		
 		uni.request({
-			url: process.env.VUE_APP_BASE_URL + 'v1/cart/delete',
+			url: 'http://localhost:8080/api/v1/cart/delete',
 			method: 'DELETE',
 			header: {
-				'tokenName': token,
+				'customerToken': token,
 				'Accept': 'application/json',
 				'userType': '3',
 				'Content-Type': 'application/json',
@@ -259,17 +232,16 @@ export const clearCartApi = () => {
 
 /**
  * 获取购物车列表
- * @param {Object} params 查询参数
  * @returns {Promise} 返回购物车数据
  */
-export const cartListApi = (params) => {
+export const cartListApi = () => {
 	// 从本地存储获取token
 	const token = uni.getStorageSync('token');
-	console.log('获取购物车时的token:', token);
+	console.log('获取购物车列表时的token:', token);
 	
 	// 用于请求的headers
 	const headers = {
-		'tokenName': token,
+		'customerToken': token,
 		'Accept': 'application/json',
 		'userType': '3',
 		'Content-Type': 'application/json'
@@ -277,34 +249,107 @@ export const cartListApi = (params) => {
 	
 	// 使用uni.request直接发送请求
 	return new Promise((resolve, reject) => {
+		// 如果没有token，直接返回本地购物车数据
+		if (!token) {
+			console.log('未登录状态，返回本地购物车数据');
+			tryUseLocalCart(resolve);
+			return;
+		}
+		
+		// 尝试从服务器获取购物车数据
 		uni.request({
 			url: 'http://localhost:8080/api/v1/cart',
 			method: 'GET',
 			header: headers,
-			data: params || {},
 			success: (res) => {
-				console.log('购物车响应状态码:', res.statusCode);
+				console.log('购物车列表响应状态码:', res.statusCode);
 				
 				if (res.statusCode === 200) {
-					// 保存到本地存储以便离线使用
-					if (res.data && res.data.data) {
-						uni.setStorageSync('cartItems', JSON.stringify(res.data.data));
-					}
-					resolve(res.data);
+					// 服务器请求成功，使用服务器数据并更新本地缓存
+					const cartData = res.data;
+					
+					// 格式化购物车数据
+					const formattedCart = formatCartData(cartData);
+					
+					// 更新本地存储，覆盖原有数据
+					uni.setStorageSync('cartItems', JSON.stringify(formattedCart));
+					
+					resolve({
+						code: 0,
+						data: formattedCart,
+						msg: '获取购物车成功'
+					});
 				} else if (res.statusCode === 401) {
 					console.error('认证失败，检查token是否有效');
-					reject(res);
+					// 认证失败，尝试使用本地数据
+					tryUseLocalCart(resolve);
 				} else {
-					console.error('获取购物车失败:', res.statusCode, res.data);
-					reject(res);
+					console.error('获取购物车列表失败:', res.statusCode, res.data);
+					// 请求失败，尝试使用本地数据
+					tryUseLocalCart(resolve);
 				}
 			},
 			fail: (err) => {
-				console.error('请求购物车接口失败:', err);
-				reject(err);
+				console.error('请求购物车列表接口失败:', err);
+				// 请求失败，尝试使用本地数据
+				tryUseLocalCart(resolve);
 			}
 		});
 	});
+}
+
+// 辅助函数：尝试使用本地购物车数据
+function tryUseLocalCart(resolve) {
+	try {
+		const localCartData = uni.getStorageSync('cartItems');
+		if (localCartData) {
+			const cartItems = JSON.parse(localCartData);
+			console.log('使用本地存储的购物车数据:', cartItems);
+			resolve({
+				code: 0,
+				data: cartItems,
+				msg: '使用本地购物车数据'
+			});
+		} else {
+			// 本地没有购物车数据，返回空数组
+			console.log('本地不存在购物车数据，返回空数组');
+			resolve({
+				code: 0,
+				data: [],
+				msg: '本地不存在购物车数据'
+			});
+		}
+	} catch (e) {
+		console.error('读取本地购物车数据失败:', e);
+		resolve({
+			code: 0,
+			data: [],
+			msg: '读取本地购物车数据失败'
+		});
+	}
+}
+
+// 辅助函数：格式化购物车数据
+function formatCartData(data) {
+	let cartItems = [];
+	
+	// 提取购物车数据
+	if (Array.isArray(data)) {
+		cartItems = data;
+	} else if (data && Array.isArray(data.data)) {
+		cartItems = data.data;
+	} else if (data && Array.isArray(data.items)) {
+		cartItems = data.items;
+	}
+	
+	// 格式化购物车数据
+	return cartItems.map(item => ({
+		id: item.itemId || item.id,
+		name: item.name || '菜品',
+		price: item.price || 0,
+		image: item.image || '/static/images/default-food.png',
+		quantity: item.quantity || item.number || 1
+	}));
 }
 
 // 菜品相关接口
@@ -315,7 +360,7 @@ export function dishListApi(params) {
 	
 	// 用于请求的headers
 	const headers = {
-		'tokenName': token,
+		'customerToken': token,
 		'Accept': 'application/json',
 		'userType': '3',
 		'Content-Type': 'application/json'
@@ -357,7 +402,7 @@ export function categoryListApi(params) {
 	
 	// 用于请求的headers
 	const headers = {
-		'tokenName': token,
+		'customerToken': token,
 		'Accept': 'application/json',
 		'userType': '3',
 		'Content-Type': 'application/json'
@@ -399,7 +444,7 @@ export const recommendationsApi = () => {
 	
 	// 用于请求的headers
 	const headers = {
-		'tokenName': token,
+		'customerToken': token,
 		'Accept': 'application/json',
 		'userType': '3',
 		'Content-Type': 'application/json'
@@ -562,7 +607,7 @@ function preloadCategoryData(token) {
 		url: 'http://localhost:8080/api/v1/dishes/categories',
 		method: 'GET',
 		header: {
-			'tokenName': token,
+			'customerToken': token,
 			'Accept': 'application/json',
 			'userType': '3',
 			'Content-Type': 'application/json'
@@ -593,7 +638,7 @@ function preloadDishData(token) {
 		url: 'http://localhost:8080/api/v1/dishes/page',
 		method: 'GET',
 		header: {
-			'tokenName': token,
+			'customerToken': token,
 			'Accept': 'application/json',
 			'userType': '3',
 			'Content-Type': 'application/json'
@@ -627,7 +672,7 @@ function preloadRecommendations(token) {
 		url: 'http://localhost:8080/api/v1/dishes/recommendations',
 		method: 'GET',
 		header: {
-			'tokenName': token,
+			'customerToken': token,
 			'Accept': 'application/json',
 			'userType': '3',
 			'Content-Type': 'application/json'
@@ -658,7 +703,7 @@ function preloadCartData(token) {
 		url: 'http://localhost:8080/api/v1/cart',
 		method: 'GET',
 		header: {
-			'tokenName': token,
+			'customerToken': token,
 			'Accept': 'application/json',
 			'userType': '3',
 			'Content-Type': 'application/json'
@@ -687,7 +732,7 @@ function preloadUserInfo(token) {
 		url: 'http://localhost:8080/api/v1/user/info',
 		method: 'GET',
 		header: {
-			'tokenName': token,
+			'customerToken': token,
 			'Accept': 'application/json',
 			'userType': '3',
 			'Content-Type': 'application/json'
@@ -718,7 +763,7 @@ function preloadOrderHistory(token) {
 		url: 'http://localhost:8080/api/v1/orders/page',
 		method: 'GET',
 		header: {
-			'tokenName': token,
+			'customerToken': token,
 			'Accept': 'application/json',
 			'userType': '3',
 			'Content-Type': 'application/json'
@@ -764,7 +809,7 @@ export const getUserInfoApi = () => {
 	
 	// 用于请求的headers
 	const headers = {
-		'tokenName': token,
+		'customerToken': token,
 		'Accept': 'application/json',
 		'userType': '3',
 		'Content-Type': 'application/json'
@@ -805,19 +850,28 @@ export const getOrdersApi = (params) => {
 	
 	// 用于请求的headers
 	const headers = {
-		'tokenName': token,
+		'customerToken': token,
 		'Accept': 'application/json',
 		'userType': '3',
 		'Content-Type': 'application/json'
 	};
 	
+	// 构建查询参数
+	const queryParams = new URLSearchParams();
+	if (params) {
+		if (params.page) queryParams.append('page', params.page);
+		if (params.size) queryParams.append('size', params.size);
+		if (params.userId) queryParams.append('userId', params.userId);
+	}
+	
+	const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+	
 	// 使用uni.request直接发送请求
 	return new Promise((resolve, reject) => {
 		uni.request({
-			url: 'http://localhost:8080/api/v1/orders/page',
+			url: `http://localhost:8080/api/v1/orders/page${queryString}`,
 			method: 'GET',
 			header: headers,
-			data: params || {},
 			success: (res) => {
 				console.log('用户订单响应状态码:', res.statusCode);
 				
@@ -840,9 +894,43 @@ export const getOrdersApi = (params) => {
 }
 
 export const getOrderDetailApi = (orderId) => {
-	return uni.$ajax.get({
-		url: `v1/orders/${orderId}`,
-	})
+	// 从本地存储获取token
+	const token = uni.getStorageSync('token');
+	console.log('获取订单详情时的token:', token);
+	
+	// 用于请求的headers
+	const headers = {
+		'customerToken': token,
+		'Accept': 'application/json',
+		'userType': '3',
+		'Content-Type': 'application/json'
+	};
+	
+	// 使用uni.request直接发送请求
+	return new Promise((resolve, reject) => {
+		uni.request({
+			url: `http://localhost:8080/api/v1/orders/${orderId}`,
+			method: 'GET',
+			header: headers,
+			success: (res) => {
+				console.log('订单详情响应状态码:', res.statusCode);
+		  
+				if (res.statusCode === 200) {
+					resolve(res.data);
+				} else if (res.statusCode === 401) {
+					console.error('认证失败，检查token是否有效');
+					reject(res);
+				} else {
+					console.error('获取订单详情失败:', res.statusCode, res.data);
+					reject(res);
+				}
+			},
+			fail: (err) => {
+				console.error('请求订单详情接口失败:', err);
+				reject(err);
+			}
+		});
+	});
 }
 
 export const submitOrderCommentApi = (data) => {

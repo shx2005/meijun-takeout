@@ -9,47 +9,46 @@ const instance = ajax.create({
   baseURL: process.env.VUE_APP_BASE_URL || 'http://localhost:8080/api/' // 还原/api/前缀
 })
 
+// 创建请求头的辅助函数
+export const createHeaders = (token) => {
+  return {
+    'customerToken': token,
+    'Accept': 'application/json',
+    'userType': '3',
+    'Content-Type': 'application/json'
+  }
+}
+
 // 添加请求拦截器
 instance.interceptors.request.use(
   config => {
-    // 在发送请求前做些什么
-    const token = uni.getStorageSync('originalToken') || uni.getStorageSync('token')
-    console.log('发送请求时的token:', token)
+    // 从本地存储获取token
+    const token = uni.getStorageSync('token');
+    console.log('请求拦截器中的token:', token);
     
-    if (token) {
-      // 直接使用原始token，不再进行JSON解析和Base64编码
-      // 根据后端要求设置token请求头
-      config.header['token'] = token
-      
-      // 移除不需要的头部
-      delete config.header['tokenName']
-      delete config.header['Authorization']
-    }
+    // 设置请求头
+    config.header = {
+      'customerToken': token,
+      'Accept': 'application/json',
+      'userType': '3',
+      'Content-Type': 'application/json'
+    };
     
-    // 添加用户类型标识
-    config.header['userType'] = '3' // 3 代表 CUSTOMER
-    // 明确指定请求和响应都用 JSON - 强制要求服务器返回JSON
-    config.header['Accept'] = 'application/json'
-    config.header['X-Requested-With'] = 'XMLHttpRequest' // 明确表明这是AJAX请求
+    // 打印完整的请求信息，用于调试
+    console.log('请求配置:', {
+      url: config.url,
+      method: config.method,
+      headers: config.header,
+      data: config.data
+    });
     
-    // 设置Content-Type头
-    if (config.method && (config.method.toUpperCase() === 'POST' || config.method.toUpperCase() === 'PUT')) {
-      config.header['Content-Type'] = 'application/json;charset=UTF-8'
-    } else {
-      config.header['Content-Type'] = 'application/json'
-    }
-    
-    // 打印完整请求信息，帮助调试
-    console.log('完整请求URL:', config.url);
-    console.log('请求方法:', config.method);
-    console.log('请求头:', JSON.stringify(config.header));
-    
-    return config
+    return config;
   },
   error => {
-    return Promise.reject(error)
+    console.error('请求拦截器错误:', error);
+    return Promise.reject(error);
   }
-)
+);
 
 // 添加响应拦截器
 instance.interceptors.response.use(
@@ -128,10 +127,6 @@ instance.interceptors.response.use(
     return res.data || res
   },
   error => {
-    // 对响应错误做些什么
-    console.error('请求错误:', error)
-    
-    // 检查是否有响应数据
     if (error.response) {
       console.error('错误响应:', error.response)
       let errMsg = `服务器错误 (${error.response.statusCode})`

@@ -1,1 +1,0 @@
-// 在main.js中添加uni.$ajax拦截器

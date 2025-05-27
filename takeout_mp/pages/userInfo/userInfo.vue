@@ -35,18 +35,6 @@
                 <text class="label">商家ID：</text>
                 <text class="value">{{ user.merchantId }}</text>
             </view>
-            <view class="info-item">
-                <text class="label">账号状态：</text>
-                <text class="value">{{ getStatusText(user.status) }}</text>
-            </view>
-            <view class="info-item">
-                <text class="label">注册时间：</text>
-                <text class="value">{{ formatTime(user.createTime) }}</text>
-            </view>
-            <view class="info-item">
-                <text class="label">更新时间：</text>
-                <text class="value">{{ formatTime(user.updateTime) }}</text>
-            </view>
         </view>
     </view>
 </template>
@@ -160,13 +148,17 @@ export default {
                 }
                 
                 // 尝试调用API获取用户信息
-            try {
-                const response = await getUserInfoApi()
-                if (response && response.code === 0 && response.data) {
-                    this.user = response.data
+                try {
+                    const response = await getUserInfoApi()
+                    console.log('用户信息API响应:', response)
+                    // 修复：处理状态码为200的响应
+                    if (response && (response.code === 0 || response.code === 200)) {
+                        // 从response中提取用户数据
+                        const userData = response.data || response
+                        this.user = userData
                         // 缓存用户信息
                         uni.setStorageSync('userInfo', this.user)
-                } else {
+                    } else {
                         console.error('API获取用户信息失败:', response)
                         // 如果API调用失败，尝试自动登录一次
                         this.autoLogin()
@@ -200,6 +192,15 @@ export default {
         },
         formatTime(time) {
             if (!time) return '未记录'
+            // 添加类型检查，确保time是字符串
+            if (typeof time !== 'string') {
+                // 如果是Date对象，转换为字符串
+                if (time instanceof Date) {
+                    return time.toISOString().replace('T', ' ').slice(0, 19)
+                }
+                // 其他类型直接返回
+                return '未知时间格式'
+            }
             return time.replace('T', ' ').slice(0, 19)
         },
         formatPhoneNum(phone) {
