@@ -1,4 +1,4 @@
-package com.mo.web.handler;
+package com.mo.web.deserializaer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mo.common.enumeration.UserIdentity;

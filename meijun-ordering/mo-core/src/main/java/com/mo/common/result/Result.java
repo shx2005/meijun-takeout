@@ -49,6 +49,10 @@ public class Result<T> implements Serializable {
         result.setMsg(msg);
         return result;
     }
+
+    public boolean isSuccess() {
+        return this.code != null && this.code.equals(ResultCode.getSuccessCode());
+    }
 }
 
 class ResultCode {

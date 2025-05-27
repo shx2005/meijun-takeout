@@ -6,14 +6,14 @@ import com.mo.entity.CartItem;
 import com.mo.service.annotation.AutoFillTime;
 import com.mo.service.mapper.CartItemMapper;
 import com.mo.service.mapper.CartMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class CartServiceImpl implements CartService {
     @Autowired
@@ -60,5 +60,10 @@ public class CartServiceImpl implements CartService {
     @Override
     public void deleteCart(Long cartId){
         cartItemMapper.deleteCartItemById(cartId);
+    }
+
+    @Override
+    public void deleteCartByUserId(Long userId){
+        cartMapper.deleteCartByUserId(userId);
     }
 }

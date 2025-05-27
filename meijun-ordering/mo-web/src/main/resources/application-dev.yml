@@ -34,6 +34,7 @@ knife4j:
     language: zh_cn
 mybatis:
   mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.mo.service.typehandler
 # mo项目配置
 mo:
   jwt:

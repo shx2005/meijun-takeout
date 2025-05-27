@@ -3,13 +3,15 @@ package com.mo.web.controller;
 import com.mo.api.dto.AfterSaleDTO;
 import com.mo.api.dto.OrderPageQueryDTO;
 import com.mo.api.dto.OrderCommentDTO;
+import com.mo.api.dto.OrderSubmitDTO;
+import com.mo.api.service.CartService;
 import com.mo.api.service.OrderService;
+import com.mo.api.service.RedisService;
+import com.mo.api.vo.OrderSubmitVO;
 import com.mo.common.context.BaseContext;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
-import com.mo.entity.AfterSale;
-import com.mo.entity.Order;
-import com.mo.entity.OrderComment;
+import com.mo.entity.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -34,6 +36,10 @@ public class OrderController {
     private OrderService orderService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+    @Autowired
+    private CartService cartService;
+    @Autowired
+    private RedisService redisService;
 
     @Operation(summary = "获取订单列表")
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Order.class)))
@@ -98,5 +104,19 @@ public class OrderController {
         orderService.saveAfterSale(afterSale);
 
         return Result.success();
+    }
+
+    @Operation(summary = "提交订单")
+    @Parameters({
+            @Parameter(name = "orderDTO", description = "订单参数", required = true, schema = @Schema(implementation = OrderSubmitDTO.class))
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = OrderSubmitVO.class)))
+    @PostMapping("/submit")
+    public Result<OrderSubmitVO> submitOrder(@RequestBody OrderSubmitDTO orderDTO){
+        Order order = new Order();
+        BeanUtils.copyProperties(orderDTO, order);
+        OrderSubmitVO vo = orderService.saveOrder(order);
+
+        return Result.success(vo);
     }
 }

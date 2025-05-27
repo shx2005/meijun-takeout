@@ -2,10 +2,11 @@ package com.mo.common.enumeration;
 
 public enum OrderStatus {
     PENDING(0),
-    COMPLETED(1),
-    CANCELED(2),
-    UNPAID(3),
-    PAID(4);
+    UNCOMFIRMED(1),
+    CONFIRMED(2),
+    DELIVERING(3),
+    COMPLETED(4),
+    CANCELED(5);
 
     private final int value;
 

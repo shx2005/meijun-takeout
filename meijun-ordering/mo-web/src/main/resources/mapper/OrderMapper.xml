@@ -15,4 +15,11 @@
     <update id="updateOrderStatus">
         update orders set status = #{status} where id = #{orderId}
     </update>
+    <insert id="saveOrder"
+            parameterType="com.mo.entity.Order"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into orders(customer_id, merchant_id, orderTime, status, total)
+        values(#{userId}, #{merchantId}, #{orderTime}, #{status}, #{total})
+    </insert>
 </mapper>

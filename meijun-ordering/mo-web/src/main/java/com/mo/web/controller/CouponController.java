@@ -1,7 +1,9 @@
 package com.mo.web.controller;
 
 import com.mo.api.service.CouponService;
+import com.mo.api.service.RedisService;
 import com.mo.common.constant.RedisKeyConstant;
+import com.mo.common.context.BaseContext;
 import com.mo.common.result.Result;
 import com.mo.entity.Coupon;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,12 +29,15 @@ public class CouponController {
     private CouponService couponService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+    @Autowired
+    private RedisService redisService;
 
     @Operation(summary = "获取优惠券", description = "获取用户优惠券")
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Coupon.class)))
     @GetMapping("")
     public Result<List<Coupon>> getCoupons() {
-        Long id = (Long) redisTemplate.opsForValue().get(RedisKeyConstant.USER_ID);
+        String uuid = BaseContext.getCurrentId();
+        Long id = (Long) redisService.hGet(RedisKeyConstant.USER_ID, uuid);
         List<Coupon> list = couponService.getCouponByUserId(id);
         return Result.success(list);
     }
