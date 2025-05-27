@@ -10,4 +10,6 @@ import org.apache.ibatis.annotations.Select;
 public interface AdminMapper {
     Admin getAdminByUsername(@Param("username") String username);
     Admin getAdminByUuid(@Param("uuid") String uuid);
+
+    void updateAdmin(Admin admin);
 }

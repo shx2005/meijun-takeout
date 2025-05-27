@@ -1,8 +1,8 @@
 package com.mo.common.enumeration;
 
 public enum ItemType {
-    DISH(1),
-    SET_MEAL(2);
+    DISH(0),
+    SET_MEAL(1);
 
     private final int value;
 

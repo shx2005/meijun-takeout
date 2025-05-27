@@ -1,5 +1,6 @@
 package com.mo.web.controller;
 
+import com.mo.api.dto.UserInfoDTO;
 import com.mo.api.service.RedisService;
 import com.mo.api.service.UserService;
 import com.mo.common.constant.MessageConstant;
@@ -14,8 +15,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,5 +47,23 @@ public class UserController {
         User user = (User) redisService.getEntity(uuid, clazz);
 
         return Result.success(user);
+    }
+
+    @GetMapping("/update")
+    public Result<String> update(@RequestBody UserInfoDTO userInfoDTO) {
+        User user = new User();
+        BeanUtils.copyProperties(userInfoDTO, user);
+        String uuid = BaseContext.getCurrentId();
+        user.setUuid(uuid);
+        Object obj = redisService.hGet(RedisKeyConstant.USER_ID, uuid);
+        Long id = null;
+        if(obj instanceof Number){
+            id = ((Number) obj).longValue();
+        }
+        user.setId(id);
+
+        userService.update(user);
+
+        return Result.success();
     }
 }

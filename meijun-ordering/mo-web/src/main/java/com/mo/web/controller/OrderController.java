@@ -8,6 +8,7 @@ import com.mo.api.service.CartService;
 import com.mo.api.service.OrderService;
 import com.mo.api.service.RedisService;
 import com.mo.api.vo.OrderSubmitVO;
+import com.mo.common.constant.RedisKeyConstant;
 import com.mo.common.context.BaseContext;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
@@ -58,11 +59,12 @@ public class OrderController {
     public PageResult getPage(OrderPageQueryDTO orderPageQueryDTO){
         int pageNum = orderPageQueryDTO.getPage();
         int pageSize = orderPageQueryDTO.getSize();
+        Long userId = orderPageQueryDTO.getId();
         String uuid = BaseContext.getCurrentId();
         int offset = (pageNum - 1) * pageSize;
         int size = pageSize;
 
-        List<Order> orders = orderService.getPage(offset, size, uuid);
+        List<Order> orders = orderService.getPage(offset, size, userId);
 
         return PageResult.success(orders.size(), orders, pageNum, pageSize);
     }

@@ -4,4 +4,6 @@ import com.mo.entity.User;
 
 public interface UserService {
     User info(String uuid);
+
+    void update(User user);
 }

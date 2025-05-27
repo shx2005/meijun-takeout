@@ -34,7 +34,8 @@ knife4j:
     language: zh_cn
 mybatis:
   mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.mo.service.typehandler
+  configuration:
+    map-underscore-to-camel-case: true
 # mo项目配置
 mo:
   jwt:

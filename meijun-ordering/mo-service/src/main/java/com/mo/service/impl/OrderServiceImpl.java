@@ -40,8 +40,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getPage(int offset, int size, String uuid){
-        return orderMapper.getPage(offset,size,uuid);
+    public List<Order> getPage(int offset, int size, Long userid){
+        return orderMapper.getPage(offset,size,userid);
     }
 
     @Override
