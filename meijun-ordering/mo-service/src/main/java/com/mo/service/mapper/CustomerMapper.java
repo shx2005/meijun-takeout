@@ -12,4 +12,6 @@ public interface CustomerMapper {
     void saveCustomer(@Param("customer") Customer customer);
 
     void updateCustomer(Customer customer);
+
+    Customer getCustomerById(Long id);
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mo.service.mapper.PaymentMapper">
+    <insert id="savePayment"
+            parameterType="com.mo.api.vo.BalanceVO"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into payments(order_id, pay_method, balance, create_time, update_time)
+        values(#{orderId}, #{payMethod}, #{balance}, #{createTime}, #{updateTime})
+        <if test="id != null">
+            return_id = #{id}
+        </if>
+    </insert>
+</mapper>

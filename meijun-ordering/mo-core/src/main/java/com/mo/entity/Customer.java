@@ -8,6 +8,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Bean;
 
 import java.io.Serial;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Tag(name = "客户信息")
@@ -22,7 +23,7 @@ public class Customer extends User{
     private static final long serialVersionUID = 1L;
     @Builder.Default
     private UserIdentity identity = UserIdentity.CUSTOMER;
-    private double balance;
+    private BigDecimal balance;
 
     public static Customer fromUser(User user){
         Customer customer = new Customer();
