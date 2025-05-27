@@ -9,46 +9,34 @@ const instance = ajax.create({
   baseURL: process.env.VUE_APP_BASE_URL || 'http://localhost:8080/api/' // 还原/api/前缀
 })
 
-// 创建请求头的辅助函数
-export const createHeaders = (token) => {
-  return {
-    'customerToken': token,
-    'Accept': 'application/json',
-    'userType': '3',
-    'Content-Type': 'application/json'
-  }
-}
-
 // 添加请求拦截器
 instance.interceptors.request.use(
   config => {
-    // 从本地存储获取token
-    const token = uni.getStorageSync('token');
-    console.log('请求拦截器中的token:', token);
+    // 在发送请求前做些什么
+    const token = uni.getStorageSync('token')
+    if (token) {
+      config.header['token'] = token
+      config.header['Authorization'] = `Bearer ${token}`
+    }
+    // 添加用户类型标识
+    config.header['userType'] = '3' // 3 代表 CUSTOMER
+    // 明确指定请求和响应都用 JSON
+    config.header['Accept'] = 'application/json'
     
-    // 设置请求头
-    config.header = {
-      'customerToken': token,
-      'Accept': 'application/json',
-      'userType': '3',
-      'Content-Type': 'application/json'
-    };
+    // 设置Content-Type头，确保传输格式正确
+    if (config.method && (config.method.toUpperCase() === 'POST' || config.method.toUpperCase() === 'PUT')) {
+      config.header['Content-Type'] = 'application/json;charset=UTF-8'
+    } else {
+      config.header['Content-Type'] = 'application/json'
+    }
     
-    // 打印完整的请求信息，用于调试
-    console.log('请求配置:', {
-      url: config.url,
-      method: config.method,
-      headers: config.header,
-      data: config.data
-    });
-    
-    return config;
+    return config
   },
   error => {
-    console.error('请求拦截器错误:', error);
-    return Promise.reject(error);
+    // 对请求错误做些什么
+    return Promise.reject(error)
   }
-);
+)
 
 // 添加响应拦截器
 instance.interceptors.response.use(
@@ -68,7 +56,7 @@ instance.interceptors.response.use(
         // 尝试解析错误响应
         if (typeof res === 'string' && res.includes('<Map>')) {
           // 处理XML格式的错误响应
-          const errorMatch = res.match(/<e>(.*?)<\/error>/)
+          const errorMatch = res.match(/<error>(.*?)<\/error>/)
           if (errorMatch) {
             errMsg = errorMatch[1]
           }
@@ -83,7 +71,6 @@ instance.interceptors.response.use(
       if (response.statusCode === 401) {
         // 清除token
         uni.removeStorageSync('token')
-        uni.removeStorageSync('originalToken')
         // 跳转到登录页
         setTimeout(() => {
           uni.navigateTo({
@@ -105,7 +92,6 @@ instance.interceptors.response.use(
       if (res.code === 401) {
         // 清除token
         uni.removeStorageSync('token')
-        uni.removeStorageSync('originalToken')
         // 跳转到登录页
         setTimeout(() => {
           uni.navigateTo({
@@ -127,6 +113,10 @@ instance.interceptors.response.use(
     return res.data || res
   },
   error => {
+    // 对响应错误做些什么
+    console.error('请求错误:', error)
+    
+    // 检查是否有响应数据
     if (error.response) {
       console.error('错误响应:', error.response)
       let errMsg = `服务器错误 (${error.response.statusCode})`
@@ -136,7 +126,7 @@ instance.interceptors.response.use(
         const res = error.response.data
         if (typeof res === 'string' && res.includes('<Map>')) {
           // 处理XML格式的错误响应
-          const errorMatch = res.match(/<e>(.*?)<\/error>/)
+          const errorMatch = res.match(/<error>(.*?)<\/error>/)
           if (errorMatch) {
             errMsg = errorMatch[1]
           }

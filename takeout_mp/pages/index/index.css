@@ -262,3 +262,38 @@ page {
   font-weight: 500;
   box-shadow: 0 2rpx 6rpx rgba(255,214,0,0.2);
 }
+
+/* 分类标题样式 */
+.category-title {
+  padding: 16rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  background-color: #f7f7f7;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+}
+
+.category-title:before {
+  content: '';
+  display: inline-block;
+  width: 8rpx;
+  height: 32rpx;
+  background-color: #fe5132;
+  margin-right: 12rpx;
+  border-radius: 4rpx;
+}
+
+.dish-group {
+  padding: 0 10rpx;
+  margin-bottom: 20rpx;
+}
+
+.no-dish-tip {
+  padding: 30rpx 0;
+  text-align: center;
+  color: #999;
+  font-size: 28rpx;
+}
