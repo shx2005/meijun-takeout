@@ -46,4 +46,12 @@ public class PaymentServiceImpl implements PaymentService {
                 .orderId(balanceDTO.getOrderId())
                 .build();
     }
+
+    @Override
+    public String showBalance(Long UserId) {
+        Customer customer = customerMapper.getCustomerById(UserId);
+        BigDecimal balance = customer.getBalance();
+
+        return balance.toString();
+    }
 }

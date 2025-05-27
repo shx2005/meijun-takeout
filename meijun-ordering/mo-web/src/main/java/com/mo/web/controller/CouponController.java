@@ -1,7 +1,9 @@
 package com.mo.web.controller;
 
+import com.mo.api.dto.CouponValidateDTO;
 import com.mo.api.service.CouponService;
 import com.mo.api.service.RedisService;
+import com.mo.api.vo.CouponValidateVo;
 import com.mo.common.constant.RedisKeyConstant;
 import com.mo.common.context.BaseContext;
 import com.mo.common.result.Result;
@@ -15,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,5 +43,11 @@ public class CouponController {
         Long id = (Long) redisService.hGet(RedisKeyConstant.USER_ID, uuid);
         List<Coupon> list = couponService.getCouponByUserId(id);
         return Result.success(list);
+    }
+
+    @PostMapping("validate")
+    public Result<CouponValidateVo> checkCoupon(CouponValidateDTO couponValidateDTO) {
+        CouponValidateVo couponValidateVo = couponService.validateCoupon(couponValidateDTO);
+        return Result.success(couponValidateVo);
     }
 }

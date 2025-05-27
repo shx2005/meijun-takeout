@@ -5,4 +5,7 @@
     <select id="getCouponByUserId" resultType="com.mo.entity.Coupon">
         select * from coupons where user_id = #{userId}
     </select>
+    <select id="getCouponById" resultType="com.mo.entity.Coupon">
+            select * from coupons where id = #{couponID}
+    </select>
 </mapper>
