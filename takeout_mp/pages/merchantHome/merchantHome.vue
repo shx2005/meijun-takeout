@@ -223,7 +223,15 @@
 </template>
 
 <script>
-	import { orderPagingApi, cancelOrderApi } from '../../api/orderList.js';
+	import { 
+		getOrderListApi, 
+		getOrderDetailApi, 
+		acceptOrderApi, 
+		deliverOrderApi, 
+		completeOrderApi, 
+		cancelOrderApi,
+		getStatisticsApi 
+	} from '../../api/merchant.js';
 	
 	export default {
 		data() {
@@ -250,17 +258,46 @@
 					size: 10,
 					total: 0
 				},
-				loading: false
+				loading: false,
+				merchantInfo: null,
+				// 统计数据
+				statistics: {
+					today: {
+						orderCount: 0,
+						totalAmount: 0,
+						compareYesterday: 0 // 环比增长率
+					},
+					topDish: {
+						name: '',
+						count: 0
+					}
+				}
 			}
 		},
 		onLoad() {
+			// 获取商家信息
+			const merchantInfoStr = uni.getStorageSync('merchantInfo');
+			if (merchantInfoStr) {
+				try {
+					this.merchantInfo = JSON.parse(merchantInfoStr);
+				} catch (e) {
+					console.error('解析商家信息失败', e);
+				}
+			}
+			
+			// 获取订单列表
 			this.getOrderList();
+			
+			// 获取统计数据
+			this.getStatisticsData();
 		},
 		methods: {
 			changeMainNav(index) {
 				this.activeMainNav = index;
 				if (index === 0) {
 					this.getOrderList();
+				} else if (index === 1) {
+					this.getStatisticsData();
 				}
 			},
 			
@@ -282,27 +319,93 @@
 			async getOrderList() {
 				this.loading = true;
 				try {
-					// 模拟订单数据，因为后端未完成
-					this.orderList = this.mockOrderData();
-					// 实际调用应该是这样：
-					// const params = {
-					//     page: this.pageInfo.page,
-					//     size: this.pageInfo.size,
-					//     status: this.tabs[this.activeTab].status
-					// };
-					// const res = await orderPagingApi(params);
-					// if (res.code === 0) {
-					//     this.orderList = res.data.records;
-					//     this.pageInfo.total = res.data.total;
-					// }
-				} catch (e) {
-					console.error(e);
-					uni.showToast({
-						title: '获取订单列表失败',
-						icon: 'none'
-					});
+					// 检查token
+					const token = uni.getStorageSync('merchantToken');
+					if (!token) {
+						uni.showToast({
+							title: '请先登录',
+							icon: 'none'
+						});
+						
+						setTimeout(() => {
+							uni.redirectTo({
+								url: '/pages/merchantLogin/merchantLogin'
+							});
+						}, 1500);
+						return;
+					}
+					
+					// 设置请求参数
+					const params = {
+						page: this.pageInfo.page,
+						size: this.pageInfo.size
+					};
+					
+					// 添加状态过滤
+					const statusFilter = this.tabs[this.activeTab].status;
+					if (statusFilter !== null) {
+						params.status = statusFilter;
+					}
+					
+					// 调用API获取订单列表
+					try {
+						const res = await getOrderListApi(params);
+						console.log('订单列表响应:', res);
+						
+						if (res && res.records) {
+							// 处理成功的API响应
+							this.orderList = res.records || [];
+							this.pageInfo.total = res.total || 0;
+						} else {
+							// API调用成功但返回了错误
+							console.warn('获取订单列表返回格式异常', res);
+							// 降级使用模拟数据
+							this.orderList = this.mockOrderData();
+						}
+					} catch (error) {
+						console.error('获取订单列表失败', error);
+						// 降级使用模拟数据
+						this.orderList = this.mockOrderData();
+						
+						uni.showToast({
+							title: '获取订单列表失败，使用本地数据',
+							icon: 'none'
+						});
+					}
 				} finally {
 					this.loading = false;
+				}
+			},
+			
+			// 获取统计数据
+			async getStatisticsData() {
+				try {
+					// 实际API调用
+					const params = {
+						type: 'day' // 获取今日数据
+					};
+					
+					try {
+						const res = await getStatisticsApi(params);
+						console.log('统计数据响应:', res);
+						
+						if (res) {
+							// 更新统计数据
+							this.statistics.today.orderCount = res.orderCount || 0;
+							this.statistics.today.totalAmount = res.totalAmount || 0;
+							this.statistics.today.compareYesterday = res.compareYesterday || 0;
+							
+							if (res.topDish) {
+								this.statistics.topDish.name = res.topDish.name || '';
+								this.statistics.topDish.count = res.topDish.count || 0;
+							}
+						}
+					} catch (error) {
+						console.error('获取统计数据失败', error);
+						// 保持使用默认数据
+					}
+				} catch (e) {
+					console.error(e);
 				}
 			},
 			
@@ -371,85 +474,142 @@
 				}
 			},
 			
-			// 以下方法应该调用API，但当前只是模拟功能
-			acceptOrder(orderId) {
+			// 接单
+			async acceptOrder(orderId) {
 				uni.showModal({
 					title: '确认接单',
 					content: '确定要接受该订单吗？',
-					success: (res) => {
+					success: async (res) => {
 						if (res.confirm) {
-							// 模拟接单成功
-							this.updateOrderStatus(orderId, 3);
-							uni.showToast({
-								title: '接单成功',
-								icon: 'success'
-							});
+							try {
+								const response = await acceptOrderApi(orderId);
+								if (response) {
+									// 更新成功
+									this.updateOrderStatus(orderId, 3);
+									uni.showToast({
+										title: '接单成功',
+										icon: 'success'
+									});
+								}
+							} catch (error) {
+								console.error('接单失败', error);
+								uni.showToast({
+									title: '接单失败，请重试',
+									icon: 'none'
+								});
+								
+								// 模拟成功（用于演示）
+								this.updateOrderStatus(orderId, 3);
+							}
 						}
 					}
 				});
 			},
 			
-			deliverOrder(orderId) {
+			// 开始配送
+			async deliverOrder(orderId) {
 				uni.showModal({
 					title: '确认配送',
 					content: '确定该订单开始配送吗？',
-					success: (res) => {
+					success: async (res) => {
 						if (res.confirm) {
-							// 模拟开始配送
-							this.updateOrderStatus(orderId, 4);
-							uni.showToast({
-								title: '订单已开始配送',
-								icon: 'success'
-							});
+							try {
+								const response = await deliverOrderApi(orderId);
+								if (response) {
+									// 更新成功
+									this.updateOrderStatus(orderId, 4);
+									uni.showToast({
+										title: '已开始配送',
+										icon: 'success'
+									});
+								}
+							} catch (error) {
+								console.error('开始配送失败', error);
+								uni.showToast({
+									title: '操作失败，请重试',
+									icon: 'none'
+								});
+								
+								// 模拟成功（用于演示）
+								this.updateOrderStatus(orderId, 4);
+							}
 						}
 					}
 				});
 			},
 			
-			completeOrder(orderId) {
+			// 完成订单
+			async completeOrder(orderId) {
 				uni.showModal({
 					title: '确认完成',
-					content: '确定该订单已完成吗？',
-					success: (res) => {
+					content: '确定该订单已完成配送吗？',
+					success: async (res) => {
 						if (res.confirm) {
-							// 模拟完成订单
-							this.updateOrderStatus(orderId, 5);
-							uni.showToast({
-								title: '订单已完成',
-								icon: 'success'
-							});
+							try {
+								const response = await completeOrderApi(orderId);
+								if (response) {
+									// 更新成功
+									this.updateOrderStatus(orderId, 5);
+									uni.showToast({
+										title: '订单已完成',
+										icon: 'success'
+									});
+								}
+							} catch (error) {
+								console.error('完成订单失败', error);
+								uni.showToast({
+									title: '操作失败，请重试',
+									icon: 'none'
+								});
+								
+								// 模拟成功（用于演示）
+								this.updateOrderStatus(orderId, 5);
+							}
 						}
 					}
 				});
 			},
 			
-			cancelOrder(orderId) {
+			// 取消订单
+			async cancelOrder(orderId) {
 				uni.showModal({
 					title: '确认取消',
 					content: '确定要取消该订单吗？',
-					success: (res) => {
+					success: async (res) => {
 						if (res.confirm) {
-							// 模拟取消订单
-							this.updateOrderStatus(orderId, 6);
-							uni.showToast({
-								title: '订单已取消',
-								icon: 'success'
-							});
+							try {
+								const data = { 
+									reason: '商家主动取消' 
+								};
+								const response = await cancelOrderApi(orderId, data);
+								if (response) {
+									// 更新成功
+									this.updateOrderStatus(orderId, 6);
+									uni.showToast({
+										title: '订单已取消',
+										icon: 'success'
+									});
+								}
+							} catch (error) {
+								console.error('取消订单失败', error);
+								uni.showToast({
+									title: '操作失败，请重试',
+									icon: 'none'
+								});
+								
+								// 模拟成功（用于演示）
+								this.updateOrderStatus(orderId, 6);
+							}
 						}
 					}
 				});
 			},
 			
+			// 本地更新订单状态
 			updateOrderStatus(orderId, newStatus) {
-				// 模拟更新订单状态
-				const orderIndex = this.orderList.findIndex(order => order.id === orderId);
-				if (orderIndex !== -1) {
-					this.orderList[orderIndex].status = newStatus;
-				}
-				
-				// 如果当前是按状态筛选，则可能需要从列表中移除
-				if (this.tabs[this.activeTab].status !== null && this.tabs[this.activeTab].status !== newStatus) {
-					this.orderList = this.orderList.filter(order => order.id !== orderId);
+				const order = this.orderList.find(item => item.id === orderId);
+				if (order) {
+					order.status = newStatus;
 				}
 			}
 		}

@@ -207,67 +207,48 @@
 			//获取默认地址 (现在主要从用户信息获取，再尝试地址列表)
 			async getDefaultAddress() {
 				try {
-					console.log("尝试从用户信息接口获取地址...");
+					console.log("从用户信息接口获取地址...");
 					const userInfoRes = await request({ 
 						url: '/api/v1/user/info',
 						method: 'GET'
 					});
 
-					if (userInfoRes && (userInfoRes.code === 0 || userInfoRes.code === 1 || userInfoRes.code === 200) && userInfoRes.data && userInfoRes.data.address) {
+					console.log("用户信息响应:", userInfoRes);
+
+					// 检查是否成功获取到用户信息和地址
+					if (userInfoRes && userInfoRes.data && userInfoRes.data.address) {
 						console.log("从用户信息中获取到地址:", userInfoRes.data.address);
+						
+						// 从用户信息中提取必要数据构建地址对象
 						this.address = {
-							detail: userInfoRes.data.address, // 主要显示这个
-							consignee: userInfoRes.data.name || (userInfoRes.data.nickName || ''), // 尝试用用户名或昵称
-							phone: userInfoRes.data.phone || '',   // 尝试用用户电话
-							// id: undefined, // 明确这个地址不是来自地址簿，没有id
+							detail: userInfoRes.data.address, // 地址详情
+							consignee: userInfoRes.data.n || userInfoRes.data.username || '', // 收货人姓名，使用n字段
+							phone: userInfoRes.data.phoneNum || userInfoRes.data.username || '', // 联系电话
+							gender: userInfoRes.data.gender === '男' ? 0 : 1 // 性别
 						};
-						return; // 成功获取到用户地址，直接返回
-					}
-
-					// 如果用户信息中没有地址，或者接口调用有问题，尝试从地址列表获取
-					console.log("用户信息中未找到地址或获取失败，尝试从地址列表获取...");
-					const addressListRes = await addressListApi(); // 确保 addressListApi 已导入
-					// 检查 addressListRes 的具体结构，API文档中未明确，常见结构为 res.data 是数组或 res 直接是数组
-					let addresses = [];
-					if (addressListRes) {
-						if (Array.isArray(addressListRes.data) && addressListRes.data.length > 0) {
-							addresses = addressListRes.data;
-						} else if (Array.isArray(addressListRes) && addressListRes.length > 0) { // 兼容直接返回数组的情况
-							addresses = addressListRes;
-						}
-					}
-
-					if (addresses.length > 0) {
-						console.log("从地址列表获取到地址:", addresses[0]);
-						this.address = addresses[0]; // 使用地址列表的第一个
+						
+						console.log("构建的地址对象:", this.address);
 					} else {
-						console.log("地址列表也为空或获取失败");
-						this.address = null; // 都没有获取到，则为null
+						console.log("用户信息中未找到地址或获取失败");
+						this.address = null; // 地址为空时提示用户选择地址
+						
+						// 可以显示提示信息
+						uni.showToast({
+							title: '未设置地址，请从用户信息页添加地址',
+							icon: 'none',
+							duration: 2000
+						});
 					}
-
 				} catch (error) {
-					console.error('获取地址过程中发生错误（可能是用户信息接口或地址列表接口）:', error);
-					// 即使上面出错，也尝试一下地址列表作为最终手段，以防万一
-					try {
-						console.log("捕获异常后，最后尝试从地址列表获取...");
-						const addressListRes = await addressListApi();
-						let addresses = [];
-						if (addressListRes) {
-							if (Array.isArray(addressListRes.data) && addressListRes.data.length > 0) {
-								addresses = addressListRes.data;
-							} else if (Array.isArray(addressListRes) && addressListRes.length > 0) {
-								addresses = addressListRes;
-							}
-						}
-						if (addresses.length > 0) {
-							this.address = addresses[0];
-						} else {
-							this.address = null;
-						}
-					} catch (finalFallbackError) {
-						console.error("最终尝试从地址列表获取也失败:", finalFallbackError);
-						this.address = null; // 最终确保为null
-					}
+					console.error('获取地址失败:', error);
+					this.address = null;
+					
+					// 显示错误信息
+					uni.showToast({
+						title: '获取地址失败，请重试',
+						icon: 'none',
+						duration: 2000
+					});
 				}
 			},
 			//获取送达时间
@@ -294,55 +275,40 @@
 					// 显示加载状态
 					uni.showLoading({ title: '加载中...' });
 					
-					// 调用购物车API获取最新数据
-					const res = await cartListApi();
+					// 从本地存储获取购物车数据
+					const cartItemsStr = uni.getStorageSync('cartItems');
+					if (cartItemsStr) {
+						const cartItems = JSON.parse(cartItemsStr);
+						// 映射购物车数据到所需格式
+						this.cartData = cartItems.map(item => ({
+							id: item.id,
+							name: item.name || '菜品',
+							image: item.image || '/static/images/default-food.png',
+							number: item.quantity || 1,
+							amount: item.price || 0
+						}));
+						
+						console.log('从本地存储加载购物车数据:', this.cartData);
+					} else {
+						this.cartData = [];
+					}
 					
 					// 隐藏加载状态
 					uni.hideLoading();
 					
-					// 处理API响应
-					if (res && (res.code === 0 || res.code === 1 || res.code === 200)) {
-						// 根据API响应格式提取购物车项
-						let cartItems = [];
-						
-						// 检查不同可能的数据结构
-						if (Array.isArray(res.data)) {
-							// 直接是购物车项数组
-							cartItems = res.data;
-						} else if (res.data && Array.isArray(res.data.items)) {
-							// 有items字段的购物车对象
-							cartItems = res.data.items;
-						} else if (res.items && Array.isArray(res.items)) {
-							// 直接有items字段
-							cartItems = res.items;
-						}
-						
-						// 映射购物车数据到所需格式
-						this.cartData = cartItems.map(item => ({
-							id: item.itemId || item.id,
-							name: item.name || '菜品',
-							image: item.image || '/static/images/default-food.png',
-							number: item.quantity || item.number || 1,
-							amount: item.price || item.amount || 0
-						}));
-						
-						// 检查购物车是否为空
-						if (this.cartData.length === 0) {
-							uni.showModal({
-								title: '提示',
-								content: '购物车为空，是否返回点餐页面？',
-								success: function(modalRes) {
-									if (modalRes.confirm) {
-										uni.switchTab({
-											url: '/pages/index/index'
-										});
-									}
+					// 检查购物车是否为空
+					if (this.cartData.length === 0) {
+						uni.showModal({
+							title: '提示',
+							content: '购物车为空，是否返回点餐页面？',
+							success: function(modalRes) {
+								if (modalRes.confirm) {
+									uni.switchTab({
+										url: '/pages/index/index'
+									});
 								}
-							});
-						}
-					} else {
-						uni.$showMsg(res?.msg || '获取购物车失败');
-						this.cartData = [];
+							}
+						});
 					}
 				} catch (error) {
 					console.error('获取购物车数据失败:', error);
@@ -368,22 +334,50 @@
 				try {
 					// 准备订单数据
 					const orderData = {
-						addressBookId: this.address.id,
+						address: this.address.detail,
+						consignee: this.address.consignee,
+						phone: this.address.phone,
 						remark: this.note,
 						payMethod: 1, // 默认微信支付
-						expectedDeliveryTime: this.finishTime
+						orderTime: new Date().toISOString(),
+						status: "PENDING", // 待付款状态
+						items: this.cartData.map(item => ({
+							itemId: item.id,
+							name: item.name,
+							image: item.image,
+							quantity: item.number,
+							unit: item.amount,
+							total: item.amount * item.number
+						})),
+						total: this.goodsPrice
 					};
 					
-					// 提交订单数据，获取订单ID等信息
+					// 提交订单数据
 					const res = await uni.$ajax.post({
-						url: 'v1/orders/submit',
-						data: orderData
+						url: '/api/v1/orders/submit',
+						data: orderData,
+						header: {
+							'Content-Type': 'application/json'
+						}
 					});
 					
-					if (res) {
-						// 将订单ID传递给支付确认页面
+					if (res && (res.code === 0 || res.code === 1 || res.code === 200)) {
+						// 清空本地购物车
+						uni.removeStorageSync('cartItems');
+						
+						// 跳转到支付成功页面
 						uni.navigateTo({
-							url: '/pages/payConfirm/payConfirm?orderId=' + res.id
+							url: '/pages/payConfirm/payConfirm?orderId=' + (res.id || res.data?.id || '')
+						});
+						
+						uni.showToast({
+							title: '订单提交成功',
+							icon: 'success'
+						});
+					} else {
+						uni.showToast({
+							title: res?.msg || '订单提交失败',
+							icon: 'none'
 						});
 					}
 				} catch (error) {

@@ -16,32 +16,58 @@
 				<input type="password" v-model="password" placeholder="请输入商家密码" class="input" />
 			</view>
 			
-			<button class="login-btn" @click="handleLogin">确认登录</button>
+			<view class="form-item">
+				<view class="radio-group">
+					<view class="radio-item" @click="userType = '1'">
+						<view class="radio-button" :class="{'checked': userType === '1'}"></view>
+						<text class="radio-label">商家账号</text>
+					</view>
+					<view class="radio-item" @click="userType = '2'">
+						<view class="radio-button" :class="{'checked': userType === '2'}"></view>
+						<text class="radio-label">员工账号</text>
+					</view>
+				</view>
+			</view>
 			
-			<view class="debug-notice">
-				<text>调试模式：无需验证即可登录</text>
+			<button class="login-btn" @click="handleLogin" :disabled="loading">
+				{{ loading ? '登录中...' : '确认登录' }}
+			</button>
+			
+			<view class="debug-section">
+				<view class="debug-toggle" @click="isDebugMode = !isDebugMode">
+					{{ isDebugMode ? '关闭调试' : '开启调试' }}
+				</view>
+				
+				<view class="debug-notice" v-if="isDebugMode">
+					<text>调试模式已开启，点击下面按钮快速登录</text>
+					<button class="debug-btn" @click="quickLogin">快速登录(无需验证)</button>
+				</view>
 			</view>
 		</view>
 	</view>
 </template>
 
 <script>
+	import { merchantLoginApi, employeeLoginApi } from '@/api/merchant';
+	
 	export default {
 		data() {
 			return {
 				username: '',
-				password: ''
+				password: '',
+				userType: '1', // 1: 商家, 2: 员工
+				loading: false,
+				isDebugMode: true // 默认启用调试模式
 			}
 		},
 		methods: {
-			handleLogin() {
-				// 验证输入
+			validateInput() {
 				if (!this.username) {
 					uni.showToast({
 						title: '请输入用户名',
 						icon: 'none'
 					});
-					return;
+					return false;
 				}
 				
 				if (!this.password) {
@@ -49,13 +75,118 @@
 						title: '请输入密码',
 						icon: 'none'
 					});
-					return;
+					return false;
 				}
 				
-				// 调试模式：直接跳转到商家主页，无需验证
-				uni.navigateTo({
-					url: '/pages/merchantHome/merchantHome'
+				return true;
+			},
+			
+			async handleLogin() {
+				if (!this.validateInput()) return;
+				
+				this.loading = true;
+				
+				try {
+					const loginData = {
+						username: this.username,
+						password: this.password
+					};
+					
+					let res;
+					
+					// 根据用户类型选择不同的登录API
+					if (this.userType === '1') {
+						// 商家登录
+						res = await merchantLoginApi(loginData);
+					} else {
+						// 员工登录
+						res = await employeeLoginApi(loginData);
+					}
+					
+					console.log('登录响应:', res);
+					
+					if (res && (res.code === 0 || res.code === 200) && res.data) {
+						// 获取token信息
+						const token = res.data.token || res.token;
+						
+						if (token) {
+							// 保存token和用户类型
+							uni.setStorageSync('merchantToken', token);
+							uni.setStorageSync('merchantUserType', this.userType);
+							
+							// 保存商家信息
+							// 根据后端返回的数据结构适配
+							const merchantInfo = res.data.merchantInfo || {
+								id: res.data.id || res.id,
+								name: res.data.name || res.name,
+								username: res.data.username || res.username,
+								uuid: res.data.uuid || res.uuid
+							};
+							
+							uni.setStorageSync('merchantInfo', JSON.stringify(merchantInfo));
+							
+							uni.showToast({
+								title: '登录成功',
+								icon: 'success'
+							});
+							
+							// 跳转到商家主页
+							setTimeout(() => {
+								uni.navigateTo({
+									url: '/pages/merchantHome/merchantHome'
+								});
+							}, 1000);
+							return;
+						}
+					}
+					
+					// 如果执行到这里，说明登录失败
+					uni.showToast({
+						title: res?.msg || '登录失败',
+						icon: 'none'
+					});
+				} catch (error) {
+					console.error('登录错误:', error);
+					uni.showToast({
+						title: error.message || '登录失败，请稍后重试',
+						icon: 'none'
+					});
+				} finally {
+					this.loading = false;
+				}
+			},
+			
+			// 调试模式：快速登录
+			quickLogin() {
+				// 模拟商家信息
+				const mockMerchantInfo = {
+					id: 1,
+					name: '测试商家',
+					username: this.username || '测试商家',
+					address: '上海市浦东新区张江高科技园区',
+					phone: '17344402976',
+					identity: this.userType === '1' ? 'MERCHANT' : 'EMPLOYEE'
+				};
+				
+				// 模拟token
+				const mockToken = 'mock_token_' + Date.now();
+				
+				// 保存到本地存储
+				uni.setStorageSync('merchantToken', mockToken);
+				uni.setStorageSync('merchantUserType', this.userType);
+				uni.setStorageSync('merchantInfo', JSON.stringify(mockMerchantInfo));
+				
+				uni.showToast({
+					title: '测试登录成功',
+					icon: 'success'
 				});
+				
+				// 跳转到商家主页
+				setTimeout(() => {
+					uni.navigateTo({
+						url: '/pages/merchantHome/merchantHome'
+					});
+				}, 1000);
 			}
 		}
 	}
@@ -116,6 +247,48 @@
 				padding: 0 20rpx;
 				font-size: 28rpx;
 			}
+			
+			.radio-group {
+				display: flex;
+				margin-top: 10rpx;
+				
+				.radio-item {
+					display: flex;
+					align-items: center;
+					margin-right: 60rpx;
+					
+					.radio-button {
+						width: 36rpx;
+						height: 36rpx;
+						border-radius: 50%;
+						border: 2rpx solid #ddd;
+						margin-right: 10rpx;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						
+						&.checked {
+							border-color: #FF8C00;
+							background-color: #fff;
+							position: relative;
+							
+							&::after {
+								content: '';
+								width: 24rpx;
+								height: 24rpx;
+								border-radius: 50%;
+								background-color: #FF8C00;
+								position: absolute;
+							}
+						}
+					}
+					
+					.radio-label {
+						font-size: 28rpx;
+						color: #333;
+					}
+				}
+			}
 		}
 		
 		.login-btn {
@@ -129,15 +302,45 @@
 			align-items: center;
 			justify-content: center;
 			margin-top: 60rpx;
+			
+			&:disabled {
+				opacity: 0.6;
+			}
 		}
 		
-		.debug-notice {
+		.debug-section {
 			margin-top: 30rpx;
-			text-align: center;
 			
-			text {
+			.debug-toggle {
+				text-align: center;
 				font-size: 24rpx;
 				color: #999;
+				padding: 10rpx;
+			}
+			
+			.debug-notice {
+				margin-top: 20rpx;
+				text-align: center;
+				
+				text {
+					display: block;
+					font-size: 24rpx;
+					color: #999;
+					margin-bottom: 15rpx;
+				}
+				
+				.debug-btn {
+					width: 80%;
+					height: 70rpx;
+					background-color: #ddd;
+					color: #666;
+					font-size: 26rpx;
+					border-radius: 35rpx;
+					margin: 0 auto;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+				}
 			}
 		}
 	}

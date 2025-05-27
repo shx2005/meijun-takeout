@@ -1,4 +1,3 @@
-
 .user {
 	height: 100%;
 }
@@ -336,4 +335,102 @@
 	text-align: center;
 	color: #333333;
 	line-height: 100rpx;
+}
+
+/* 现有的客服弹窗样式 */
+.service-popup {
+    width: 600rpx;
+    padding: 30rpx;
+    border-radius: 20rpx;
+}
+
+.service-title {
+    display: flex;
+    justify-content: space-between;
+    font-size: 36rpx;
+    font-weight: bold;
+    margin-bottom: 30rpx;
+}
+
+.popup-close {
+    font-size: 40rpx;
+    color: #999;
+    cursor: pointer;
+}
+
+.service-content {
+    margin-bottom: 30rpx;
+}
+
+.service-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20rpx;
+}
+
+.service-item text {
+    margin-left: 20rpx;
+}
+
+.service-footer {
+    display: flex;
+    justify-content: center;
+    gap: 20rpx;
+    margin-top: 30rpx;
+}
+
+.service-btn {
+    width: 40%;
+    padding: 20rpx 0;
+    border-radius: 40rpx;
+    text-align: center;
+    font-size: 28rpx;
+}
+
+.service-close {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.complaint-btn {
+    background-color: #feca50;
+    color: #fff;
+}
+
+/* 投诉弹窗样式 */
+.complaint-popup {
+    width: 600rpx;
+    padding: 30rpx;
+    border-radius: 20rpx;
+}
+
+.complaint-title {
+    display: flex;
+    justify-content: space-between;
+    font-size: 36rpx;
+    font-weight: bold;
+    margin-bottom: 30rpx;
+}
+
+.complaint-content {
+    margin-bottom: 30rpx;
+}
+
+.complaint-footer {
+    display: flex;
+    justify-content: center;
+    gap: 20rpx;
+    margin-top: 30rpx;
+}
+
+.submit-btn {
+    width: 40%;
+    background-color: #feca50;
+    color: #fff;
+}
+
+.cancel-btn {
+    width: 40%;
+    background-color: #f5f5f5;
+    color: #333;
 }

@@ -1,41 +1,48 @@
-// ajax.js
+// merchantRequest.js
 
 // 引入 uni-ajax 模块
 import ajax from '@/uni_modules/u-ajax'
 
 // 创建请求实例
-const instance = ajax.create({
+const merchantInstance = ajax.create({
   // 初始配置
-  baseURL: process.env.VUE_APP_BASE_URL || 'http://localhost:8080/' // 移除重复的/api/前缀
+  baseURL: process.env.VUE_APP_BASE_URL || 'http://localhost:8080/' // 保持与客户端相同的baseURL
 })
 
-// 创建请求头的辅助函数
-export const createHeaders = (token) => {
+// 创建商家请求头的辅助函数
+export const createMerchantHeaders = (token, userType = '1') => {
+  // userType: 1=商家，2=员工
+  const tokenName = userType === '1' ? 'merchantToken' : 'employeeToken';
+  
   return {
-    'customerToken': token,
+    [tokenName]: token,
     'Accept': 'application/json',
-    'userType': '3',
+    'userType': userType,
     'Content-Type': 'application/json'
   }
 }
 
 // 添加请求拦截器
-instance.interceptors.request.use(
+merchantInstance.interceptors.request.use(
   config => {
-    // 从本地存储获取token
-    const token = uni.getStorageSync('token');
-    console.log('请求拦截器中的token:', token);
+    // 从本地存储获取商家token和用户类型
+    const token = uni.getStorageSync('merchantToken');
+    const userType = uni.getStorageSync('merchantUserType') || '1'; // 默认为商家用户类型
+    const tokenName = userType === '1' ? 'merchantToken' : 'employeeToken';
+    
+    console.log('商家请求拦截器中的token:', token);
+    console.log('商家用户类型:', userType);
     
     // 设置请求头
     config.header = {
-      'customerToken': token,
+      [tokenName]: token,
       'Accept': 'application/json',
-      'userType': '3',
+      'userType': userType,
       'Content-Type': 'application/json'
     };
     
     // 打印完整的请求信息，用于调试
-    console.log('请求配置:', {
+    console.log('商家请求配置:', {
       url: config.url,
       method: config.method,
       headers: config.header,
@@ -45,19 +52,19 @@ instance.interceptors.request.use(
     return config;
   },
   error => {
-    console.error('请求拦截器错误:', error);
+    console.error('商家请求拦截器错误:', error);
     return Promise.reject(error);
   }
 );
 
 // 添加响应拦截器
-instance.interceptors.response.use(
+merchantInstance.interceptors.response.use(
   response => {
     // 对响应数据做些什么
     const res = response.data
     
     // 打印响应数据，帮助调试
-    console.log('响应数据:', response.config.url, res)
+    console.log('商家响应数据:', response.config.url, res)
     
     // 检查HTTP状态码
     if (response.statusCode >= 400) {
@@ -82,12 +89,12 @@ instance.interceptors.response.use(
       // 对401特殊处理
       if (response.statusCode === 401) {
         // 清除token
-        uni.removeStorageSync('token')
-        uni.removeStorageSync('originalToken')
-        // 跳转到登录页
+        uni.removeStorageSync('merchantToken')
+        uni.removeStorageSync('merchantUserType')
+        // 跳转到商家登录页
         setTimeout(() => {
           uni.navigateTo({
-            url: '/pages/my/my'
+            url: '/pages/merchantLogin/merchantLogin'
           })
         }, 1000)
         return Promise.reject(new Error('登录已过期，请重新登录'))
@@ -104,12 +111,12 @@ instance.interceptors.response.use(
       // 未登录或token过期
       if (res.code === 401) {
         // 清除token
-        uni.removeStorageSync('token')
-        uni.removeStorageSync('originalToken')
-        // 跳转到登录页
+        uni.removeStorageSync('merchantToken')
+        uni.removeStorageSync('merchantUserType')
+        // 跳转到商家登录页
         setTimeout(() => {
           uni.navigateTo({
-            url: '/pages/my/my'
+            url: '/pages/merchantLogin/merchantLogin'
           })
         }, 1000)
       }
@@ -118,7 +125,10 @@ instance.interceptors.response.use(
     }
     
     // 处理登录接口的特殊情况
-    if (response.config && response.config.url && response.config.url.includes('auth/login')) {
+    if (response.config && response.config.url && 
+        (response.config.url.includes('auth/login') || 
+         response.config.url.includes('auth/merchant/login') ||
+         response.config.url.includes('auth/employee/login'))) {
       // 登录接口直接返回完整响应
       return res
     }
@@ -128,7 +138,7 @@ instance.interceptors.response.use(
   },
   error => {
     if (error.response) {
-      console.error('错误响应:', error.response)
+      console.error('商家错误响应:', error.response)
       let errMsg = `服务器错误 (${error.response.statusCode})`
       
       try {
@@ -150,7 +160,7 @@ instance.interceptors.response.use(
       uni.$showMsg(errMsg)
     } else if (error.errMsg) {
       // uni-app 错误格式
-      console.error('错误信息:', error.errMsg)
+      console.error('商家错误信息:', error.errMsg)
       uni.$showMsg(error.errMsg || '网络请求失败')
     } else {
       console.error('未知错误:', error)
@@ -162,4 +172,4 @@ instance.interceptors.response.use(
 )
 
 // 导出 create 创建后的实例
-export default instance
+export default merchantInstance 

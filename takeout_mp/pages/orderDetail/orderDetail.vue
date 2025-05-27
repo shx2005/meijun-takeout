@@ -108,11 +108,15 @@
 		
 		<!-- 底部操作按钮 -->
 		<view class="bottom-actions" v-if="showActions">
-			<button class="action-btn" v-if="canComment()" @tap="goToComment">评价订单</button>
-			<button class="action-btn refund-btn" v-if="canRefund()" @tap="applyRefund">申请退款</button>
-			<button class="action-btn" v-if="canAfterSale()" @tap="goToAfterSale">申请售后</button>
-			<button class="action-btn" v-if="canReorder()" @tap="reorder">再来一单</button>
-			<button class="action-btn service-btn" @tap="showServicePopup">联系客服</button>
+			<view class="action-buttons">
+				<button class="action-btn service-btn" @tap="showServicePopup">联系客服</button>
+				<button class="action-btn refund-btn" v-if="canRefund()" @tap="applyRefund">申请退款</button>
+				<button class="action-btn" v-else-if="canAfterSale()" @tap="goToAfterSale">申请售后</button>
+			</view>
+			<view class="other-buttons">
+				<button class="action-btn" v-if="canComment()" @tap="goToComment">评价订单</button>
+				<button class="action-btn" v-if="canReorder()" @tap="reorder">再来一单</button>
+			</view>
 		</view>
 		
 		<!-- 客服信息弹窗 -->
@@ -712,11 +716,27 @@ export default {
 		right: 0;
 		bottom: 0;
 		display: flex;
-		justify-content: flex-end;
+		flex-direction: column;
 		padding: 20rpx 24rpx;
 		background-color: #fff;
 		box-shadow: 0 -2rpx 10rpx rgba(0,0,0,0.05);
 		z-index: 10;
+	}
+	
+	.action-buttons {
+		display: flex;
+		justify-content: space-between;
+		width: 100%;
+		margin-bottom: 16rpx;
+	}
+	
+	.button-spacer {
+		display: none; /* 移除间距 */
+	}
+	
+	.other-buttons {
+		display: flex;
+		justify-content: flex-end;
 	}
 	
 	.action-btn {
