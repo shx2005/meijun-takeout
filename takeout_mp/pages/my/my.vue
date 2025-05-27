@@ -18,9 +18,10 @@
 								</view>
 								<view class="placardVip">美食元素</view>
 							</view>
-							<view class="detail" v-if="phoneNumber">手机号：{{phoneNumber}}</view>
-							<view class="detail" v-else-if="user.phoneNum">手机号：{{user.phoneNum}}</view>
-							<view class="detail" v-else>手机号:未绑定</view>
+							<view class="detail" v-if="phoneNumber">手机号：{{formatPhoneNum(phoneNumber)}}</view>
+							<view class="detail" v-else-if="user.phoneNum">手机号：{{formatPhoneNum(user.phoneNum)}}</view>
+							<view class="detail" v-else-if="user.username && /^1\d{10}$/.test(user.username)">手机号：{{formatPhoneNum(user.username)}}</view>
+							<view class="detail" v-else>手机号：未绑定</view>
 							<view class="detail" v-if="user.id">ID: {{user.id}}</view>
 						</view>
 					</block>
@@ -52,6 +53,13 @@
 						<view @click="allOrder" class="item">
 							<image src="../../static/me/dingdan.png"></image>
 							<text>全部订单</text>
+							<view>
+								<u-icon name="arrow-right"></u-icon>
+							</view>
+						</view>
+						<view @click="contactService" class="item">
+							<image src="../../static/me/duihuaxinxi.png"></image>
+							<text>联系客服</text>
 							<view>
 								<u-icon name="arrow-right"></u-icon>
 							</view>
@@ -192,6 +200,33 @@
 				<!-- <u-button @click="show = true">打开</u-button> -->
 			</view>
 
+			<!-- 客服信息弹窗 -->
+			<u-popup :show="showServicePopup" mode="center" :round="10" @close="showServicePopup = false">
+				<view class="service-popup">
+					<view class="service-title">
+						<text>联系客服</text>
+						<text class="popup-close" @click="showServicePopup = false">×</text>
+		</view>
+					<view class="service-content">
+						<view class="service-item">
+							<u-icon name="phone" color="#feca50" size="40"></u-icon>
+							<text>客服电话：{{serviceInfo.phone}}</text>
+						</view>
+						<view class="service-item">
+							<u-icon name="clock" color="#feca50" size="40"></u-icon>
+							<text>工作时间：{{serviceInfo.workTime}}</text>
+						</view>
+						<view class="service-item">
+							<u-icon name="email" color="#feca50" size="40"></u-icon>
+							<text>电子邮箱：{{serviceInfo.email}}</text>
+						</view>
+					</view>
+					<view class="service-footer">
+						<button class="service-btn service-close" @click="showServicePopup = false">关闭</button>
+					</view>
+				</view>
+			</u-popup>
+
 		</view>
 
 
@@ -218,6 +253,7 @@
 		sendValidateCodeApi,
 		getUserInfoApi
 	} from "../../api/my.js"
+	import { cartListApi } from '../../api/index.js';
 	import regeneratorRuntime from '../../lib/runtime/runtime.js';
 	export default {
 		components: {
@@ -242,42 +278,24 @@
 				codeText: '获取验证码',
 				phone: '', //号码
 				password: '', //密码
-				code: '', //uni.login获取的code
-				PrimaryColor: '#1fba1a', //主题色
-				loginPopupShow: false,
-				userId: '',
-				content: "微信用户快速登录",
+				code: '', //验证码
+				loginPopupShow: false, //登录框显示
+				encryptedData: '',
+				iv: '',
+				sessionKey: '',
+				user: null,
 				flag: false,
-				phoneNumber: "",
-				show: false,
-				user: {},
-				getPhoneParam: {},
+				order: [],
 				wh: 0,
-				imageUrl: '',
-				ruleForm: {
-					'id': '',
-					'phone': '',
-					'gender': '男',
-					'status': '',
-					'avatar': '',
-					'idNumber': '',
-				},
-				form: {
-					phone: '',
-					code: ''
-				},
-				msgFlag: false,
-				order: [{
-					orderTime: '', //下单时间
-					status: undefined, //订单状态 1已结账，2未结账，3已退单，4已完成，5已取消
-					orderDetails: [{
-						name: '', //菜品名称
-						number: undefined, //数量
-					}], //明细
-					amount: undefined, //实收金额
-					sumNum: 0, //菜品总数
-				}]
-
+				isWxLoginOpen: false,
+				// 客服信息相关
+				showServicePopup: false,
+				serviceInfo: {
+					phone: '400-123-4567',
+					workTime: '9:00-18:00',
+					email: 'service@meijun.com',
+					wechat: 'meijun-service'
+				}
 			};
 		},
 		computed: {
@@ -286,8 +304,7 @@
 			}
 		},
 		created() {
-			// 自动登录
-			this.autoLogin();
+			// 移除不存在的autoLogin调用
 			this.getUserInfo();
 		},
 		onShow() {
@@ -433,52 +450,115 @@
 						password: this.password
 					});
 
-					// 检查响应状态和内容类型
-					if (result && result.statusCode === 200 && result.data && typeof result.data === 'object') {
-						// 根据后端返回的格式调整处理方式
-						// 如果返回的是整个响应对象，需要从中获取token和id
-						console.log('登录结果:', result);
-						
-						const token = result.data.token; // Assuming token is directly in data
-						const userId = result.data.id; // Assuming id is directly in data
+					console.log('登录结果:', result);
+					
+					// 检查响应状态
+					if (result && result.statusCode === 200 && result.data) {
+						// 从响应中提取token
+						let token = null;
+						// 优先从 result.data.data.token 提取 token（服务器可能返回嵌套数据）
+						if (result.data.data && result.data.data.token) {
+							token = result.data.data.token;
+						} 
+						// 如果上面不存在，尝试从 result.data.token 提取
+						else if (result.data.token) {
+							token = result.data.token;
+						}
 						
 						if (token) {
+							// 保存token到本地存储
 							uni.setStorageSync('token', token);
-							uni.setStorageSync('userId', userId);
-							uni.setStorageSync('phoneNumber', trimmedPhone);
+							console.log('保存的token:', token);
+							
+							// 保存登录信息
 							this.userToken = token;
+							uni.setStorageSync('phoneNumber', trimmedPhone);
 							
-							this.getUserInfo();
-							this.initData();
+							// 初始化用户名
+							this.initPhoneUserName(trimmedPhone);
+							
+							// 获取用户信息并刷新界面
+							await this.getUserInfo();
+							await this.initData();
+							
+							// 登录成功后立即获取购物车数据并存储到本地
+							await this.fetchAndSaveCartData();
+							
 							this.closeLogin();
-							
 							uni.$showMsg('登录成功', 'success');
 						} else {
-							throw new Error('未获取到有效的登录信息');
+							// 无法从响应中提取token
+							uni.$showMsg('登录成功但未获取到有效的登录凭证，请联系管理员');
 						}
 					} else {
-						// 处理登录接口返回的错误信息
-						console.error('登录接口返回错误:', result);
+						// 处理错误
 						let errorMsg = '登录失败，请稍后重试';
-						if (result && result.data && typeof result.data === 'string' && result.data.includes('<error>')) {
-							// 尝试从XML中提取错误信息
-							const match = result.data.match(/<error>(.*?)<\/error>/);
-							if (match && match[1]) {
-								errorMsg = match[1];
-							}
-						} else if (result && result.data && result.data.msg) {
+						
+						if (result && result.data && result.data.msg) {
 							errorMsg = result.data.msg;
-						} else if (result && result.errMsg && result.errMsg !== "request:ok") {
+						} else if (result && result.errMsg) {
 							errorMsg = result.errMsg;
 						}
-						uni.$showMsg(errorMsg);
-						// throw new Error(errorMsg); // Optionally re-throw if you want the catch block below to handle it
+						
+						uni.$showMsg(errorMsg, 'none');
 					}
 				} catch (error) {
-					console.error('登录失败', error);
-					uni.$showMsg('登录失败，请检查手机号和密码');
+					console.error('登录请求出错:', error);
+					uni.$showMsg('登录失败，请检查网络连接', 'none');
 				} finally {
 					this.isLoading = false;
+				}
+			},
+			// 获取购物车数据并存储到本地
+			async fetchAndSaveCartData() {
+				try {
+					// 显示加载状态
+					uni.showLoading({ title: '同步购物车中...' });
+					
+					// 调用获取购物车API
+					const cartResponse = await cartListApi();
+					
+					// 如果成功获取购物车数据
+					if (cartResponse && (cartResponse.code === 0 || cartResponse.code === 1 || cartResponse.code === 200)) {
+						// 提取购物车数据
+						let cartItems = [];
+						if (Array.isArray(cartResponse.data)) {
+							cartItems = cartResponse.data;
+						} else if (cartResponse.data && Array.isArray(cartResponse.data.items)) {
+							cartItems = cartResponse.data.items;
+						} else if (cartResponse && Array.isArray(cartResponse.items)) {
+							cartItems = cartResponse.items;
+						}
+						
+						// 将购物车数据保存到本地存储
+						if (cartItems && cartItems.length > 0) {
+							const formattedCartItems = cartItems.map(item => ({
+								id: item.itemId || item.id,
+								name: item.name || '菜品',
+								price: item.price || 0,
+								image: item.image || '/static/images/default-food.png',
+								number: item.quantity || 1,
+								categoryId: item.categoryId
+							}));
+							
+							// 存储购物车数据到本地
+							uni.setStorageSync('cartItems', JSON.stringify(formattedCartItems));
+							console.log('购物车数据已存储到本地:', formattedCartItems);
+						} else {
+							// 如果购物车为空，也要更新本地存储
+							uni.setStorageSync('cartItems', JSON.stringify([]));
+						}
+					} else {
+						console.warn('获取购物车失败，状态码:', cartResponse?.code);
+						// 初始化一个空的购物车
+						uni.setStorageSync('cartItems', JSON.stringify([]));
+					}
+				} catch (error) {
+					console.error('获取购物车数据失败:', error);
+					// 初始化一个空的购物车
+					uni.setStorageSync('cartItems', JSON.stringify([]));
+				} finally {
+					uni.hideLoading();
 				}
 			},
 			//获取验证码
@@ -1031,39 +1111,7 @@
 			logoutCancel(){
 				this.logoutshow = false
 			},
-			// 添加自动登录方法
-			async autoLogin() {
-				try {
-					const loginData = {
-						phone: '17344402975',
-						password: '20050311'
-					};
-					
-					const result = await phoneLoginApi(loginData);
-					console.log('自动登录响应:', result);
-					
-					if (result && result.code === 0 && result.data) {
-						const token = result.data.token;
-						const userId = result.data.id;
-						
-						if (token) {
-							uni.setStorageSync('token', token);
-							uni.setStorageSync('userId', userId);
-							uni.setStorageSync('phoneNumber', loginData.phone);
-							this.userToken = token;
-							
-							await this.getUserInfo();
-							await this.initData();
-							
-							console.log('自动登录成功');
-						}
-					} else {
-						console.error('自动登录失败:', result && result.msg ? result.msg : '未知错误');
-					}
-				} catch (error) {
-					console.error('自动登录失败', error);
-				}
-			},
+				
 			// 跳转到注册页面
 			toRegister() {
 				// 先关闭登录弹窗
@@ -1083,6 +1131,9 @@
 				uni.navigateTo({
 					url: '/pages/merchantLogin/merchantLogin'
 				})
+			},
+			contactService() {
+				this.showServicePopup = true;
 			},
 		},
 
@@ -1437,5 +1488,102 @@
 		border-radius: 40rpx;
 		font-size: 26rpx;
 		box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
+
+	.service-popup {
+		width: 600rpx;
+		padding: 40rpx;
+		box-sizing: border-box;
+	}
+
+	.service-title {
+		position: relative;
+		text-align: center;
+		font-size: 36rpx;
+		font-weight: bold;
+		margin-bottom: 30rpx;
+		color: #333;
+		padding: 10rpx 0;
+	}
+
+	.popup-close {
+		position: absolute;
+		right: 0;
+		top: 50%;
+		transform: translateY(-50%);
+		font-size: 48rpx;
+		color: #999;
+		font-weight: normal;
+		width: 60rpx;
+		height: 60rpx;
+		line-height: 60rpx;
+		text-align: center;
+		border-radius: 30rpx;
+	}
+
+	.popup-close:active {
+		background-color: #f5f5f5;
+	}
+
+	.service-footer {
+		display: flex;
+		justify-content: center;
+		margin-top: 30rpx;
+	}
+
+	.service-btn {
+		height: 80rpx;
+		line-height: 80rpx;
+		text-align: center;
+		border-radius: 40rpx;
+		font-size: 28rpx;
+		width: 80%;
+	}
+
+	.service-close {
+		background-color: #feca50;
+		color: #ffffff;
+	}
+
+	/* 确保客服图标文件存在 */
+	.merchant-login-container {
+		margin-top: 30rpx;
+		padding: 20rpx;
+	}
+
+	.merchant-login-btn {
+		background-color: #f9f9f9;
+		color: #666;
+		text-align: center;
+		padding: 20rpx 0;
+		border-radius: 12rpx;
+		font-size: 28rpx;
+	}
+
+	.icon-wrapper {
+		width: 72rpx;
+		height: 72rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.service-content {
+		margin-bottom: 30rpx;
+	}
+
+	.service-item {
+		display: flex;
+		align-items: center;
+		margin-bottom: 20rpx;
+		padding: 20rpx;
+		background-color: #f9f9f9;
+		border-radius: 12rpx;
+	}
+
+	.service-item text {
+		margin-left: 20rpx;
+		font-size: 28rpx;
+		color: #333;
 	}
 </style>
