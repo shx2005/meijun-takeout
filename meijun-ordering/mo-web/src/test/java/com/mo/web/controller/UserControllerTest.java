@@ -1,5 +1,6 @@
 package com.mo.web.controller;
 
+import com.mo.api.service.DeliveryService;
 import com.mo.api.service.RedisService;
 import com.mo.common.constant.RedisKeyConstant;
 import com.mo.web.MoWebApplication;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(classes = MoWebApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserControllerTest {
@@ -15,6 +17,8 @@ public class UserControllerTest {
     private UserController userController;
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private DeliveryService deliveryService;
 
     @Test
     public void testInfo() throws ClassNotFoundException {
@@ -28,5 +32,14 @@ public class UserControllerTest {
             userId = ((Number) obj).longValue();
         }
         assertEquals(id, userId);
+    }
+
+    @Test
+    public void testDistance(){
+        String userLocation = "116.466485,39.995197";
+        String merchantLocation = "116.46424,40.020642";
+        int distance = (int) deliveryService.calculateDistance(userLocation, merchantLocation);
+
+        assertEquals(3917, distance);
     }
 }

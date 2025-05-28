@@ -51,3 +51,5 @@ mo:
     employee-secret-key: EMPLOYEE-32-BYTE-LONG-SECRET-SECURE-KEY
     employee-ttl: 3600000
     employee-token-name: employeeToken
+  amap:
+    key: ""

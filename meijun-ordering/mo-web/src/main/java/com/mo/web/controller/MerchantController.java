@@ -101,7 +101,7 @@ public class MerchantController {
 
         List<Employee> list = employeeService.getEmployeePage(offset, size);
 
-        return PageResult.success();
+        return PageResult.success(list.size(), list, pageNum, pageSize);
     }
 
     @Operation(summary = "保存员工信息")

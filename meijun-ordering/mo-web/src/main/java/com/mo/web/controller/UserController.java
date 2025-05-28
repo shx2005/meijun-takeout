@@ -11,6 +11,8 @@ import com.mo.common.exception.UserNotLoginException;
 import com.mo.common.result.Result;
 import com.mo.entity.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -49,6 +51,11 @@ public class UserController {
         return Result.success(user);
     }
 
+    @Operation(summary = "更新用户信息")
+    @Parameters({
+            @Parameter(name = "UserInfoDTO", description = "用户信息", required = true, schema = @Schema(implementation = UserInfoDTO.class))
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = String.class)))
     @GetMapping("/update")
     public Result<String> update(@RequestBody UserInfoDTO userInfoDTO) {
         User user = new User();
