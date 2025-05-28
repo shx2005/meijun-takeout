@@ -122,14 +122,56 @@ export default {
     },
 
     // 增加商品数量
-    increaseQuantity(item) {
-      item.quantity += 1;
-      this.calculateTotal();
-      this.saveToLocalStorage();
+    async increaseQuantity(item) {
+      try {
+        // 先更新本地数量，提升用户体验的响应速度
+        item.quantity += 1;
+        this.calculateTotal();
+        this.saveToLocalStorage();
+        
+        // 获取token
+        const token = uni.getStorageSync('token');
+        if (!token) {
+          uni.showToast({
+            title: '请先登录',
+            icon: 'none'
+          });
+          return;
+        }
+        
+        // 调用添加购物车API
+        const res = await uni.request({
+          url: 'http://localhost:8080/api/v1/cart/add',
+          method: 'POST',
+          header: {
+            'customerToken': token,
+            'Accept': 'application/json',
+            'userType': '3',
+            'Content-Type': 'application/json'
+          },
+          data: {
+            itemId: item.id,
+            quantity: 1  // 每次添加1个
+          }
+        });
+        
+        console.log('添加商品API响应:', res);
+      } catch (error) {
+        console.error('添加商品失败:', error);
+        // 如果API调用失败，回滚本地状态
+        item.quantity -= 1;
+        this.calculateTotal();
+        this.saveToLocalStorage();
+        
+        uni.showToast({
+          title: '添加失败，请重试',
+          icon: 'none'
+        });
+      }
     },
 
     // 减少商品数量
-    decreaseQuantity(item) {
+    async decreaseQuantity(item) {
       if (item.quantity <= 1) {
         // 如果只剩一个，询问是否从购物车移除
         uni.showModal({
@@ -143,24 +185,102 @@ export default {
           }
         });
       } else {
-        item.quantity -= 1;
-        this.calculateTotal();
-        this.saveToLocalStorage();
+        try {
+          // 先更新本地数量，提升用户体验的响应速度
+          item.quantity -= 1;
+          this.calculateTotal();
+          this.saveToLocalStorage();
+          
+          // 获取token
+          const token = uni.getStorageSync('token');
+          if (!token) {
+            uni.showToast({
+              title: '请先登录',
+              icon: 'none'
+            });
+            return;
+          }
+          
+          // 调用减少购物车API
+          const res = await uni.request({
+            url: 'http://localhost:8080/api/v1/cart/sub',
+            method: 'POST',
+            header: {
+              'customerToken': token,
+              'Accept': 'application/json',
+              'userType': '3',
+              'Content-Type': 'application/json'
+            },
+            data: {
+              itemId: item.id,
+              quantity: 1  // 每次减少1个
+            }
+          });
+          
+          console.log('减少商品API响应:', res);
+        } catch (error) {
+          console.error('减少商品数量失败:', error);
+          // 如果API调用失败，回滚本地状态
+          item.quantity += 1;
+          this.calculateTotal();
+          this.saveToLocalStorage();
+          
+          uni.showToast({
+            title: '操作失败，请重试',
+            icon: 'none'
+          });
+        }
       }
     },
 
     // 从购物车移除商品
-    removeCartItem(item) {
-      const index = this.cartItems.findIndex(cartItem => cartItem.id === item.id);
-      if (index > -1) {
-        // 删除数组中的项
-        this.cartItems.splice(index, 1);
-        this.calculateTotal();
-        this.saveToLocalStorage();
+    async removeCartItem(item) {
+      try {
+        // 先从本地移除，提升用户体验的响应速度
+        const index = this.cartItems.findIndex(cartItem => cartItem.id === item.id);
+        if (index > -1) {
+          // 删除数组中的项
+          this.cartItems.splice(index, 1);
+          this.calculateTotal();
+          this.saveToLocalStorage();
+        }
+        
+        // 获取token
+        const token = uni.getStorageSync('token');
+        if (!token) {
+          uni.showToast({
+            title: '请先登录',
+            icon: 'none'
+          });
+          return;
+        }
+        
+        // 调用删除购物车API
+        const res = await uni.request({
+          url: 'http://localhost:8080/api/v1/cart/delete',
+          method: 'DELETE',
+          header: {
+            'customerToken': token,
+            'Accept': 'application/json',
+            'userType': '3',
+            'Content-Type': 'application/json'
+          },
+          data: {
+            itemId: item.id
+          }
+        });
+        
+        console.log('删除商品API响应:', res);
         
         uni.showToast({
           title: '已移除商品',
           icon: 'success'
+        });
+      } catch (error) {
+        console.error('删除商品失败:', error);
+        uni.showToast({
+          title: '删除失败，请重试',
+          icon: 'none'
         });
       }
     },
@@ -185,31 +305,92 @@ export default {
     },
 
     // 清空购物车
-    handleClearCart() {
+    async handleClearCart() {
       if (this.cartItems.length === 0) return;
       
       uni.showModal({
         title: '提示',
         content: '确定要清空购物车吗？',
-        success: (res) => {
+        success: async (res) => {
           if (res.confirm) {
-            this.cartItems = [];
-            this.totalPrice = '0.00';
-            
-            // 清除本地存储中的购物车数据
-            uni.removeStorageSync('cartItems');
-            
-            uni.showToast({
-              title: '购物车已清空',
-              icon: 'success'
-            });
+            try {
+              // 先清空本地购物车
+              this.cartItems = [];
+              this.totalPrice = '0.00';
+              this.saveToLocalStorage();
+              
+              // 获取token
+              const token = uni.getStorageSync('token');
+              if (!token) {
+                uni.showToast({
+                  title: '请先登录',
+                  icon: 'none'
+                });
+                return;
+              }
+              
+              // 调用清空购物车API
+              await this.clearCartInServer(token);
+              
+              uni.showToast({
+                title: '购物车已清空',
+                icon: 'success'
+              });
+            } catch (error) {
+              console.error('清空购物车失败:', error);
+              uni.showToast({
+                title: '操作失败，请重试',
+                icon: 'none'
+              });
+            }
           }
         }
       });
     },
+    
+    // 清空服务器购物车
+    async clearCartInServer(token) {
+      try {
+        // 获取购物车数据
+        const res = await uni.request({
+          url: 'http://localhost:8080/api/v1/cart',
+          method: 'GET',
+          header: {
+            'customerToken': token,
+            'userType': '3',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        // 如果有数据，循环删除
+        if (res && res[1].statusCode === 200 && res[1].data && res[1].data.data && res[1].data.data.items) {
+          const items = res[1].data.data.items;
+          for (const item of items) {
+            await uni.request({
+              url: 'http://localhost:8080/api/v1/cart/delete',
+              method: 'DELETE',
+              header: {
+                'customerToken': token,
+                'Accept': 'application/json',
+                'userType': '3',
+                'Content-Type': 'application/json'
+              },
+              data: {
+                itemId: item.itemId || item.id
+              }
+            });
+          }
+        }
+        
+        console.log('服务器购物车已清空');
+      } catch (error) {
+        console.error('清空服务器购物车失败:', error);
+        throw error;
+      }
+    },
 
     // 前往结算
-    handleCheckout() {
+    async handleCheckout() {
       if (this.cartItems.length === 0) {
         uni.showToast({
           title: '购物车为空',
@@ -218,10 +399,46 @@ export default {
         return;
       }
       
-      // 跳转到下单页面
-      uni.navigateTo({
-        url: '/pages/addOrder/addOrder'
-      });
+      try {
+        // 显示加载
+        uni.showLoading({
+          title: '正在处理...'
+        });
+        
+        // 获取token
+        const token = uni.getStorageSync('token');
+        if (!token) {
+          uni.hideLoading();
+          uni.showToast({
+            title: '请先登录',
+            icon: 'none'
+          });
+          setTimeout(() => {
+            uni.navigateTo({
+              url: '/pages/my/my'
+            });
+          }, 1500);
+          return;
+        }
+        
+        // 保存购物车到本地存储，用于结算页面显示
+        console.log('保存购物车数据到本地存储，准备结算...');
+        this.saveToLocalStorage();
+        
+        uni.hideLoading();
+        
+        // 跳转到下单页面
+        uni.navigateTo({
+          url: '/pages/addOrder/addOrder'
+        });
+      } catch (error) {
+        uni.hideLoading();
+        console.error('处理购物车失败:', error);
+        uni.showToast({
+          title: '处理失败，请重试',
+          icon: 'none'
+        });
+      }
     },
 
     // 去购物

@@ -8,9 +8,11 @@
 							<view v-if="address == null">
 								<text style="color: gainsboro;font-size: 36rpx">请选择收货地址</text>
 							</view>
-							<view v-else>
-								{{address.detail}}
-							</view>
+							<scroll-view v-else scroll-x="true" class="address-scroll-view">
+								<view class="address-content">
+									{{address.detail}}
+								</view>
+							</scroll-view>
 						</view>
 
 						<view class="name">
@@ -332,29 +334,69 @@
 					// 显示加载状态
 					uni.showLoading({ title: '加载中...' });
 					
-					// 从本地存储获取购物车数据
+					// 优先从本地存储获取购物车数据
 					const cartItemsStr = uni.getStorageSync('cartItems');
 					if (cartItemsStr) {
 						const cartItems = JSON.parse(cartItemsStr);
+						console.log('从本地存储加载购物车数据:', cartItems);
+						
 						// 映射购物车数据到所需格式
 						this.cartData = cartItems.map(item => ({
 							id: item.id,
 							name: item.name || '菜品',
 							image: item.image || '/static/images/default-food.png',
-							number: item.quantity || 1,
+							number: item.number || item.quantity || 1,
 							amount: item.price || 0
 						}));
 						
-						console.log('从本地存储加载购物车数据:', this.cartData);
-					} else {
-						this.cartData = [];
+						uni.hideLoading();
+						return;
+					}
+					
+					// 如果本地没有数据，再尝试从服务器获取
+					const token = uni.getStorageSync('token');
+					if (token) {
+						try {
+							const res = await uni.request({
+								url: 'http://localhost:8080/api/v1/cart',
+								method: 'GET',
+								header: {
+									'customerToken': token,
+									'userType': '3',
+									'Content-Type': 'application/json'
+								}
+							});
+							
+							console.log('服务器购物车数据响应:', res);
+							
+							// 检查响应是否成功且有数据
+							if (res && res[1].statusCode === 200 && res[1].data && res[1].data.data) {
+								const cartData = res[1].data.data;
+								if (cartData.items && cartData.items.length > 0) {
+									// 使用服务器返回的购物车数据
+									this.cartData = cartData.items.map(item => ({
+										id: item.itemId || item.id,
+										name: item.name || '菜品',
+										image: item.image || '/static/images/default-food.png',
+										number: item.quantity || 1,
+										amount: item.unitPrice || 0
+									}));
+									
+									console.log('从服务器获取的购物车数据:', this.cartData);
+									uni.hideLoading();
+									return;
+								}
+							}
+						} catch (error) {
+							console.error('获取服务器购物车数据失败:', error);
+						}
 					}
 					
 					// 隐藏加载状态
 					uni.hideLoading();
 					
-					// 检查购物车是否为空
-					if (this.cartData.length === 0) {
+					// 如果没有数据，提示用户
+					if (!this.cartData || this.cartData.length === 0) {
 						uni.showModal({
 							title: '提示',
 							content: '购物车为空，是否返回点餐页面？',
@@ -380,9 +422,15 @@
 					return;
 				}
 				
-				if (this.cartData.length === 0) {
-					uni.$showMsg('购物车为空，请先添加商品');
-					return;
+				if (!this.cartData || this.cartData.length === 0) {
+					// 如果本地购物车为空，再次尝试获取购物车数据
+					await this.getCartData();
+					
+					// 再次检查购物车是否为空
+					if (!this.cartData || this.cartData.length === 0) {
+						uni.$showMsg('购物车为空，请先添加商品');
+						return;
+					}
 				}
 				
 				if (this.loading) return;
@@ -400,29 +448,30 @@
 					// 1. 首先提交购物车数据到后端
 					console.log('提交本地购物车数据到后端...');
 					
-					// 将购物车数据转换为后端需要的格式
-					const cartItems = this.cartData.map(item => ({
-						itemId: item.id,
-						quantity: item.number
-					}));
-					
-					// 调用添加购物车API批量添加商品
-					for (const item of cartItems) {
-						try {
-							await uni.request({
-								url: 'http://localhost:8080/api/v1/cart/add',
-								method: 'POST',
-								header: {
-									'customerToken': token,
-									'Accept': 'application/json',
-									'userType': '3',
-									'Content-Type': 'application/json'
-								},
-								data: item
-							});
-						} catch (err) {
-							console.error('添加购物车项失败:', err);
-							// 继续处理下一个项目
+					// 将购物车数据转换为后端需要的格式并按照数量分别提交
+					for (const item of this.cartData) {
+						// 每个商品按其数量多次调用API，确保数量正确
+						for (let i = 0; i < item.number; i++) {
+							try {
+								await uni.request({
+									url: 'http://localhost:8080/api/v1/cart/add',
+									method: 'POST',
+									header: {
+										'customerToken': token,
+										'Accept': 'application/json',
+										'userType': '3',
+										'Content-Type': 'application/json'
+									},
+									data: {
+										itemId: item.id,
+										quantity: 1  // 每次只添加一份
+									}
+								});
+								console.log(`添加商品${item.name}到购物车，第${i+1}/${item.number}次`);
+							} catch (err) {
+								console.error('添加购物车项失败:', err);
+								// 继续处理下一个
+							}
 						}
 					}
 					
@@ -456,8 +505,13 @@
 						const res = response[1].data;
 						
 						if (res && (res.code === 0 || res.code === 1 || res.code === 200 || res.success)) {
+							// 4. 订单提交成功后，清空购物车
 							// 清空本地购物车
 							uni.removeStorageSync('cartItems');
+							this.cartData = [];
+							
+							// 循环调用API删除购物车中的所有商品
+							await this.clearCartInServer(token);
 							
 							// 获取订单ID
 							const orderId = res.id || res.data?.id || '';
@@ -490,6 +544,47 @@
 					this.loading = false;
 				}
 			},
+			// 清空服务器购物车
+			async clearCartInServer(token) {
+				try {
+					// 先获取购物车数据
+					const res = await uni.request({
+						url: 'http://localhost:8080/api/v1/cart',
+						method: 'GET',
+						header: {
+							'customerToken': token,
+							'userType': '3',
+							'Content-Type': 'application/json'
+						}
+					});
+					
+					// 如果有数据，循环删除每个商品
+					if (res && res[1].statusCode === 200 && res[1].data && res[1].data.data && res[1].data.data.items) {
+						const items = res[1].data.data.items;
+						for (const item of items) {
+							// 删除购物车中的商品
+							await uni.request({
+								url: 'http://localhost:8080/api/v1/cart/delete',
+								method: 'DELETE',
+								header: {
+									'customerToken': token,
+									'Accept': 'application/json',
+									'userType': '3',
+									'Content-Type': 'application/json'
+								},
+								data: {
+									itemId: item.itemId || item.id
+								}
+							});
+							console.log(`删除购物车商品: ${item.itemId || item.id}`);
+						}
+					}
+					
+					console.log('清空服务器购物车完成');
+				} catch (error) {
+					console.error('清空购物车失败:', error);
+				}
+			},
 		}
 	}
 </script>
@@ -500,5 +595,17 @@
 <style>
 	page {
 		background-color: #f3f2f7;
+	}
+	
+	.address-scroll-view {
+		width: 100%;
+		white-space: nowrap;
+	}
+	
+	.address-content {
+		display: inline-block;
+		font-size: 28rpx;
+		color: #333;
+		padding: 10rpx 0;
 	}
 </style>

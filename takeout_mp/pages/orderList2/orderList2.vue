@@ -347,6 +347,9 @@
 			
 			// 查看订单详情
 			viewOrderDetail(order) {
+				console.log('查看订单详情:', order);
+				
+				// 跳转到订单详情页面，传递订单ID
 				uni.navigateTo({
 					url: `/pages/orderDetail/orderDetail?orderId=${order.id}`
 				});

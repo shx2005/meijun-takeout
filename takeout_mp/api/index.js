@@ -893,39 +893,36 @@ export const getOrdersApi = (params) => {
 }
 
 export const getOrderDetailApi = (orderId) => {
-	// 从本地存储获取token
-	const token = uni.getStorageSync('token');
-	console.log('获取订单详情时的token:', token);
-	
-	// 用于请求的headers
-	const headers = {
-		'customerToken': token,
-		'Accept': 'application/json',
-		'userType': '3',
-		'Content-Type': 'application/json'
-	};
-	
 	// 使用uni.request直接发送请求
 	return new Promise((resolve, reject) => {
+		// 获取token
+		const token = uni.getStorageSync('token');
+		if (!token) {
+			reject(new Error('请先登录'));
+			return;
+		}
+		
 		uni.request({
 			url: `http://localhost:8080/api/v1/orders/${orderId}`,
 			method: 'GET',
-			header: headers,
+			header: {
+				'customerToken': token,
+				'Accept': 'application/json',
+				'userType': '3',
+				'Content-Type': 'application/json'
+			},
 			success: (res) => {
-				console.log('订单详情响应状态码:', res.statusCode);
-		  
+				console.log('订单详情API响应:', res);
 				if (res.statusCode === 200) {
-					resolve(res.data);
-				} else if (res.statusCode === 401) {
-					console.error('认证失败，检查token是否有效');
-					reject(res);
+					// 请求成功
+					resolve(res.data); // 直接返回整个响应对象
 				} else {
-					console.error('获取订单详情失败:', res.statusCode, res.data);
-					reject(res);
+					// 请求失败
+					reject(new Error(res.data?.msg || '获取订单详情失败'));
 				}
 			},
 			fail: (err) => {
-				console.error('请求订单详情接口失败:', err);
+				console.error('获取订单详情失败:', err);
 				reject(err);
 			}
 		});
