@@ -1,9 +1,9 @@
 package com.mo.common.enumeration;
 
 public enum OrderPayStaus {
-    UNPAID(0),
-    PAID(1),
-    REFUND(2);
+    unpaid(0),
+    paid(1),
+    refund(2);
 
     private final int value;
 

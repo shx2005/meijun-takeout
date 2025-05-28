@@ -2,19 +2,18 @@ package com.mo.web.controller;
 
 import com.mo.api.dto.OrderSubmitDTO;
 import com.mo.api.service.CartService;
+import com.mo.api.service.OrderService;
 import com.mo.api.vo.OrderSubmitVO;
 import com.mo.common.enumeration.ItemType;
 import com.mo.common.result.Result;
 import com.mo.entity.CartItem;
-import com.mo.entity.User;
+import com.mo.entity.Order;
 import com.mo.web.MoWebApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,6 +23,8 @@ public class OrderControllerTest {
     OrderController orderController;
     @Autowired
     private CartService cartService;
+    @Autowired
+    private OrderService orderService;
 
     @Test
     public void testSubmitOrder(){
@@ -58,5 +59,12 @@ public class OrderControllerTest {
     assertNotNull(vo.getId());
     assertNotNull(vo.getOrderNumber());
     assertTrue(vo.getOrderAmount().compareTo(BigDecimal.ZERO) > 0);
+    }
+
+    @Test
+    public void testGetOrderById(){
+        Order order = orderService.getOrderById(1L);
+        assertNotNull(order);
+        assertNotNull(order.getStatus());
     }
 }

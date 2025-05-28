@@ -1,6 +1,5 @@
 package com.mo.web.controller;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import com.mo.api.service.RedisService;
 import com.mo.common.context.BaseContext;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,7 +16,6 @@ import com.mo.entity.Cart;
 import com.mo.entity.CartItem;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,12 +26,10 @@ import java.util.List;
 @RequestMapping("/api/v1/cart")
 public class CartController {
 
-    private final RedisTemplate<String, Object> redisTemplate;
     private final CartService cartService;
     private final RedisService redisService;
 
-    public CartController(RedisTemplate<String, Object> redisTemplate, CartService cartService, RedisService redisService) {
-        this.redisTemplate = redisTemplate;
+    public CartController(CartService cartService, RedisService redisService) {
         this.cartService = cartService;
         this.redisService = redisService;
     }
@@ -47,7 +43,8 @@ public class CartController {
     @GetMapping("")
     public Result<Cart> getCart(){
         String uuid  = BaseContext.getCurrentId();
-        Long userId = (Long) redisService.hGet(RedisKeyConstant.USER_ID, uuid);
+        Object obj = redisService.hGet(RedisKeyConstant.USER_ID, uuid);
+        Long userId = ((Number) obj).longValue();
         List<CartItem> cartItems = cartService.getCart(userId);
 
         Cart cart = Cart.builder()

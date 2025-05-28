@@ -33,18 +33,7 @@ public class CouponServiceImpl implements CouponService {
         if (now.isAfter(coupon.getEndTime()) && now.isBefore(coupon.getStartTime())) {
             Long orderId = couponValidateDTO.getOrderId();
             Order order = orderMapper.getOrderById(orderId);
-            BigDecimal amount = order.getTotal();
-            if (amount.compareTo(coupon.getMinAmount()) < 0 || amount.compareTo(coupon.getMaxAmount()) > 0) {
-                throw new CouponInvalidateException(MessageConstant.COUPON_INVALITE_BY_AMOUNT);
-            }
-            switch (coupon.getType()){
-                case FIXED -> {
-                    amount = amount.subtract(coupon.getValue());
-                }
-                case PERCENTAGE -> {
-                    amount = amount.multiply(BigDecimal.ONE.subtract(coupon.getValue()));
-                }
-            }
+            BigDecimal amount = getBigDecimal(order, coupon);
             return CouponValidateVo.builder()
                     .amount(amount)
                     .orderId(orderId)
@@ -53,5 +42,21 @@ public class CouponServiceImpl implements CouponService {
         }
 
         throw new CouponInvalidateException(MessageConstant.COUPON_INVALITE_BY_TIME);
+    }
+
+    private static BigDecimal getBigDecimal(Order order, Coupon coupon) {
+        BigDecimal amount = order.getTotal();
+        if (amount.compareTo(coupon.getMinAmount()) < 0 || amount.compareTo(coupon.getMaxAmount()) > 0) {
+            throw new CouponInvalidateException(MessageConstant.COUPON_INVALITE_BY_AMOUNT);
+        }
+        switch (coupon.getType()){
+            case fixed -> {
+                amount = amount.subtract(coupon.getValue());
+            }
+            case percentage -> {
+                amount = amount.multiply(BigDecimal.ONE.subtract(coupon.getValue()));
+            }
+        }
+        return amount;
     }
 }

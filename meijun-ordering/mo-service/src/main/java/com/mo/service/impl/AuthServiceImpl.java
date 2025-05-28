@@ -108,7 +108,9 @@ public class AuthServiceImpl implements AuthService {
                 if(cus != null) throw new RegisterFailedException("用户已存在");
 
                 Customer customer = Customer.fromUser(user);
-                customer.setBalance(BigDecimal.ZERO);
+
+                customer.setBalance(BigDecimal.valueOf(0));
+
                 customerMapper.saveCustomer(customer);
                 log.info("用户{}注册成功", customer.getUsername());
             }

@@ -31,8 +31,6 @@ public class CouponController {
     @Autowired
     private CouponService couponService;
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-    @Autowired
     private RedisService redisService;
 
     @Operation(summary = "获取优惠券", description = "获取用户优惠券")
@@ -40,7 +38,8 @@ public class CouponController {
     @GetMapping("")
     public Result<List<Coupon>> getCoupons() {
         String uuid = BaseContext.getCurrentId();
-        Long id = (Long) redisService.hGet(RedisKeyConstant.USER_ID, uuid);
+        Object obj = redisService.hGet(RedisKeyConstant.USER_ID, uuid);
+        Long id = ((Number) obj).longValue();
         List<Coupon> list = couponService.getCouponByUserId(id);
         return Result.success(list);
     }
