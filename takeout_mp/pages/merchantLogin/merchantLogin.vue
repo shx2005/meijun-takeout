@@ -110,8 +110,9 @@
 						const token = res.data.token || res.token;
 						
 						if (token) {
-							// 保存token和用户类型
-							uni.setStorageSync('merchantToken', token);
+							// 根据用户类型保存对应的token
+							const tokenName = this.userType === '1' ? 'merchantToken' : 'employeeToken';
+							uni.setStorageSync(tokenName, token);
 							uni.setStorageSync('merchantUserType', this.userType);
 							
 							// 保存商家信息

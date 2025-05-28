@@ -208,23 +208,43 @@
 			async getDefaultAddress() {
 				try {
 					console.log("从用户信息接口获取地址...");
-					const userInfoRes = await request({ 
-						url: '/api/v1/user/info',
-						method: 'GET'
+					
+					// 获取token
+					const token = uni.getStorageSync('token');
+					if (!token) {
+						console.log("未登录，无法获取地址");
+						uni.showToast({
+							title: '请先登录',
+							icon: 'none',
+							duration: 2000
+						});
+						return;
+					}
+					
+					// 使用uni.request直接调用API
+					const res = await uni.request({
+						url: 'http://localhost:8080/api/v1/user/info',
+						method: 'GET',
+						header: {
+							'customerToken': token,
+							'userType': '3',
+							'Content-Type': 'application/json'
+						}
 					});
 
-					console.log("用户信息响应:", userInfoRes);
+					console.log("用户信息响应:", res);
 
 					// 检查是否成功获取到用户信息和地址
-					if (userInfoRes && userInfoRes.data && userInfoRes.data.address) {
-						console.log("从用户信息中获取到地址:", userInfoRes.data.address);
+					if (res && res[1].statusCode === 200 && res[1].data && res[1].data.data && res[1].data.data.address) {
+						const userData = res[1].data.data;
+						console.log("从用户信息中获取到地址:", userData.address);
 						
 						// 从用户信息中提取必要数据构建地址对象
 						this.address = {
-							detail: userInfoRes.data.address, // 地址详情
-							consignee: userInfoRes.data.n || userInfoRes.data.username || '', // 收货人姓名，使用n字段
-							phone: userInfoRes.data.phoneNum || userInfoRes.data.username || '', // 联系电话
-							gender: userInfoRes.data.gender === '男' ? 0 : 1 // 性别
+							detail: userData.address, // 地址详情
+							consignee: userData.name || userData.username || '', // 收货人姓名
+							phone: userData.phoneNum || userData.username || '', // 联系电话
+							gender: userData.gender === '男' ? 0 : 1 // 性别
 						};
 						
 						console.log("构建的地址对象:", this.address);
@@ -234,7 +254,7 @@
 						
 						// 可以显示提示信息
 						uni.showToast({
-							title: '未设置地址，请从用户信息页添加地址',
+							title: '未设置地址，请从个人信息页添加地址',
 							icon: 'none',
 							duration: 2000
 						});

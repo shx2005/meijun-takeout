@@ -35,11 +35,27 @@ merchantInstance.interceptors.request.use(
     
     // 设置请求头
     config.header = {
-      [tokenName]: token,
       'Accept': 'application/json',
-      'userType': userType,
       'Content-Type': 'application/json'
     };
+
+    // 如果是登录请求，根据请求数据中的identity设置userType
+    if (config.url.includes('auth/login')) {
+      const identity = config.data?.identity;
+      if (identity === 'EMPLOYEE') {
+        config.header.userType = '2';
+      } else if (identity === 'MERCHANT') {
+        config.header.userType = '1';
+      }
+    } else {
+      // 非登录请求使用存储的用户类型
+      config.header.userType = userType;
+    }
+
+    // 如果有token，添加到请求头
+    if (token) {
+      config.header[tokenName] = token;
+    }
     
     // 打印完整的请求信息，用于调试
     console.log('商家请求配置:', {

@@ -173,17 +173,8 @@ export default {
     applyCoupon(coupon) {
       this.selectedCoupon = coupon;
       
-      // 计算优惠金额和实付金额
-      const discountedAmount = parseFloat(coupon.amount);
-      this.discountAmount = discountedAmount.toFixed(2);
-      const finalAmount = Math.max(0, parseFloat(this.orderAmount) - discountedAmount);
-      this.finalAmount = finalAmount.toFixed(2);
-      
-      // 显示提示
-      uni.showToast({
-        title: '已应用优惠券',
-        icon: 'success'
-      });
+      // 验证优惠券
+      this.validateCoupon(coupon.id);
     },
     
     // 移除优惠券 (由优惠券选择页面调用)
@@ -191,6 +182,82 @@ export default {
       this.selectedCoupon = null;
       this.discountAmount = 0;
       this.finalAmount = this.orderAmount;
+    },
+    
+    // 验证优惠券
+    async validateCoupon(couponId) {
+      try {
+        uni.showLoading({ title: '验证优惠券...' });
+        
+        // 准备请求数据
+        const requestData = {
+          couponId: couponId,
+          orderId: this.orderId,
+          amount: parseFloat(this.orderAmount),
+          payType: this.payType === 'BALANCE' ? 1 : 2
+        };
+        
+        // 发送请求验证优惠券
+        const response = await uni.request({
+          url: 'http://localhost:8080/api/v1/coupons/validate',
+          method: 'POST',
+          header: {
+            'customerToken': uni.getStorageSync('token'),
+            'userType': '3',
+            'Content-Type': 'application/json'
+          },
+          data: requestData
+        });
+        
+        uni.hideLoading();
+        
+        if (response && response[1].statusCode === 200) {
+          const result = response[1].data;
+          
+          if (result && result.code === 200 && result.data) {
+            // 优惠后的金额
+            const discountedAmount = parseFloat(this.orderAmount) - parseFloat(result.data.amount);
+            this.discountAmount = discountedAmount.toFixed(2);
+            this.finalAmount = parseFloat(result.data.amount).toFixed(2);
+            
+            uni.showToast({
+              title: '优惠券已应用',
+              icon: 'success'
+            });
+          } else {
+            // 验证失败，移除优惠券
+            this.removeCoupon();
+            uni.showToast({
+              title: result?.msg || '优惠券验证失败',
+              icon: 'none'
+            });
+          }
+        } else {
+          // 验证失败，使用默认计算方式
+          if (this.selectedCoupon) {
+            const discountedAmount = parseFloat(this.selectedCoupon.amount);
+            this.discountAmount = discountedAmount.toFixed(2);
+            const finalAmount = Math.max(0, parseFloat(this.orderAmount) - discountedAmount);
+            this.finalAmount = finalAmount.toFixed(2);
+            
+            uni.showToast({
+              title: '已应用优惠券(本地计算)',
+              icon: 'success'
+            });
+          }
+        }
+      } catch (error) {
+        uni.hideLoading();
+        console.error('验证优惠券失败:', error);
+        
+        // 验证失败，使用默认计算方式
+        if (this.selectedCoupon) {
+          const discountedAmount = parseFloat(this.selectedCoupon.amount);
+          this.discountAmount = discountedAmount.toFixed(2);
+          const finalAmount = Math.max(0, parseFloat(this.orderAmount) - discountedAmount);
+          this.finalAmount = finalAmount.toFixed(2);
+        }
+      }
     },
     
     // 确认支付

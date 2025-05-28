@@ -43,7 +43,8 @@
 		orderAgainApi,
 		deleteOrderApi,
 		getOrderDetailApi,
-		applyAfterSaleApi
+		applyAfterSaleApi,
+		getOrdersApi
 	} from '../../api/orderList.js';
 	
 	// 调试模式配置
@@ -191,10 +192,11 @@
 						size: this.pageSize
 					};
 					
-					const res = await orderPagingApi(params);
+					// 使用获取订单的API
+					const res = await getOrdersApi(params);
 					
-					if (res.code === 0 && res.data) {
-						const orderList = res.data.list || [];
+					if (res && (res.code === 0 || res.code === 200) && res.data) {
+						const orderList = res.data.records || [];
 						this.total = res.data.total || 0;
 						
 						if (!isLoadMore) {
