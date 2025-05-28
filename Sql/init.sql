@@ -194,5 +194,19 @@ CREATE TABLE promotions (
     updateTime TIMESTAMP
 );
 
+-- 创建消息表
+CREATE TABLE messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    employee_id INT,
+    order_id INT,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    status ENUM('unread', 'read'),
+    senderType INT,
+    createTime TIMESTAMP,
+    updateTime TIMESTAMP
+);
+
 -- 插入root管理员
 INSERT INTO admins (uuid, username, password, role) VALUES ('adm-root','root', 'root', 'root');
