@@ -12,4 +12,6 @@ public class MessageConstant {
     public static final String TOKEN_EXPIRED = "Token已过期";
     public static final String USERTYPE_HEADER_MISSING = "header用户类型缺失";
     public static final String USERTYPE_HEADER_INVALID = "header用户类型非法";
+    public static final String COUPON_INVALITE_BY_AMOUNT = "优惠券未达金额要求";
+    public static final String COUPON_INVALITE_BY_TIME = "优惠券未达指定时间段";
 }

@@ -8,4 +8,5 @@ import java.util.List;
 @Mapper
 public interface CouponMapper {
     List<Coupon> getCouponByUserId(Long userId);
+    Coupon getCouponById(Long couponId);
 }

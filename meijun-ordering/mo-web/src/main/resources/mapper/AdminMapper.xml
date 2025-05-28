@@ -8,4 +8,17 @@
     <select id="getAdminByUuid" resultType="com.mo.entity.Admin">
         select * from admins where uuid = #{uuid}
     </select>
+    <update id="updateAdmin" parameterType="com.mo.entity.Admin">
+        update admins
+        set
+            <if test="admin.username != null and admin.username != ''" >
+                username = #{admin.username}
+            </if>
+            <if test="admin.password != null and admin.password != ''" >
+                password = #{admin.password}
+            </if>
+            <if test="admin.updateTime != null" >
+                updateTime = #{admin.updateTime}
+            </if>
+    </update>
 </mapper>

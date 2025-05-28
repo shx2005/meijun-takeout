@@ -11,7 +11,7 @@ public interface OrderService {
 
     List<Order> getAll();
 
-    List<Order> getPage(int offset, int size, String uuid);
+    List<Order> getPage(int offset, int size, Long userId);
 
     Order getOrderById(Long orderId);
 

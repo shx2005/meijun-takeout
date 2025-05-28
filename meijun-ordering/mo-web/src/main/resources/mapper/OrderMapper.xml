@@ -6,7 +6,7 @@
         select * from orders
     </select>
     <select id="getPage" resultType="com.mo.entity.Order">
-        select * from orders where uuid = #{uuid}
+        select * from orders where customer_id = #{userId}
         limit #{offset},#{size}
     </select>
     <select id="getOrderById" resultType="com.mo.entity.Order">

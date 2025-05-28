@@ -21,7 +21,7 @@ public class OrderPageQueryDTO implements Serializable {
     @Schema(description = "订单状态")
     private Integer status;
     @Schema(description = "用户id")
-    private String uuid;
+    private Long id;
 
     //@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime beginTime;

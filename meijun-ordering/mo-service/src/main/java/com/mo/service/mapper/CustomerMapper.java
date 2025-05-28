@@ -10,4 +10,8 @@ public interface CustomerMapper {
     Customer getCustomerByUuid(@Param("uuid") String uuid);
 
     void saveCustomer(@Param("customer") Customer customer);
+
+    void updateCustomer(Customer customer);
+
+    Customer getCustomerById(Long id);
 }

@@ -11,4 +11,6 @@ public interface MerchantMapper {
     Merchant getMerchantById(@Param("merchantId") Long merchantId);
 
     void saveMerchant(@Param("merchant") Merchant merchant);
+
+    void updateMerchant(Merchant merchant);
 }
