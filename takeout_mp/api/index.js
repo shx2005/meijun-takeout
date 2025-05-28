@@ -790,7 +790,7 @@ function preloadOrderHistory(token) {
 
 export const registerApi = (data) => {
 	return uni.$ajax.post({
-		url: "register",
+		url: "v1/auth/register",
 		data: data
 	})
 }

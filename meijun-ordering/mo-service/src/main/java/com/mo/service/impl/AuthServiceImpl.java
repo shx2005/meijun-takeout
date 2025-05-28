@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Slf4j
@@ -107,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
                 if(cus != null) throw new RegisterFailedException("用户已存在");
 
                 Customer customer = Customer.fromUser(user);
-                customer.setBalance(0.0);
+                customer.setBalance(BigDecimal.ZERO);
                 customerMapper.saveCustomer(customer);
                 log.info("用户{}注册成功", customer.getUsername());
             }
