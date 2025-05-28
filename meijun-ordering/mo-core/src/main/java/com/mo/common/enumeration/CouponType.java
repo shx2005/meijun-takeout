@@ -1,8 +1,8 @@
 package com.mo.common.enumeration;
 
 public enum CouponType {
-    FIXED(0),
-    PERCENTAGE(1);
+    fixed(0),
+    percentage(1);
 
     private final int value;
 

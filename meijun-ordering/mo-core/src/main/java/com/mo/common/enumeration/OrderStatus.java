@@ -1,12 +1,12 @@
 package com.mo.common.enumeration;
 
 public enum OrderStatus {
-    PENDING(0),
-    UNCOMFIRMED(1),
-    CONFIRMED(2),
-    DELIVERING(3),
-    COMPLETED(4),
-    CANCELED(5);
+    pending(0),
+    unconfirmed(1),
+    confirmed(2),
+    delivering(3),
+    completed(4),
+    cancelled(5);
 
     private final int value;
 

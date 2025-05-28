@@ -1,9 +1,9 @@
 package com.mo.common.enumeration;
 
 public enum AfterSaleType {
-    REFUND(0),
-    REPLACE(1),
-    OTHER(2);
+    refund(0),
+    replace(1),
+    other(2);
 
     private final int value;
 

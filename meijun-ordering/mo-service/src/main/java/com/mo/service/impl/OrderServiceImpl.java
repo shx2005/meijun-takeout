@@ -82,8 +82,8 @@ public class OrderServiceImpl implements OrderService {
         }
         // 设置订单信息
         order.setOrderTime(LocalDateTime.now());
-        order.setStatus(OrderStatus.PENDING);
-        order.setPayStatus(OrderPayStaus.UNPAID);
+        order.setStatus(OrderStatus.pending);
+        order.setPayStatus(OrderPayStaus.unpaid);
         order.setOrderNumber(String.valueOf(System.currentTimeMillis()));
 
         orderMapper.saveOrder(order);

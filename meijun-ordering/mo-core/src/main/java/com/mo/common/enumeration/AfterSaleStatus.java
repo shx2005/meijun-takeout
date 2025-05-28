@@ -1,10 +1,10 @@
 package com.mo.common.enumeration;
 
 public enum AfterSaleStatus {
-    PENDING(0),
-    APPROVED(1),
-    REJECTED(2),
-    COMPLETED(3);
+    pending(0),
+    approved(1),
+    rejected(2),
+    completed(3);
 
     private final int value;
 
