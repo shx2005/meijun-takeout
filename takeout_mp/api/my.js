@@ -26,10 +26,74 @@ export { getUserInfoApi };
 
 // 更新用户信息
 export const updateUserInfoApi = (data) => {
-	return uni.$ajax.put({
-		url: 'v1/user/info',
-		data: data
-	})
+	// 从本地存储获取token
+	const token = uni.getStorageSync('token');
+	console.log('更新用户信息时的token:', token);
+	console.log('更新用户信息的数据:', JSON.stringify(data));
+	
+	// 使用Promise包装请求
+	return new Promise((resolve, reject) => {
+		// 直接使用uni.request发送请求
+		uni.request({
+			url: 'http://localhost:8080/api/v1/user/update',
+			method: 'POST', // 尝试POST方法
+			header: {
+				'customerToken': token,
+				'Accept': 'application/json',
+				'userType': '3',
+				'Content-Type': 'application/json'
+			},
+			data: data,
+			success: (res) => {
+				console.log('更新用户信息响应:', res);
+				if (res.statusCode === 200 || res.statusCode === 405) {
+					// 如果返回405，说明需要使用GET方法，重新尝试
+					if (res.statusCode === 405) {
+						console.log('POST方法不允许，尝试使用GET方法');
+						
+						// 构建查询字符串
+						const queryParams = Object.keys(data)
+							.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+							.join('&');
+						
+						// 使用GET方法重试
+						uni.request({
+							url: `http://localhost:8080/api/v1/user/update?${queryParams}`,
+							method: 'GET',
+							header: {
+								'customerToken': token,
+								'Accept': 'application/json',
+								'userType': '3',
+								'Content-Type': 'application/json'
+							},
+							success: (getRes) => {
+								console.log('GET方法更新用户信息响应:', getRes);
+								if (getRes.statusCode === 200) {
+									resolve(getRes.data);
+								} else {
+									console.error('GET方法更新用户信息失败:', getRes.statusCode, getRes.data);
+									reject(getRes);
+								}
+							},
+							fail: (err) => {
+								console.error('GET方法更新用户信息请求失败:', err);
+								reject(err);
+							}
+						});
+					} else {
+						resolve(res.data);
+					}
+				} else {
+					console.error('更新用户信息失败:', res.statusCode, res.data);
+					reject(res);
+				}
+			},
+			fail: (err) => {
+				console.error('更新用户信息请求失败:', err);
+				reject(err);
+			}
+		});
+	});
 }
 
 // 手机密码登录

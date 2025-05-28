@@ -42,7 +42,7 @@
         </view>
         
         <!-- 修改信息弹窗 -->
-        <u-popup :show="showEditPopup" mode="center" :round="10" @close="hideEditPopup">
+        <u-popup :show="isEditPopupVisible" mode="center" :round="10" @close="hideEditPopup">
             <view class="edit-popup">
                 <view class="edit-title">
                     <text>修改个人信息</text>
@@ -87,7 +87,7 @@ export default {
     data() {
         return {
             user: {},
-            showEditPopup: false,
+            isEditPopupVisible: false,
             editForm: {
                 name: '',
                 gender: '',
@@ -236,12 +236,12 @@ export default {
         // 显示编辑弹窗
         showEditPopup() {
             this.initEditForm()
-            this.showEditPopup = true
+            this.isEditPopupVisible = true
         },
         
         // 隐藏编辑弹窗
         hideEditPopup() {
-            this.showEditPopup = false
+            this.isEditPopupVisible = false
         },
         
         // 性别选择变更处理
@@ -256,54 +256,38 @@ export default {
                     title: '保存中...'
                 })
                 
-                // 调用API更新用户信息
-                const response = await uni.request({
-                    url: 'http://localhost:8080/api/v1/user/update',
-                    method: 'GET', // 根据API文档，这个接口使用GET方法
-                    header: {
-                        'Content-Type': 'application/json',
-                        'customerToken': uni.getStorageSync('token'),
-                        'userType': '3'
-                    },
-                    data: {
-                        name: this.editForm.name,
-                        gender: this.editForm.gender,
-                        address: this.editForm.address
-                    }
-                })
+                // 准备更新数据
+                const userInfoData = {
+                    name: this.editForm.name,
+                    gender: this.editForm.gender,
+                    address: this.editForm.address
+                };
+                
+                // 使用API工具方法调用更新用户信息接口
+                const response = await updateUserInfoApi(userInfoData);
                 
                 uni.hideLoading()
                 
                 // 处理响应
-                if (response && response[1].statusCode === 200) {
-                    const result = response[1].data
-                    
-                    if (result && (result.code === 0 || result.code === 200)) {
-                        uni.showToast({
-                            title: '保存成功',
-                            icon: 'success'
-                        })
-                        
-                        // 更新本地用户信息
-                        this.user.name = this.editForm.name
-                        this.user.gender = this.editForm.gender
-                        this.user.address = this.editForm.address
-                        
-                        // 更新缓存
-                        uni.setStorageSync('userInfo', this.user)
-                        
-                        // 关闭弹窗
-                        this.hideEditPopup()
-                    } else {
-                        uni.showToast({
-                            title: result?.msg || '保存失败',
-                            icon: 'none'
-                        })
-                    }
-                } else {
-                    // 处理API请求失败
+                if (response && (response.code === 0 || response.code === 200)) {
                     uni.showToast({
-                        title: '保存失败，请重试',
+                        title: '保存成功',
+                        icon: 'success'
+                    })
+                    
+                    // 更新本地用户信息
+                    this.user.name = this.editForm.name
+                    this.user.gender = this.editForm.gender
+                    this.user.address = this.editForm.address
+                    
+                    // 更新缓存
+                    uni.setStorageSync('userInfo', this.user)
+                    
+                    // 关闭弹窗
+                    this.hideEditPopup()
+                } else {
+                    uni.showToast({
+                        title: response?.msg || '保存失败',
                         icon: 'none'
                     })
                     console.error('更新用户信息失败:', response)

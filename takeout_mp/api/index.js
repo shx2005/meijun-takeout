@@ -8,6 +8,7 @@ import request from '../utils/request'
  * @returns {Promise} 返回添加结果
  */
 export const addCartApi = (data) => {
+	if (data.itemType) data.itemType = data.itemType.toLowerCase();
 	// 更新本地存储购物车
 	try {
 		// 获取原有购物车数据
@@ -39,56 +40,17 @@ export const addCartApi = (data) => {
 		// 保存到本地存储
 		uni.setStorageSync('cartItems', JSON.stringify(cartItems));
 		console.log('本地购物车更新成功:', cartItems);
+		
+		// 返回成功响应
+		return Promise.resolve({
+			code: 0,
+			data: null,
+			msg: '添加成功(本地)'
+		});
 	} catch (error) {
 		console.error('更新本地购物车失败:', error);
+		return Promise.reject(error);
 	}
-	
-	// 尝试调用API - 使用直接发送请求的方式
-	return new Promise((resolve) => {
-		// 获取token
-		const token = uni.getStorageSync('originalToken') || uni.getStorageSync('token');
-		
-		uni.request({
-			url: 'http://localhost:8080/api/v1/cart/add',
-			method: 'POST',
-			header: {
-				'customerToken': token,
-				'Accept': 'application/json',
-				'userType': '3',
-				'Content-Type': 'application/json',
-				'X-Requested-With': 'XMLHttpRequest'
-			},
-			data: data,
-			success: (res) => {
-				console.log('添加购物车API响应:', res);
-				if (res.statusCode >= 200 && res.statusCode < 300) {
-					// 请求成功
-					resolve({
-						code: 0,
-						data: null,
-						msg: '添加成功'
-					});
-				} else {
-					console.error('添加购物车API请求失败:', res);
-					// 返回成功，因为本地购物车已更新
-					resolve({
-						code: 0,
-						data: null,
-						msg: '添加成功(仅本地)'
-					});
-				}
-			},
-			fail: (err) => {
-				console.error('添加购物车API请求错误:', err);
-				// 返回成功，因为本地购物车已更新
-				resolve({
-					code: 0,
-					data: null,
-					msg: '添加成功(仅本地)'
-				});
-			}
-		});
-	});
 }
 
 // 辅助函数：根据商品ID获取商品信息
@@ -716,11 +678,22 @@ function preloadCartData(token) {
 				// 保存到本地存储
 				if (res.data && res.data.data) {
 					uni.setStorageSync('cartItems', JSON.stringify(res.data.data));
+				} else {
+					// 如果返回的数据为空或格式不对，初始化为空数组
+					console.log('购物车数据为空或格式不对，初始化为空数组');
+					uni.setStorageSync('cartItems', JSON.stringify([]));
 				}
+			} else {
+				// 请求失败，初始化为空数组
+				console.log('获取购物车数据失败，初始化为空数组');
+				uni.setStorageSync('cartItems', JSON.stringify([]));
 			}
 		},
 		fail: (err) => {
 			console.error('预加载购物车失败:', err);
+			// 请求错误，初始化为空数组
+			console.log('购物车请求错误，初始化为空数组');
+			uni.setStorageSync('cartItems', JSON.stringify([]));
 		}
 	});
 }
@@ -757,7 +730,17 @@ function preloadUserInfo(token) {
 }
 
 // 预加载订单历史数据
-function preloadOrderHistory(token) {
+function preloadOrderHistory(token, disableCache = false) {
+	// 如果禁用缓存，则移除之前的数据
+	if (disableCache) {
+		try {
+			uni.removeStorageSync('orderHistoryData');
+			console.log('预加载前已清除缓存的订单历史数据');
+		} catch (e) {
+			console.error('清除订单缓存失败:', e);
+		}
+	}
+	
 	// 使用获取到的token请求订单历史
 	uni.request({
 		url: 'http://localhost:8080/api/v1/orders/page',
@@ -774,12 +757,16 @@ function preloadOrderHistory(token) {
 			
 			if (res.statusCode === 200) {
 				console.log('成功预加载订单历史');
-				// 保存订单历史到本地存储
-				const orderHistoryData = {
-					data: res.data.data || res.data,
-					timestamp: Date.now()
-				};
-				uni.setStorageSync('orderHistoryData', JSON.stringify(orderHistoryData));
+				
+				// 如果未禁用缓存，则保存到本地存储
+				if (!disableCache) {
+					// 保存订单历史到本地存储
+					const orderHistoryData = {
+						data: res.data.data || res.data,
+						timestamp: Date.now()
+					};
+					uni.setStorageSync('orderHistoryData', JSON.stringify(orderHistoryData));
+				}
 			}
 		},
 		fail: (err) => {
@@ -844,6 +831,14 @@ export const getUserInfoApi = () => {
 
 // 获取用户历史订单
 export const getOrdersApi = (params) => {
+	// 移除缓存的订单数据，确保获取最新数据
+	try {
+		uni.removeStorageSync('orderHistoryData');
+		console.log('已清除缓存的订单历史数据');
+	} catch (e) {
+		console.error('清除订单缓存失败:', e);
+	}
+	
 	// 从本地存储获取token
 	const token = uni.getStorageSync('token');
 	console.log('获取用户订单时的token:', token);
@@ -856,15 +851,18 @@ export const getOrdersApi = (params) => {
 		'Content-Type': 'application/json'
 	};
 	
-	// 构建查询参数
-	const queryParams = new URLSearchParams();
+	// 手动构建查询参数字符串，替代URLSearchParams
+	let queryString = '';
 	if (params) {
-		if (params.page) queryParams.append('page', params.page);
-		if (params.size) queryParams.append('size', params.size);
-		if (params.userId) queryParams.append('userId', params.userId);
+		const queryParts = [];
+		if (params.page) queryParts.push(`page=${encodeURIComponent(params.page)}`);
+		if (params.size) queryParts.push(`size=${encodeURIComponent(params.size)}`);
+		if (params.userId) queryParts.push(`userId=${encodeURIComponent(params.userId)}`);
+		
+		if (queryParts.length > 0) {
+			queryString = '?' + queryParts.join('&');
+		}
 	}
-	
-	const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
 	
 	// 使用uni.request直接发送请求
 	return new Promise((resolve, reject) => {
@@ -876,6 +874,7 @@ export const getOrdersApi = (params) => {
 				console.log('用户订单响应状态码:', res.statusCode);
 				
 				if (res.statusCode === 200) {
+					console.log('成功从API获取最新订单数据');
 					resolve(res.data);
 				} else if (res.statusCode === 401) {
 					console.error('认证失败，检查token是否有效');
@@ -953,4 +952,45 @@ export const setmealListApi = (params) => {
 		method: 'get',
 		params
 	})
+}
+
+export const getOrderOverviewApi = () => {
+	// 从本地存储获取token
+	const token = uni.getStorageSync('token');
+	console.log('获取订单概览时的token:', token);
+	
+	// 用于请求的headers
+	const headers = {
+		'customerToken': token,
+		'Accept': 'application/json',
+		'userType': '3',
+		'Content-Type': 'application/json'
+	};
+	
+	// 使用uni.request直接发送请求
+	return new Promise((resolve, reject) => {
+		uni.request({
+			url: 'http://localhost:8080/api/v1/orders/overview',
+			method: 'GET',
+			header: headers,
+			success: (res) => {
+				console.log('订单概览响应状态码:', res.statusCode);
+				
+				if (res.statusCode === 200) {
+					console.log('成功获取订单概览数据');
+					resolve(res.data);
+				} else if (res.statusCode === 401) {
+					console.error('认证失败，检查token是否有效');
+					reject(res);
+				} else {
+					console.error('获取订单概览失败:', res.statusCode, res.data);
+					reject(res);
+				}
+			},
+			fail: (err) => {
+				console.error('请求订单概览接口失败:', err);
+				reject(err);
+			}
+		});
+	});
 }

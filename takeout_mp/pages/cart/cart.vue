@@ -85,8 +85,19 @@ export default {
         // 从本地存储获取购物车数据
         const cartItemsStr = uni.getStorageSync('cartItems');
         if (cartItemsStr) {
-          this.cartItems = JSON.parse(cartItemsStr);
-          console.log('从本地存储加载购物车数据:', this.cartItems);
+          const rawCartItems = JSON.parse(cartItemsStr);
+          console.log('从本地存储加载的原始购物车数据:', rawCartItems);
+          
+          // 确保数据结构一致性 - 统一字段名称
+          this.cartItems = rawCartItems.map(item => ({
+            id: item.id,
+            name: item.name || '菜品',
+            price: item.price || 0,
+            image: item.image || '/static/images/default-food.png',
+            quantity: item.quantity || item.number || 1
+          }));
+          
+          console.log('处理后的购物车数据:', this.cartItems);
         } else {
           // 没有本地数据，初始化空购物车
           this.cartItems = [];
@@ -157,8 +168,17 @@ export default {
     // 保存到本地存储
     saveToLocalStorage() {
       try {
-        uni.setStorageSync('cartItems', JSON.stringify(this.cartItems));
-        console.log('购物车数据已更新到本地存储');
+        // 保存时统一转换为统一格式
+        const dataToSave = this.cartItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          image: item.image,
+          number: item.quantity // 使用number作为统一的数量字段
+        }));
+        
+        uni.setStorageSync('cartItems', JSON.stringify(dataToSave));
+        console.log('购物车数据已更新到本地存储:', dataToSave);
       } catch (error) {
         console.error('保存购物车到本地存储失败:', error);
       }

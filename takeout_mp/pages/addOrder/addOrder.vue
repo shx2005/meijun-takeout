@@ -234,31 +234,68 @@
 
 					console.log("用户信息响应:", res);
 
-					// 检查是否成功获取到用户信息和地址
-					if (res && res[1].statusCode === 200 && res[1].data && res[1].data.data && res[1].data.data.address) {
-						const userData = res[1].data.data;
-						console.log("从用户信息中获取到地址:", userData.address);
+					// 先检查响应是否成功
+					if (res && res[1].statusCode === 200) {
+						// 处理XML格式的响应
+						const responseData = res[1].data;
 						
-						// 从用户信息中提取必要数据构建地址对象
-						this.address = {
-							detail: userData.address, // 地址详情
-							consignee: userData.name || userData.username || '', // 收货人姓名
-							phone: userData.phoneNum || userData.username || '', // 联系电话
-							gender: userData.gender === '男' ? 0 : 1 // 性别
-						};
-						
-						console.log("构建的地址对象:", this.address);
-					} else {
-						console.log("用户信息中未找到地址或获取失败");
-						this.address = null; // 地址为空时提示用户选择地址
-						
-						// 可以显示提示信息
-						uni.showToast({
-							title: '未设置地址，请从个人信息页添加地址',
-							icon: 'none',
-							duration: 2000
-						});
+						// 检查是否为XML格式的字符串
+						if (typeof responseData === 'string' && responseData.includes('<Result>')) {
+							console.log('解析XML格式的用户信息');
+							
+							// 从XML中提取地址
+							const addressMatch = responseData.match(/<address>(.*?)<\/address>/);
+							const nameMatch = responseData.match(/<name>(.*?)<\/name>/);
+							const usernameMatch = responseData.match(/<username>(.*?)<\/username>/);
+							const phoneMatch = responseData.match(/<phoneNum>(.*?)<\/phoneNum>/);
+							const genderMatch = responseData.match(/<gender>(.*?)<\/gender>/);
+							
+							if (addressMatch && addressMatch[1]) {
+								const address = addressMatch[1];
+								console.log("从XML中获取到地址:", address);
+								
+								// 构建地址对象
+								this.address = {
+									detail: address,
+									consignee: nameMatch && nameMatch[1] ? nameMatch[1] : (usernameMatch && usernameMatch[1] ? usernameMatch[1] : ''),
+									phone: phoneMatch && phoneMatch[1] ? phoneMatch[1] : (usernameMatch && usernameMatch[1] ? usernameMatch[1] : ''),
+									gender: genderMatch && genderMatch[1] === '男' ? 0 : 1
+								};
+								
+								console.log("构建的地址对象:", this.address);
+								return;
+							}
+						} 
+						// 处理JSON格式的响应
+						else if (res[1].data && res[1].data.data) {
+							const userData = res[1].data.data;
+							if (userData.address) {
+								console.log("从JSON中获取到地址:", userData.address);
+								
+								// 从用户信息中提取必要数据构建地址对象
+								this.address = {
+									detail: userData.address, // 地址详情
+									consignee: userData.name || userData.username || '', // 收货人姓名
+									phone: userData.phoneNum || userData.username || '', // 联系电话
+									gender: userData.gender === '男' ? 0 : 1 // 性别
+								};
+								
+								console.log("构建的地址对象:", this.address);
+								return;
+							}
+						}
 					}
+					
+					// 如果没有成功获取地址
+					console.log("用户信息中未找到地址或获取失败");
+					this.address = null; // 地址为空时提示用户选择地址
+					
+					// 显示提示信息
+					uni.showToast({
+						title: '未设置地址，请从个人信息页添加地址',
+						icon: 'none',
+						duration: 2000
+					});
 				} catch (error) {
 					console.error('获取地址失败:', error);
 					this.address = null;
@@ -352,51 +389,97 @@
 				this.loading = true;
 				
 				try {
-					// 准备订单数据
+					// 获取token
+					const token = uni.getStorageSync('token');
+					if (!token) {
+						uni.$showMsg('请先登录');
+						this.loading = false;
+						return;
+					}
+					
+					// 1. 首先提交购物车数据到后端
+					console.log('提交本地购物车数据到后端...');
+					
+					// 将购物车数据转换为后端需要的格式
+					const cartItems = this.cartData.map(item => ({
+						itemId: item.id,
+						quantity: item.number
+					}));
+					
+					// 调用添加购物车API批量添加商品
+					for (const item of cartItems) {
+						try {
+							await uni.request({
+								url: 'http://localhost:8080/api/v1/cart/add',
+								method: 'POST',
+								header: {
+									'customerToken': token,
+									'Accept': 'application/json',
+									'userType': '3',
+									'Content-Type': 'application/json'
+								},
+								data: item
+							});
+						} catch (err) {
+							console.error('添加购物车项失败:', err);
+							// 继续处理下一个项目
+						}
+					}
+					
+					// 2. 准备订单数据
 					const orderData = {
 						address: this.address.detail,
-						consignee: this.address.consignee,
 						phone: this.address.phone,
-						remark: this.note,
-						payMethod: 1, // 默认微信支付
-						orderTime: new Date().toISOString(),
-						status: "PENDING", // 待付款状态
-						items: this.cartData.map(item => ({
-							itemId: item.id,
-							name: item.name,
-							image: item.image,
-							quantity: item.number,
-							unit: item.amount,
-							total: item.amount * item.number
-						})),
-						total: this.goodsPrice
+						customerName: this.address.consignee,
+						remark: this.note
 					};
 					
-					// 提交订单数据
-					const res = await uni.$ajax.post({
-						url: '/api/v1/orders/submit',
-						data: orderData,
+					console.log('准备提交订单:', orderData);
+					
+					// 3. 提交订单
+					const response = await uni.request({
+						url: 'http://localhost:8080/api/v1/orders/submit',
+						method: 'POST',
 						header: {
+							'customerToken': token,
+							'Accept': 'application/json',
+							'userType': '3',
 							'Content-Type': 'application/json'
-						}
+						},
+						data: orderData
 					});
 					
-					if (res && (res.code === 0 || res.code === 1 || res.code === 200)) {
-						// 清空本地购物车
-						uni.removeStorageSync('cartItems');
+					console.log('订单提交响应:', response);
+					
+					// 检查响应状态
+					if (response && response[1].statusCode === 200) {
+						const res = response[1].data;
 						
-						// 跳转到支付成功页面
-						uni.navigateTo({
-							url: '/pages/payConfirm/payConfirm?orderId=' + (res.id || res.data?.id || '')
-						});
-						
-						uni.showToast({
-							title: '订单提交成功',
-							icon: 'success'
-						});
+						if (res && (res.code === 0 || res.code === 1 || res.code === 200 || res.success)) {
+							// 清空本地购物车
+							uni.removeStorageSync('cartItems');
+							
+							// 获取订单ID
+							const orderId = res.id || res.data?.id || '';
+							
+							// 跳转到支付成功页面
+							uni.navigateTo({
+								url: '/pages/payConfirm/payConfirm?orderId=' + orderId
+							});
+							
+							uni.showToast({
+								title: '订单提交成功',
+								icon: 'success'
+							});
+						} else {
+							uni.showToast({
+								title: res?.msg || '订单提交失败',
+								icon: 'none'
+							});
+						}
 					} else {
 						uni.showToast({
-							title: res?.msg || '订单提交失败',
+							title: '订单提交失败',
 							icon: 'none'
 						});
 					}

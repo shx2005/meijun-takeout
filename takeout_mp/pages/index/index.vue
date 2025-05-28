@@ -1155,16 +1155,8 @@
 					// 由于后端API可能不可用，我们只确保本地存储是最新的
 					this.saveCartToStorage();
 					
-					// 尝试将每个购物车项同步到服务器，但不阻止用户操作
-					for (const item of this.cartItems) {
-						addCartApi({
-							itemId: item.id,
-							itemType: "DISH",
-							quantity: item.number
-						}).catch(err => {
-							console.warn(`同步商品ID ${item.id} 到服务器失败，将使用本地数据`);
-						});
-					}
+					// 不再将数据同步到服务器，只使用本地存储的数据
+					console.log('使用本地购物车数据，跳过服务器同步');
 					
 					uni.hideLoading();
 					return Promise.resolve();

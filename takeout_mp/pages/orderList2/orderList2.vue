@@ -44,11 +44,12 @@
 		deleteOrderApi,
 		getOrderDetailApi,
 		applyAfterSaleApi,
-		getOrdersApi
+		getOrdersApi,
+		getOrderOverviewApi
 	} from '../../api/orderList.js';
 	
 	// 调试模式配置
-	const DEBUG_MODE = true; // 设置为true开启调试模式，跳过登录验证
+	const DEBUG_MODE = false; // 禁用调试模式，始终使用真实API数据
 	
 	export default {
 		mixins: [MescrollMixin], // 使用mixin
@@ -135,7 +136,31 @@
 				return;
 			}
 			
+			// 清除缓存数据
+			try {
+				uni.removeStorageSync('orderHistoryData');
+				console.log('已清除缓存的订单历史数据');
+			} catch (e) {
+				console.error('清除订单缓存失败:', e);
+			}
+			
 			// 初始化数据
+			this.loadOrders();
+		},
+		// 每次显示页面时触发，确保数据实时更新
+		onShow() {
+			console.log('订单页面显示，重新加载数据');
+			
+			// 清除缓存数据
+			try {
+				uni.removeStorageSync('orderHistoryData');
+				console.log('显示页面时清除缓存的订单历史数据');
+			} catch (e) {
+				console.error('清除订单缓存失败:', e);
+			}
+			
+			// 重置页码并刷新数据
+			this.page = 1;
 			this.loadOrders();
 		},
 		// 下拉刷新
@@ -153,6 +178,13 @@
 			async loadOrders(isLoadMore = false, isRefresh = false) {
 				try {
 					this.loadStatus = 'loading';
+					
+					// 显示加载提示
+					if (!isLoadMore) {
+						uni.showLoading({
+							title: '加载中...'
+						});
+					}
 					
 					if (DEBUG_MODE) {
 						// 使用测试数据
@@ -182,34 +214,65 @@
 							if (this.mescroll && this.mescroll.endSuccess) {
 								this.mescroll.endSuccess();
 							}
+							
+							// 隐藏加载提示
+							uni.hideLoading();
 						}, 1000);
 						return;
 					}
 					
-					// 实际API调用
-					const params = {
-						page: this.page,
-						size: this.pageSize
-					};
+					// 清除缓存确保获取最新数据
+					try {
+						uni.removeStorageSync('orderHistoryData');
+					} catch (e) {
+						console.error('清除订单缓存失败:', e);
+					}
 					
-					// 使用获取订单的API
-					const res = await getOrdersApi(params);
+					console.log('正在请求最新订单数据');
+					
+					// 使用获取订单概览的API，获取所有订单
+					const res = await getOrderOverviewApi();
 					
 					if (res && (res.code === 0 || res.code === 200) && res.data) {
-						const orderList = res.data.records || [];
-						this.total = res.data.total || 0;
+						const orderList = Array.isArray(res.data) ? res.data : [];
 						
-						if (!isLoadMore) {
-							this.orders = orderList;
-						} else {
-							this.orders = [...this.orders, ...orderList];
-						}
+						// 处理并格式化订单数据
+						const formattedOrders = orderList.map(order => {
+							// 格式化创建时间
+							let orderTime = '';
+							if (order.createTime && Array.isArray(order.createTime)) {
+								const [year, month, day, hour, minute, second] = order.createTime;
+								orderTime = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}`;
+							}
+							
+							// 格式化状态
+							let status = 0;
+							switch(order.status) {
+								case 'pending': status = 1; break;  // 待付款
+								case 'delivering': status = 2; break;  // 正在派送
+								case 'delivered': status = 3; break;  // 已派送
+								case 'completed': status = 4; break;  // 已完成
+								case 'cancelled': status = 5; break;  // 已取消
+								default: status = 0;
+							}
+							
+							return {
+								id: order.id,
+								orderTime: orderTime || order.orderTime || '',
+								status: status,
+								totalAmount: order.total * 100 || 0, // 转换为分
+								items: order.items || [] // 可能需要根据实际数据结构调整
+							};
+						});
 						
-						// 更新加载状态
-						this.loadStatus = this.orders.length >= this.total ? 'nomore' : 'loadmore';
+						this.orders = formattedOrders;
+						this.total = formattedOrders.length;
+						this.loadStatus = 'nomore'; // 全部加载完毕
+						
+						console.log('成功从API获取订单数据:', formattedOrders);
 					} else {
 						uni.showToast({
-							title: res.msg || '获取订单失败',
+							title: res?.msg || '获取订单失败',
 							icon: 'none'
 						});
 						this.loadStatus = 'loadmore';
@@ -231,6 +294,9 @@
 					if (this.mescroll && this.mescroll.endSuccess) {
 						this.mescroll.endSuccess();
 					}
+					
+					// 隐藏加载提示
+					uni.hideLoading();
 				}
 			},
 			

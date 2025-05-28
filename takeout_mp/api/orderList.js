@@ -1,5 +1,5 @@
 import regeneratorRuntime, { async } from '../lib/runtime/runtime';
-import { getOrdersApi } from './index.js';
+import { getOrdersApi, getOrderOverviewApi } from './index.js';
 
 /**
  * 分页查询订单
@@ -143,6 +143,7 @@ export const applyRefundApi = (data) => {
 };
 
 export {
-	getOrdersApi
+	getOrdersApi,
+	getOrderOverviewApi
 }
 
