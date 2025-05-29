@@ -8,6 +8,13 @@
     <select id="getAdminByUuid" resultType="com.mo.entity.Admin">
         select * from admins where uuid = #{uuid}
     </select>
+    <select id="getAllAdmin" resultType="com.mo.entity.Admin">
+        select * from admins
+    </select>
+    <select id="getPage" resultType="com.mo.entity.Admin">
+        select * from admins
+        limit #{offset}, #{size}
+    </select>
     <update id="updateAdmin" parameterType="com.mo.entity.Admin">
         update admins
         set
@@ -21,4 +28,14 @@
                 updateTime = #{admin.updateTime}
             </if>
     </update>
+    <insert id="saveAdmin"
+            parameterType="com.mo.entity.Admin"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into admins(username, password, uuid, createTime, updateTime)
+        values(#{username}, #{password}, #{uuid} ,#{createTime}, #{updateTime})
+    </insert>
+    <delete id="deleteAdmin">
+        delete from admins where id = #{id}
+    </delete>
 </mapper>

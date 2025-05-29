@@ -13,6 +13,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID; // 确保这个导入存在，因为 UUID 被使用了
 
+/**
+ * 自动填充uuid
+ */
 @Aspect
 @Component
 @Slf4j
