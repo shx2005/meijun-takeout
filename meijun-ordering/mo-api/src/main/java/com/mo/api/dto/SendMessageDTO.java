@@ -2,14 +2,18 @@ package com.mo.api.dto;
 
 import com.mo.common.enumeration.MessageStaus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "发送消息")
 public class SendMessageDTO implements Serializable {
     @Serial
