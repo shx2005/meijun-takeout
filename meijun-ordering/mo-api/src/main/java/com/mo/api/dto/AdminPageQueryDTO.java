@@ -17,7 +17,9 @@ public class AdminPageQueryDTO implements Serializable {
     @Schema(description = "姓名")
     private String name;
     @Schema(description = "页码")
+    @Builder.Default
     private int pageNum = 1;
     @Schema(description = "每页数据量")
+    @Builder.Default
     private int pageSize = 10;
 }

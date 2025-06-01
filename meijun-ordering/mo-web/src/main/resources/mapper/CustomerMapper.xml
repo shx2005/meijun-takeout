@@ -24,6 +24,7 @@
                 id = #{id}
             </if>
     </select>
+
     <insert id="saveCustomer"
             parameterType="com.mo.entity.Customer"
             useGeneratedKeys="true"

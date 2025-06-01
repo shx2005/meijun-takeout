@@ -18,6 +18,8 @@ public class CouponVO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+     @Schema(description = "优惠券id")
     private Long couponId;
+      @Schema(description = "操作状态")
     private String status;
 }

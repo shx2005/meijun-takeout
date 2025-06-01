@@ -15,9 +15,14 @@ public class PromotionDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema (description = "用户id")
     private Long userId;
+     @Schema (description = "促销商品名字")
     private String name;
+      @Schema (description = "促销商品描述")
     private String description;
+      @Schema (description = "促销商品开始时间")
     private LocalDateTime startTime;
+       @Schema (description = "促销商品结束时间")
     private LocalDateTime endTime;
 }

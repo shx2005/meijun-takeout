@@ -49,10 +49,12 @@ public class CouponServiceImpl implements CouponService {
     public CouponValidateVo validateCoupon(CouponValidateDTO couponValidateDTO) {
         Coupon coupon = couponMapper.getCouponById(couponValidateDTO.getCouponId());
         LocalDateTime now = LocalDateTime.now();
+
         if (now.isAfter(coupon.getEndTime()) && now.isBefore(coupon.getStartTime())) {
             Long orderId = couponValidateDTO.getOrderId();
             Order order = orderMapper.getOrderById(orderId);
             BigDecimal amount = getBigDecimal(order, coupon);
+
             return CouponValidateVo.builder()
                     .amount(amount)
                     .orderId(orderId)
@@ -79,14 +81,9 @@ public class CouponServiceImpl implements CouponService {
         if (amount.compareTo(coupon.getMinAmount()) < 0 || amount.compareTo(coupon.getMaxAmount()) > 0) {
             throw new CouponInvalidateException(MessageConstant.COUPON_INVALITE_BY_AMOUNT);
         }
-        switch (coupon.getType()){
-            case fixed -> {
-                amount = amount.subtract(coupon.getValue());
-            }
-            case percentage -> {
-                amount = amount.multiply(BigDecimal.ONE.subtract(coupon.getValue()));
-            }
-        }
-        return amount;
+        return switch (coupon.getType()){
+            case fixed -> amount.subtract(coupon.getValue());
+            case percentage -> amount.multiply(coupon.getValue().divide(new BigDecimal("100")));
+        };
     }
 }

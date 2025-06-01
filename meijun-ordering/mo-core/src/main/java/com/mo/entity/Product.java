@@ -19,8 +19,12 @@ public class Product implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema (description = "商品id")
     private Long productId;
+    @Schema (description = "商品名称")
     private String name;
+    @Schema (description = "商品类型")
     private ItemType type;
+     @Schema (description = "商品销量")
     private Long sales;
 }

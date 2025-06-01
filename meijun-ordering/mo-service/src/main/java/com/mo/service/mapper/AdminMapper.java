@@ -8,6 +8,7 @@ import java.util.List;
 
 @Mapper
 public interface AdminMapper {
+
     Admin getAdminByUsername(@Param("username") String username);
     Admin getAdminByUuid(@Param("uuid") String uuid);
     

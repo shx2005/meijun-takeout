@@ -18,6 +18,8 @@ public class PromotionVO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "促销id")
     private Long promotionId;
+     @Schema(description = "促销状态")
     private String status;
 }

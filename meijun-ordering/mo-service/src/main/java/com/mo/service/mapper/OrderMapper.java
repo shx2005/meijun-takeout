@@ -9,6 +9,7 @@ import java.util.List;
 
 @Mapper
 public interface OrderMapper {
+
     List<Order> getAll();
     List<Order> getPage(@Param("offset") int offset, @Param("size") int size, @Param("userId") Long userId);
 

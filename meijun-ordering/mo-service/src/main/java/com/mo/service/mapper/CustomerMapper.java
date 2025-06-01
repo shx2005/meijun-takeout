@@ -8,6 +8,7 @@ import java.util.List;
 
 @Mapper
 public interface CustomerMapper {
+
     Customer getCustomerByUsername(@Param("username") String username);
 
     Customer getCustomerByUuid(@Param("uuid") String uuid);

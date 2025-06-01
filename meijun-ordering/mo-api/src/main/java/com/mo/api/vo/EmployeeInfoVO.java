@@ -18,8 +18,12 @@ public class EmployeeInfoVO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "客服id")
     private Long employeeId;
+     @Schema(description = "客服名字")
     private String employeeName;
+     @Schema(description = "客服头像")
     private String employAvatar;
+     @Schema(description = "客服电话")
     private String employeePhone;
 }

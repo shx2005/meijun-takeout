@@ -9,6 +9,7 @@
         insert into after_sales(order_id,reason,status,amount,create_time)
         values(#{orderId},#{reason},#{status},#{amount},#{createTime})
     </insert>
+
     <update id="updateAfterSale" parameterType="com.mo.entity.AfterSale">
         update after_sales set
         <if test="afterSale.orderId != null">
@@ -34,9 +35,11 @@
         </if>
         where id = #{id}
     </update>
+
     <delete id="deleteAfterSale" parameterType="Long">
         delete from after_sales where id = #{id}
     </delete>
+
     <select id="getAfterSaleById" parameterType="Long" resultType="com.mo.entity.AfterSale">
         select * from after_sales where id = #{id}
     </select>

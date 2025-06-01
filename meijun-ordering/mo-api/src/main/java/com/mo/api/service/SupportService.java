@@ -7,13 +7,15 @@ import com.mo.api.vo.CustomerInfoVO;
 import com.mo.api.vo.EmployeeInfoVO;
 import com.mo.api.vo.SendMessageVO;
 import com.mo.api.vo.WithdrawMessageVO;
-import com.mo.entity.Customer;
 import com.mo.entity.Message;
 
 public interface SupportService {
+
     SendMessageVO sendMessage(Message message);
     WithdrawMessageVO withdrawMessage(WithdrawMessageDTO dto);
 
+
     EmployeeInfoVO getEmployeeInfo(EmployeeInfoDTO dto);
+
     CustomerInfoVO getCustomerInfo(CustomerInfoDTO dto);
 }

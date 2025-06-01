@@ -40,6 +40,7 @@ public class SupportServiceImpl implements SupportService {
     @Override
     public WithdrawMessageVO withdrawMessage(WithdrawMessageDTO dto){
         String status = String.valueOf(messageMapper.deleteMessage(dto.getMessageId()) > 0);
+
         return WithdrawMessageVO.builder()
                 .messageId(dto.getMessageId())
                 .status(status)
@@ -49,6 +50,7 @@ public class SupportServiceImpl implements SupportService {
     @Override
     public EmployeeInfoVO getEmployeeInfo(EmployeeInfoDTO dto){
         Employee employee = employeeMapper.getEmployeeById(dto.getEmployeeId());
+
         return EmployeeInfoVO.builder()
                 .employeeId(employee.getId())
                 .employeePhone(employee.getPhoneNum())
@@ -59,6 +61,7 @@ public class SupportServiceImpl implements SupportService {
     @Override
     public CustomerInfoVO getCustomerInfo(CustomerInfoDTO dto) {
         Customer customer = customerMapper.getCustomerById(dto.getCustomerId());
+
         return CustomerInfoVO.builder()
                 .CustomerId(dto.getCustomerId())
                 .CustomerName(customer.getName())

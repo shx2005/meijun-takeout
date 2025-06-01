@@ -11,13 +11,16 @@
     <select id="getAllCoupons" resultType="com.mo.entity.Coupon">
         select * from coupons
     </select>
+
     <insert id="saveCoupon" parameterType="com.mo.entity.Coupon" useGeneratedKeys="true" keyProperty="id">
         insert into coupons(user_id,name,description,type,value,start_time,end_time,create_time,update_time)
         values (#{userId}, #{name}, #{description}, #{type}, #{value}, #{startTime}, #{endTime}, #{createTime}, #{updateTime})
     </insert>
+
     <delete id="deleteCouponById" parameterType="Long">
         delete from coupons where id = #{couponId}
     </delete>
+
     <update id="updateCoupon" parameterType="com.mo.entity.Coupon">
         update coupons set
         <if test="coupon.userId != null">

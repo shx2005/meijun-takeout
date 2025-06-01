@@ -18,6 +18,8 @@ public class WithdrawMessageVO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "撤回信息id")
     private Long messageId;
+     @Schema(description = "操作状态")
     private String status;
 }

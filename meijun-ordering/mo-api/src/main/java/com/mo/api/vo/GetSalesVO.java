@@ -15,5 +15,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GetSalesVO {
+    @Schema(description = "总商品销售信息")
     List<Product> data;
 }

@@ -58,6 +58,7 @@ public class AfterSaleController {
     @PostMapping("/delete/{requestId}")
     public Result<String> deleteAfterSale(@PathVariable Long requestId) {
         afterSaleService.deleteAfterSale(requestId);
+
         return Result.success();
     }
 
@@ -66,6 +67,8 @@ public class AfterSaleController {
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = AfterSaleStatus.class)))
     @PostMapping("/status/{requestId}")
     public Result<AfterSaleStatus> getAfterSaleStatus(@PathVariable Long requestId) {
-        return Result.success(afterSaleService.getAfterSaleById(requestId).getStatus());
+        AfterSale sale = afterSaleService.getAfterSaleById(requestId);
+
+        return Result.success(sale.getStatus());
     }
 }

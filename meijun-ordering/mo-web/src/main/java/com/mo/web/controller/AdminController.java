@@ -4,14 +4,11 @@ import com.mo.api.dto.AdminPageQueryDTO;
 import com.mo.api.dto.AdminSaveDTO;
 import com.mo.api.dto.AdminUpdateDTO;
 import com.mo.api.service.AdminService;
-import com.mo.api.service.OrderService;
 import com.mo.common.enumeration.UserIdentity;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
 import com.mo.entity.Admin;
-import com.mo.entity.OrderDetail;
 import com.mo.entity.Product;
-import com.mo.service.mapper.AdminMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -25,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,9 +97,12 @@ public class AdminController {
         return Result.success();
     }
 
+    @Operation (summary = "获取销售数据")
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Product.class)))
     @GetMapping("/sales")
-    public Result<List<Product>> getSales(Long userId){
+    public Result<List<Product>> getSales(){
         Map<Long, Product> productDict = new HashMap<>();
+
         for(var i:adminService.getAllOrderDetail()){
             Long id = i.getItemId();
             if(productDict.containsKey(id)){
@@ -121,18 +120,26 @@ public class AdminController {
                 productDict.put(id,product);
             }
         }
-        return Result.success(productDict.values().stream().toList());
+        List<Product> list = productDict.values().stream().toList();
+
+        return Result.success(list);
     }
 
+    @Operation (summary = "获取流量数据")
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Long.class)))
     @GetMapping("/traffic")
-    public Result<Long> getTraffic(Long userId){
+    public Result<Long> getTraffic(){
         Long traffic = (long) adminService.getTraffic();
+
         return Result.success(traffic);
     }
 
+    @Operation (summary = "获取销售总额")
+    @ApiResponse (responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = BigDecimal.class)))
     @GetMapping("/sales/total")
-    public Result<BigDecimal> getSalesTotal(Long userId){
+    public Result<BigDecimal> getSalesTotal(){
         BigDecimal total = adminService.getSalesTotal();
+
         return Result.success(total);
     }
 }

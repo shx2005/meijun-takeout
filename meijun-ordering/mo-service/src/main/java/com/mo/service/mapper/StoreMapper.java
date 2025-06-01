@@ -7,6 +7,7 @@ import java.util.List;
 
 @Mapper
 public interface StoreMapper {
+
     List<Store> getAll();
 
     void updateStore(Store store);
