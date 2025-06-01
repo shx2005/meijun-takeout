@@ -3452,4 +3452,4 @@ response
 4. **修改管理员信息**
 5. **查找管理员信息**  
 参照上面的增删改查，这个写不写问题不大
->>>>>>> upstream/master
+> upstream/master
