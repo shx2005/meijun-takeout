@@ -2,6 +2,7 @@ package com.mo.web.controller;
 
 import com.mo.api.service.RedisService;
 import com.mo.common.context.BaseContext;
+import com.mo.common.enumeration.ItemType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -77,6 +78,9 @@ public class CartController {
     }
 
     @Operation(summary = "从购物车删除商品", description = "从用户购物车中删除指定商品")
+    @Parameters({
+            @Parameter(name = "cartItemId", description = "购物车商品id", required = true, schema = @Schema(implementation = Long.class))
+    })
     @DeleteMapping("/delete")
     public Result<String> deleteCartItem(@RequestParam Long cartItemId){
         cartService.deleteCart(cartItemId);

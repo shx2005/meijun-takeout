@@ -66,7 +66,7 @@ public class AdminController {
         BeanUtils.copyProperties(dto, admin);
         adminService.updateAdmin(admin);
 
-        return Result.success("更新成功");
+        return Result.success();
     }
 
     @Operation(summary = "删除管理员")
