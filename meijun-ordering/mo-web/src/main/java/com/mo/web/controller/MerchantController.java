@@ -3,13 +3,11 @@ package com.mo.web.controller;
 import com.mo.api.dto.EmployeeDTO;
 import com.mo.api.dto.EmployeePageQueryDTO;
 import com.mo.api.dto.StoreDTO;
-import com.mo.api.service.EmployeeService;
-import com.mo.api.service.OrderService;
-import com.mo.api.service.RedisService;
-import com.mo.api.service.StoreService;
+import com.mo.api.service.*;
 import com.mo.common.enumeration.OrderStatus;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
+import com.mo.entity.Customer;
 import com.mo.entity.Employee;
 import com.mo.entity.Order;
 import com.mo.entity.Store;
@@ -40,6 +38,8 @@ public class MerchantController {
     private StoreService storeService;
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private CustomerService customerService;
 
     @Operation(summary = "获取商户订单列表")
     @Parameters({
@@ -169,5 +169,18 @@ public class MerchantController {
         storeService.updateStore(store);
 
         return Result.success();
+    }
+
+    @Operation(summary = "获取所有用户")
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Customer.class)))
+    @GetMapping("/users")
+    public Result<List<Customer>> getAllCustomer() {
+        List<Customer> list = customerService.getAll();
+
+        return  Result.success(list);
+    }
+
+    public Result<List<Customer>> searchForCustomer(@RequestParam String name,  @RequestParam Long id){
+        List<Customer> list = customerService.searchForCustomer(name, id);
     }
 }

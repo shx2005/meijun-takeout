@@ -11,6 +11,9 @@
     <select id="getCustomerById" resultType="com.mo.entity.Customer">
         select * from customers where id = #{id}
     </select>
+    <select id="getAllCustomer" resultType="com.mo.entity.Customer">
+         select * from customers
+    </select>
     <insert id="saveCustomer"
             parameterType="com.mo.entity.Customer"
             useGeneratedKeys="true"
