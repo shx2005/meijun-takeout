@@ -117,8 +117,8 @@ CREATE TABLE order_comments (
 );
 
 -- 创建订单售后表
-DROP TABLE IF EXISTS order_afters;
-CREATE TABLE order_afters (
+DROP TABLE IF EXISTS after_sales;
+CREATE TABLE after_sales (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT,
     user_id INT,

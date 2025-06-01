@@ -1,5 +1,6 @@
 package com.mo.api.dto;
 
+import com.mo.common.enumeration.AfterSaleStatus;
 import com.mo.common.enumeration.AfterSaleType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -18,4 +19,6 @@ public class AfterSaleDTO implements Serializable {
     private String reason;
     @Schema(description = "售后内容")
     private String content;
+    @Schema(description = "售后状态")
+    private AfterSaleStatus status;
 }

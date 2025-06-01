@@ -1,12 +1,11 @@
-package com.mo.service.mapper;
+package com.mo.api.service;
 
 import com.mo.entity.AfterSale;
-import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Service;
 
-@Mapper
-public interface AfterSaleMapper {
+public interface AfterSaleService {
     void saveAfterSale(AfterSale afterSale);
-    AfterSale getAfterSaleById(Long id);
     int updateAfterSale(AfterSale afterSale);
     int deleteAfterSale(Long id);
+    AfterSale getAfterSaleById(Long id);
 }
