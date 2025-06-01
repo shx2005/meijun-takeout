@@ -4,10 +4,13 @@ import com.mo.api.dto.AdminPageQueryDTO;
 import com.mo.api.dto.AdminSaveDTO;
 import com.mo.api.dto.AdminUpdateDTO;
 import com.mo.api.service.AdminService;
+import com.mo.api.service.OrderService;
 import com.mo.common.enumeration.UserIdentity;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
 import com.mo.entity.Admin;
+import com.mo.entity.OrderDetail;
+import com.mo.entity.Product;
 import com.mo.service.mapper.AdminMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,21 +21,22 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/admin")
 @Tag(name = "管理员接口")
 public class AdminController {
-
-    private final AdminService adminService;
-
-    public AdminController(AdminService adminService) {
-        this.adminService = adminService;
-    }
+    @Autowired
+    private AdminService adminService;
 
     @Operation(summary = "获取所有管理员")
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Admin.class)))
@@ -95,5 +99,40 @@ public class AdminController {
         adminService.saveAdmin(admin);
 
         return Result.success();
+    }
+
+    @GetMapping("/sales")
+    public Result<List<Product>> getSales(Long userId){
+        Map<Long, Product> productDict = new HashMap<>();
+        for(var i:adminService.getAllOrderDetail()){
+            Long id = i.getItemId();
+            if(productDict.containsKey(id)){
+                productDict.compute(i.getItemId(),(key, value) -> {
+                    value.setSales(value.getSales() + i.getQuantity());
+                    return value;
+                });
+            }
+            else{
+                Product product = new Product();
+                product.setProductId(id);
+                product.setName(i.getName());
+                product.setSales(Long.valueOf(i.getQuantity()));
+                product.setType(i.getItemType());
+                productDict.put(id,product);
+            }
+        }
+        return Result.success(productDict.values().stream().toList());
+    }
+
+    @GetMapping("/traffic")
+    public Result<Long> getTraffic(Long userId){
+        Long traffic = (long) adminService.getTraffic();
+        return Result.success(traffic);
+    }
+
+    @GetMapping("/sales/total")
+    public Result<BigDecimal> getSalesTotal(Long userId){
+        BigDecimal total = adminService.getSalesTotal();
+        return Result.success(total);
     }
 }

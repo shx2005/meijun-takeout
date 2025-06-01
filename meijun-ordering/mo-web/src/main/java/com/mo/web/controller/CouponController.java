@@ -18,10 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -52,7 +49,7 @@ public class CouponController {
     })
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = CouponValidateVo.class)))
     @PostMapping("/validate")
-    public Result<CouponValidateVo> checkCoupon(CouponValidateDTO couponValidateDTO) {
+    public Result<CouponValidateVo> checkCoupon(@RequestBody CouponValidateDTO couponValidateDTO) {
         CouponValidateVo couponValidateVo = couponService.validateCoupon(couponValidateDTO);
         return Result.success(couponValidateVo);
     }

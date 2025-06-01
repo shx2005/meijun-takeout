@@ -8,5 +8,10 @@ import java.util.List;
 
 public interface CouponService {
     List<Coupon> getCouponByUserId(Long userId);
+    List<Coupon> getAllCoupons();
+    Coupon getCouponById(Long couponId);
+    Long saveCoupon(Coupon coupon);
     CouponValidateVo validateCoupon(CouponValidateDTO couponValidateDTO);
+    void deleteCouponById(Long couponId);
+    void updateCoupon(Coupon coupon);
 }

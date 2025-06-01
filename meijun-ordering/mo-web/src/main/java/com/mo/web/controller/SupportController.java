@@ -1,10 +1,12 @@
 package com.mo.web.controller;
 
-import com.mo.api.dto.CustomerServiceInfoDTO;
+import com.mo.api.dto.CustomerInfoDTO;
+import com.mo.api.dto.EmployeeInfoDTO;
 import com.mo.api.dto.SendMessageDTO;
 import com.mo.api.dto.WithdrawMessageDTO;
 import com.mo.api.service.SupportService;
-import com.mo.api.vo.CustomerServiceInfoVO;
+import com.mo.api.vo.CustomerInfoVO;
+import com.mo.api.vo.EmployeeInfoVO;
 import com.mo.api.vo.SendMessageVO;
 import com.mo.api.vo.WithdrawMessageVO;
 import com.mo.common.enumeration.MessageStaus;
@@ -28,23 +30,46 @@ public class SupportController {
     }
 
     @PostMapping("/customer/messages")
-    public Result<SendMessageVO> sendMessageFromCustomer(SendMessageDTO dto){
+    public Result<SendMessageVO> sendMessageFromCustomer(@RequestBody SendMessageDTO dto){
         Message message = new Message();
         BeanUtils.copyProperties(dto, message);
         message.setStaus(MessageStaus.unread);
+        message.setSenderType(0);
 
         SendMessageVO vo = supportService.sendMessage(message);
 
         return Result.success(vo);
     }
 
-    @PostMapping("/customer/info")
-    public Result<CustomerServiceInfoVO> getCustomerServiceInfo(CustomerServiceInfoDTO dto){
-        return Result.success(supportService.getCustomerServiceInfo(dto));
+    @GetMapping("/customer/info")
+    public Result<EmployeeInfoVO> getCustomerServiceInfo(@RequestBody EmployeeInfoDTO dto){
+        return Result.success(supportService.getEmployeeInfo(dto));
     }
 
     @DeleteMapping("customer/messages")
-    public Result<WithdrawMessageVO> withdrawMessage(WithdrawMessageDTO dto){
+    public Result<WithdrawMessageVO> withdrawMessageFromCustomer(@RequestBody WithdrawMessageDTO dto){
+        return Result.success(supportService.withdrawMessage(dto));
+    }
+
+    @PostMapping("/employee/messages")
+    public Result<SendMessageVO> sendMessageFromEmployee(@RequestBody SendMessageDTO dto){
+        Message message = new Message();
+        BeanUtils.copyProperties(dto, message);
+        message.setStaus(MessageStaus.unread);
+        message.setSenderType(1);
+
+        SendMessageVO vo = supportService.sendMessage(message);
+
+        return Result.success(vo);
+    }
+
+    @GetMapping("/employee/info")
+    public Result<CustomerInfoVO> getCustomerServiceInfo(@RequestBody CustomerInfoDTO dto){
+        return Result.success(supportService.getCustomerInfo(dto));
+    }
+
+    @DeleteMapping("employee/messages")
+    public Result<WithdrawMessageVO> withdrawMessageFromEmployee(@RequestBody WithdrawMessageDTO dto){
         return Result.success(supportService.withdrawMessage(dto));
     }
 }

@@ -6,6 +6,8 @@ import com.mo.service.mapper.AfterSaleMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AfterSaleServiceImpl implements AfterSaleService {
     @Autowired
@@ -29,5 +31,10 @@ public class AfterSaleServiceImpl implements AfterSaleService {
     @Override
     public AfterSale getAfterSaleById(Long id){
         return afterSaleMapper.getAfterSaleById(id);
+    }
+
+    @Override
+    public List<AfterSale> getAfterSales() {
+        return afterSaleMapper.getAfterSales();
     }
 }

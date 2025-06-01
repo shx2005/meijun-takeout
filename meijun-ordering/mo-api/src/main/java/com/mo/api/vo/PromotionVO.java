@@ -9,17 +9,15 @@ import lombok.NoArgsConstructor;
 import java.io.Serial;
 import java.io.Serializable;
 
-@Schema(description = "获取客服信息VO")
+@Schema(description = "促销VO")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CustomerServiceInfoVO implements Serializable {
+public class PromotionVO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private Long employeeId;
-    private String employeeName;
-    private String employAvatar;
-    private String employeePhone;
+    private Long promotionId;
+    private String status;
 }

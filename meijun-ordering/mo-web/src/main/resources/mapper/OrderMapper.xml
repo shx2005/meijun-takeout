@@ -22,4 +22,7 @@
         insert into orders(customer_id, merchant_id, orderTime, status, total)
         values(#{userId}, #{merchantId}, #{orderTime}, #{status}, #{total})
     </insert>
+    <select id="getOrderByPeriod" resultType="com.mo.entity.Order">
+        select * from orders where create_time between #{startDate} AND #{endDate}
+    </select>
 </mapper>

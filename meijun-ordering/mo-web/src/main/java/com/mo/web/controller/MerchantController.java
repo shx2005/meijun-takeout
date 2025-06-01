@@ -1,16 +1,14 @@
 package com.mo.web.controller;
 
-import com.mo.api.dto.EmployeeDTO;
-import com.mo.api.dto.EmployeePageQueryDTO;
-import com.mo.api.dto.StoreDTO;
+import com.mo.api.dto.*;
 import com.mo.api.service.*;
+import com.mo.api.vo.CouponVO;
+import com.mo.api.vo.PromotionVO;
+import com.mo.common.enumeration.AfterSaleStatus;
 import com.mo.common.enumeration.OrderStatus;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
-import com.mo.entity.Customer;
-import com.mo.entity.Employee;
-import com.mo.entity.Order;
-import com.mo.entity.Store;
+import com.mo.entity.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -40,6 +38,12 @@ public class MerchantController {
     private RedisService redisService;
     @Autowired
     private CustomerService customerService;
+    @Autowired
+    private AfterSaleService afterSaleService;
+    @Autowired
+    private CouponService couponService;
+    @Autowired
+    private PromotionService promotionService;
 
     @Operation(summary = "获取商户订单列表")
     @Parameters({
@@ -190,6 +194,106 @@ public class MerchantController {
     public Result<List<Customer>> searchForCustomer(@RequestParam String name,  @RequestParam Long id){
         List<Customer> list = customerService.searchForCustomer(name, id);
 
-        return  Result.success(list);
+        return Result.success(list);
+    }
+
+    @GetMapping("/after-sale")
+    public Result<List<AfterSale>> getAfterSales() {
+        return Result.success(afterSaleService.getAfterSales());
+    }
+
+    @PostMapping("/after-sale/approve")
+    public Result<AfterSaleStatus> approveAfterSale(@RequestBody ApproveDTO approveDTO){
+        AfterSale afterSale = new AfterSale();
+        afterSale.setStatus(AfterSaleStatus.approved);
+        afterSale.setId(approveDTO.getRequestId());
+        afterSaleService.updateAfterSale(afterSale);
+        return Result.success(AfterSaleStatus.approved);
+    }
+
+    @PostMapping("/after-sale/reject")
+    public Result<AfterSaleStatus> RejectAfterSale(@RequestBody ApproveDTO approveDTO){
+        AfterSale afterSale = new AfterSale();
+        afterSale.setStatus(AfterSaleStatus.rejected);
+        afterSale.setId(approveDTO.getRequestId());
+        afterSaleService.updateAfterSale(afterSale);
+        return Result.success(AfterSaleStatus.rejected);
+    }
+
+    @GetMapping("/coupons")
+    public Result<List<Coupon>> getCoupons(Long userId) {
+        return Result.success(couponService.getAllCoupons());
+    }
+
+    @PostMapping("/coupons")
+    public Result<CouponVO> addCoupon(@RequestBody CouponDTO dto) {
+        Coupon coupon = new Coupon();
+        BeanUtils.copyProperties(dto, coupon);
+        coupon.setUserId(null);
+        Long couponId = couponService.saveCoupon(coupon);
+        return Result.success(CouponVO.builder()
+                .couponId(couponId)
+                .status("success")
+                .build());
+    }
+
+    @DeleteMapping("/coupons/{couponId}")
+    public Result<String> deleteCoupon(@PathVariable Long couponId, Long userId) {
+        couponService.deleteCouponById(couponId);
+        return Result.success("success");
+    }
+
+    @PutMapping("/coupons/{couponId}")
+    public Result<CouponVO> updateCoupon(@PathVariable Long couponId, @RequestBody CouponDTO dto) {
+        Coupon coupon = new Coupon();
+        BeanUtils.copyProperties(dto, coupon);
+        coupon.setUserId(null);
+        coupon.setId(couponId);
+        couponService.updateCoupon(coupon);
+        return Result.success(CouponVO.builder()
+                .couponId(couponId)
+                .status("success")
+                .build());
+    }
+
+    @PostMapping("/coupons/distribute")
+    public Result<String> distributeCoupon(@RequestBody DistributeCouponDTO dto) {
+        Coupon coupon = couponService.getCouponById(dto.getCouponId());
+        for(Long customerId : dto.getCustomerIds()) {
+            coupon.setUserId(customerId);
+            couponService.saveCoupon(coupon);
+        }
+        return Result.success("success");
+    }
+
+    @GetMapping("/promotions")
+    public Result<List<Promotion>> getPromotions(Long userId) {
+        return Result.success(promotionService.getPromotion());
+    }
+
+    @PostMapping("/promotions")
+    public Result<PromotionVO> savePromotion(@RequestBody PromotionDTO dto) {
+        Promotion promotion = new Promotion();
+        BeanUtils.copyProperties(dto, promotion);
+        promotionService.savePromotion(promotion);
+        return Result.success(PromotionVO.builder()
+                .promotionId(promotion.getId())
+                .status("success")
+                .build());
+    }
+
+    @DeleteMapping("/promotions/{promotionId}")
+    public Result<String> deletePromotion(@PathVariable Long promotionId, Long userId) {
+        promotionService.deletePromotion(promotionId);
+        return Result.success("success");
+    }
+
+    @PutMapping("/promotions/{promotionId}")
+    public Result<String> updatePromotion(@PathVariable Long promotionId, @RequestBody PromotionDTO dto) {
+        Promotion promotion = new Promotion();
+        BeanUtils.copyProperties(dto, promotion);
+        promotion.setId(promotionId);
+        promotionService.updatePromotion(promotion);
+        return Result.success("success");
     }
 }

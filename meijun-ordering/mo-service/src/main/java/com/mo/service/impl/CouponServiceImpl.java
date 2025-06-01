@@ -7,6 +7,7 @@ import com.mo.common.constant.MessageConstant;
 import com.mo.common.exception.CouponInvalidateException;
 import com.mo.entity.Coupon;
 import com.mo.entity.Order;
+import com.mo.service.annotation.AutoFillTime;
 import com.mo.service.mapper.CouponMapper;
 import com.mo.service.mapper.OrderMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,24 @@ public class CouponServiceImpl implements CouponService {
         return couponMapper.getCouponByUserId(userId);
     }
 
+    @Override
+    public List<Coupon> getAllCoupons() {
+        return couponMapper.getAllCoupons();
+    }
+
+    @Override
+    public Coupon getCouponById(Long couponId) {
+        return couponMapper.getCouponById(couponId);
+    }
+
+    @Override
+    @AutoFillTime
+    public Long saveCoupon(Coupon coupon) {
+        couponMapper.saveCoupon(coupon);
+        return coupon.getId();
+    }
+
+    @Override
     public CouponValidateVo validateCoupon(CouponValidateDTO couponValidateDTO) {
         Coupon coupon = couponMapper.getCouponById(couponValidateDTO.getCouponId());
         LocalDateTime now = LocalDateTime.now();
@@ -42,6 +61,17 @@ public class CouponServiceImpl implements CouponService {
         }
 
         throw new CouponInvalidateException(MessageConstant.COUPON_INVALITE_BY_TIME);
+    }
+
+    @Override
+    public void deleteCouponById(Long couponId) {
+        couponMapper.deleteCouponById(couponId);
+    }
+
+    @Override
+    @AutoFillTime
+    public void updateCoupon(Coupon coupon) {
+        couponMapper.updateCoupon(coupon);
     }
 
     private static BigDecimal getBigDecimal(Order order, Coupon coupon) {

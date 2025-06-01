@@ -1,22 +1,21 @@
 package com.mo.api.dto;
 
-import com.mo.api.service.SupportService;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 
+@Schema(name = "发放优惠券DTO")
 @Data
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
-public class CustomerServiceInfoDTO implements Serializable {
+public class DistributeCouponDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
     private Long userId;
-    private Long employeeId;
+    private Long couponId;
+    private List<Long> customerIds;
 }

@@ -15,10 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -34,7 +31,7 @@ public class AfterSaleController {
     })
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = String.class)))
     @PostMapping("/save")
-    public Result<String> saveAfterSale(AfterSaleDTO afterSaleDTO) {
+    public Result<String> saveAfterSale(@RequestBody AfterSaleDTO afterSaleDTO) {
         AfterSale afterSale = new AfterSale();
         BeanUtils.copyProperties(afterSaleDTO, afterSale);
         afterSaleService.saveAfterSale(afterSale);
@@ -47,7 +44,7 @@ public class AfterSaleController {
     })
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = String.class)))
     @PostMapping("/update/{requestId}")
-    public Result<String> updateAfterSale(AfterSaleDTO afterSaleDTO, @PathVariable Long requestId) {
+    public Result<String> updateAfterSale(@RequestBody AfterSaleDTO afterSaleDTO, @PathVariable Long requestId) {
         AfterSale afterSale = new AfterSale();
         BeanUtils.copyProperties(afterSaleDTO, afterSale);
         afterSale.setOrderId(requestId);

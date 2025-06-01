@@ -27,6 +27,7 @@
             <if test="admin.updateTime != null" >
                 updateTime = #{admin.updateTime}
             </if>
+        where id = #{id}
     </update>
     <insert id="saveAdmin"
             parameterType="com.mo.entity.Admin"

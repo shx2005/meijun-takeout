@@ -40,4 +40,7 @@
     <select id="getAfterSaleById" parameterType="Long" resultType="com.mo.entity.AfterSale">
         select * from after_sales where id = #{id}
     </select>
+    <select id="getAfterSales" resultType="AfterSale">
+        select * from after_sales where status = "pending"
+    </select>
 </mapper>
