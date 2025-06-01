@@ -20,4 +20,9 @@ public class CustomerServiceImpl implements CustomerService {
     public List<Customer> getAll(){
         return customerMapper.getAllCustomer();
     }
+
+    @Override
+    public List<Customer> searchForCustomer(String name, Long id){
+        return customerMapper.searchForCustomer(name, id);
+    }
 }

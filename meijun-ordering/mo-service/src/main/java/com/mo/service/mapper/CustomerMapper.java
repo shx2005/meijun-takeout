@@ -19,4 +19,6 @@ public interface CustomerMapper {
     Customer getCustomerById(Long id);
 
     List<Customer> getAllCustomer();
+
+    List<Customer> searchForCustomer(String name, Long id);
 }
