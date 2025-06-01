@@ -8,6 +8,9 @@
     <select id="getEmployeeByUuid" resultType="com.mo.entity.Employee">
         select * from employees where uuid = #{uuid}
     </select>
+    <select id="getEmployeeById" resultType="com.mo.entity.Employee">
+        select * from employees where id = #{id}
+    </select>
     <select id="getAll" resultType="com.mo.entity.Employee">
         select * from employees where status = 1
     </select>

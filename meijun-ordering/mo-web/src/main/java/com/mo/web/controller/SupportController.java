@@ -1,17 +1,19 @@
 package com.mo.web.controller;
 
+import com.mo.api.dto.CustomerServiceInfoDTO;
 import com.mo.api.dto.SendMessageDTO;
+import com.mo.api.dto.WithdrawMessageDTO;
 import com.mo.api.service.SupportService;
+import com.mo.api.vo.CustomerServiceInfoVO;
 import com.mo.api.vo.SendMessageVO;
+import com.mo.api.vo.WithdrawMessageVO;
 import com.mo.common.enumeration.MessageStaus;
 import com.mo.common.result.Result;
 import com.mo.entity.Message;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -34,5 +36,15 @@ public class SupportController {
         SendMessageVO vo = supportService.sendMessage(message);
 
         return Result.success(vo);
+    }
+
+    @PostMapping("/customer/info")
+    public Result<CustomerServiceInfoVO> getCustomerServiceInfo(CustomerServiceInfoDTO dto){
+        return Result.success(supportService.getCustomerServiceInfo(dto));
+    }
+
+    @DeleteMapping("customer/messages")
+    public Result<WithdrawMessageVO> withdrawMessage(WithdrawMessageDTO dto){
+        return Result.success(supportService.withdrawMessage(dto));
     }
 }

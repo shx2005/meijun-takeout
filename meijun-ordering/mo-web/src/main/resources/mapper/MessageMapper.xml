@@ -9,4 +9,10 @@
         insert into messages(user_id,employee_id,order_id,title,content)
         values(#{userId},#{employeeId},#{orderId},#{title},#{content})
     </insert>
+    <delete id="deleteMessage" parameterType="Long">
+        delete from messages where id = #{id}
+    </delete>
+    <select id="getMessageById" parameterType="Long" resultType="com.mo.entity.Message">
+        select * from messages where id = #{id}
+    </select>
 </mapper>
