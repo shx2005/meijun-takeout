@@ -5,4 +5,33 @@
     <select id="getPromotion" resultType="com.mo.entity.Promotion">
         select * from promotions
     </select>
+
+    <insert id="savePromotion" parameterType="com.mo.entity.Promotion" useGeneratedKeys="true" keyProperty="id">
+        insert into promotions (name,description,start_time,end_time,create_time,update_time)
+        values (#{name},#{description},#{startTime},#{endTime},#{createTime},#{updateTime})
+    </insert>
+
+    <delete id="deletePromotionById" parameterType="Long">
+        delete from promotions where id = #{promotionId}
+    </delete>
+
+    <update id="updatePromotion" parameterType="com.mo.entity.Promotion">
+        update promotions set
+        <if test="promotion.name != null">
+            name = #{name}
+        </if>
+        <if test="promotion.description != null">
+            description = #{description}
+        </if>
+        <if test="promotion.startTime != null">
+            start_time = #{startTime}
+        </if>
+        <if test="promotion.endTime != null">
+            end_time = #{endTime}
+        </if>
+        <if test="promotion.updateTime != null">
+            update_time = #{updateTime}
+        </if>
+        where id = #{id}
+    </update>
 </mapper>

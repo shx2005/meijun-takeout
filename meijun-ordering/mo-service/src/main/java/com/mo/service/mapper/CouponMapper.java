@@ -7,6 +7,13 @@ import java.util.List;
 
 @Mapper
 public interface CouponMapper {
+
     List<Coupon> getCouponByUserId(Long userId);
+    List<Coupon> getAllCoupons();
+
+    void saveCoupon(Coupon coupon);
+    void deleteCouponById(Long couponId);
+    void updateCoupon(Coupon coupon);
+
     Coupon getCouponById(Long couponId);
 }

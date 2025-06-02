@@ -8,6 +8,9 @@
     <select id="getEmployeeByUuid" resultType="com.mo.entity.Employee">
         select * from employees where uuid = #{uuid}
     </select>
+    <select id="getEmployeeById" resultType="com.mo.entity.Employee">
+        select * from employees where id = #{id}
+    </select>
     <select id="getAll" resultType="com.mo.entity.Employee">
         select * from employees where status = 1
     </select>
@@ -15,14 +18,16 @@
         select * from employees where status = 1
         limit #{offset},#{size}
     </select>
+
     <insert id="saveEmployee"
             parameterType="com.mo.entity.Employee"
             useGeneratedKeys="true"
             keyProperty="employee.id">
-        insert into employees (username,password,createTime,updateTime,merchant_id)
-        values (#{employee.username},#{employee.password},
+        insert into employees (username,password,uuid,createTime,updateTime,merchant_id)
+        values (#{employee.username},#{employee.password},#{employee.uuid},
                 #{employee.createTime},#{employee.updateTime},#{employee.merchant_id})
     </insert>
+
     <update id="updateEmployee" parameterType="com.mo.entity.Employee">
         update employees
         set
@@ -40,6 +45,7 @@
             </if>
         where id = #{employee.id}
     </update>
+
     <delete id="deleteEmployee">
         delete from employees where id = #{id}
     </delete>

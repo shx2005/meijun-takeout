@@ -5,6 +5,7 @@
     <select id="getAll" resultType="com.mo.entity.Store">
         select * from stores
     </select>
+
     <update id="updateStore" parameterType="com.mo.entity.Store">
         update stores
         <if test="store.name != null">

@@ -11,6 +11,20 @@
     <select id="getCustomerById" resultType="com.mo.entity.Customer">
         select * from customers where id = #{id}
     </select>
+    <select id="getAllCustomer" resultType="com.mo.entity.Customer">
+         select * from customers
+    </select>
+    <select id="searchForCustomer" resultType="com.mo.entity.Customer">
+        select * from customers where
+            <if test="name != null and name != ''">
+                name like concat('%',#{name},'%')
+            </if>
+        or
+            <if test="id != null">
+                id = #{id}
+            </if>
+    </select>
+
     <insert id="saveCustomer"
             parameterType="com.mo.entity.Customer"
             useGeneratedKeys="true"

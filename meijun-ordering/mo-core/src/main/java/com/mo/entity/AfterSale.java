@@ -5,12 +5,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.mo.common.enumeration.AfterSaleType;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
 
 @Schema(name = "售后信息")
 @Data
+@NoArgsConstructor
 public class AfterSale implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

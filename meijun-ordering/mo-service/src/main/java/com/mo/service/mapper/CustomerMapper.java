@@ -4,9 +4,13 @@ import com.mo.entity.Customer;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 @Mapper
 public interface CustomerMapper {
+
     Customer getCustomerByUsername(@Param("username") String username);
+
     Customer getCustomerByUuid(@Param("uuid") String uuid);
 
     void saveCustomer(@Param("customer") Customer customer);
@@ -14,4 +18,8 @@ public interface CustomerMapper {
     void updateCustomer(Customer customer);
 
     Customer getCustomerById(Long id);
+
+    List<Customer> getAllCustomer();
+
+    List<Customer> searchForCustomer(String name, Long id);
 }

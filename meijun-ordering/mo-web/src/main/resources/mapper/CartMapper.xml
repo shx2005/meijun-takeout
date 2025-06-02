@@ -2,6 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.mo.service.mapper.CartMapper">
+    <select id="getAll" resultType="com.mo.entity.Cart">
+        select * from carts
+    </select>
+
     <insert id="createCartIfNotExists">
         INSERT INTO carts (user_id)
         SELECT #{userId}
@@ -16,6 +20,7 @@
         insert into carts (user_id, createTime, updateTime)
         values (#{cart.userId}, #{cart.createTime}, #{cart.updateTime})
     </insert>
+
     <delete id="deleteCartByUserId">
         DELETE FROM carts WHERE user_id = #{userId}
     </delete>

@@ -9,4 +9,8 @@
         insert into order_details(name, order_id, item_id, item_type, dish_flavor, quantity, unit, total, image)
         values(#{name}, #{orderId}, #{itemId}, #{itemType}, #{dishFlavor}, #{quantity}, #{unit}, #{total}, #{image})
     </insert>
+
+    <select id="getAllOrderDetail" resultType="com.mo.entity.OrderDetail">
+        select * from order_details
+    </select>
 </mapper>

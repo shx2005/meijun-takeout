@@ -3,6 +3,7 @@ package com.mo.service.impl;
 import com.mo.api.service.DishService;
 import com.mo.entity.Dish;
 import com.mo.service.annotation.AutoFillTime;
+import com.mo.service.annotation.AutoFillUser;
 import com.mo.service.mapper.DishMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,7 @@ public class DishServiceImpl implements DishService {
 
     @Override
     @AutoFillTime
+    @AutoFillUser
     public void saveDish(Dish dish) {
         dishMapper.saveDish(dish);
     }

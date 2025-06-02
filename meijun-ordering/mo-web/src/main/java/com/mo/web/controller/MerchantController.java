@@ -1,18 +1,14 @@
 package com.mo.web.controller;
 
-import com.mo.api.dto.EmployeeDTO;
-import com.mo.api.dto.EmployeePageQueryDTO;
-import com.mo.api.dto.StoreDTO;
-import com.mo.api.service.EmployeeService;
-import com.mo.api.service.OrderService;
-import com.mo.api.service.RedisService;
-import com.mo.api.service.StoreService;
+import com.mo.api.dto.*;
+import com.mo.api.service.*;
+import com.mo.api.vo.CouponVO;
+import com.mo.api.vo.PromotionVO;
+import com.mo.common.enumeration.AfterSaleStatus;
 import com.mo.common.enumeration.OrderStatus;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
-import com.mo.entity.Employee;
-import com.mo.entity.Order;
-import com.mo.entity.Store;
+import com.mo.entity.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -40,6 +36,14 @@ public class MerchantController {
     private StoreService storeService;
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private CustomerService customerService;
+    @Autowired
+    private AfterSaleService afterSaleService;
+    @Autowired
+    private CouponService couponService;
+    @Autowired
+    private PromotionService promotionService;
 
     @Operation(summary = "获取商户订单列表")
     @Parameters({
@@ -101,7 +105,7 @@ public class MerchantController {
 
         List<Employee> list = employeeService.getEmployeePage(offset, size);
 
-        return PageResult.success();
+        return PageResult.success(list.size(), list, pageNum, pageSize);
     }
 
     @Operation(summary = "保存员工信息")
@@ -113,6 +117,7 @@ public class MerchantController {
     public Result<Employee> saveEmployee(EmployeeDTO employeeDTO){
         Employee employee = new Employee();
         BeanUtils.copyProperties(employeeDTO, employee);
+
         employeeService.saveEmployee(employee);
 
         return Result.success(employee);
@@ -129,6 +134,7 @@ public class MerchantController {
         Employee employee = new Employee();
         BeanUtils.copyProperties(employeeDTO, employee);
         employee.setId(id);
+
         employeeService.updateEmployee(employee);
 
         return Result.success();
@@ -167,6 +173,197 @@ public class MerchantController {
         BeanUtils.copyProperties(storeDTO, store);
         store.setId(id);
         storeService.updateStore(store);
+
+        return Result.success();
+    }
+
+    @Operation(summary = "获取所有用户")
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Customer.class)))
+    @GetMapping("/users")
+    public Result<List<Customer>> getAllCustomer() {
+        List<Customer> list = customerService.getAll();
+
+        return  Result.success(list);
+    }
+
+    @Operation(summary = "搜索用户")
+    @Parameters ({
+            @Parameter(name = "name", description = "用户名", required = true),
+            @Parameter(name = "id", description = "用户ID", required = true)
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Customer.class)))
+    @GetMapping("/users/search")
+    public Result<List<Customer>> searchForCustomer(@RequestParam String name,  @RequestParam Long id){
+        List<Customer> list = customerService.searchForCustomer(name, id);
+
+        return Result.success(list);
+    }
+
+    @Operation(summary = "获取售后列表")
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = AfterSale.class)))
+    @GetMapping("/after-sale")
+    public Result<List<AfterSale>> getAfterSales() {
+        return Result.success(afterSaleService.getAfterSales());
+    }
+
+    @Operation(summary = "审批售后")
+    @Parameters({
+            @Parameter(name = "approveDTO", description = "审批参数", required = true, schema = @Schema(implementation = ApproveDTO.class))
+    })
+    @PostMapping("/after-sale/approve")
+    public Result<String> approveAfterSale(@RequestBody ApproveDTO approveDTO){
+        AfterSale afterSale = new AfterSale();
+        afterSale.setStatus(AfterSaleStatus.approved);
+        afterSale.setId(approveDTO.getRequestId());
+
+        afterSaleService.updateAfterSale(afterSale);
+
+        return Result.success();
+    }
+
+    @Operation(summary = "拒绝售后")
+    @Parameters({
+            @Parameter(name = "approveDTO", description = "审批参数", required = true, schema = @Schema(implementation = ApproveDTO.class))
+    })
+    @PostMapping("/after-sale/reject")
+    public Result<String> RejectAfterSale(@RequestBody ApproveDTO approveDTO){
+        AfterSale afterSale = new AfterSale();
+        afterSale.setStatus(AfterSaleStatus.rejected);
+        afterSale.setId(approveDTO.getRequestId());
+
+        afterSaleService.updateAfterSale(afterSale);
+
+        return Result.success();
+    }
+
+    @Operation(summary = "获取优惠券列表")
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Coupon.class)))
+    @GetMapping("/coupons")
+    public Result<List<Coupon>> getCoupons() {
+        List<Coupon> list = couponService.getAllCoupons();
+
+        return Result.success(list);
+    }
+
+    @Operation(summary = "添加优惠券")
+    @Parameters({
+            @Parameter(name = "couponDTO", description = "优惠券参数", required = true, schema = @Schema(implementation = CouponDTO.class))
+    })
+     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = CouponVO.class)))
+    @PostMapping("/coupons")
+    public Result<CouponVO> addCoupon(@RequestBody CouponDTO dto) {
+        Coupon coupon = new Coupon();
+        BeanUtils.copyProperties(dto, coupon);
+        coupon.setUserId(null);
+
+        Long couponId = couponService.saveCoupon(coupon);
+
+        CouponVO couponVO = CouponVO.builder()
+                .couponId(couponId)
+                .status("success")
+                .build();
+
+        return Result.success(couponVO);
+    }
+
+    @Operation(summary = "删除优惠券")
+    @Parameter( name = "couponId", description = "优惠券ID", required = true)
+    @DeleteMapping("/coupons/{couponId}")
+    public Result<String> deleteCoupon(@PathVariable Long couponId) {
+        couponService.deleteCouponById(couponId);
+
+        return Result.success();
+    }
+
+    @Operation(summary = "修改优惠券")
+    @Parameters({
+            @Parameter(name = "couponId", description = "优惠券ID", required = true),
+            @Parameter(name = "couponDTO", description = "优惠券参数", required = true, schema = @Schema(implementation = CouponDTO.class))
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = CouponVO.class)))
+    @PutMapping("/coupons/{couponId}")
+    public Result<CouponVO> updateCoupon(@PathVariable Long couponId, @RequestBody CouponDTO dto) {
+        Coupon coupon = new Coupon();
+        BeanUtils.copyProperties(dto, coupon);
+        coupon.setUserId(null);
+        coupon.setId(couponId);
+
+        couponService.updateCoupon(coupon);
+
+        CouponVO couponVO = CouponVO.builder()
+                .couponId(couponId)
+                .status("success")
+                .build();
+
+        return Result.success(couponVO);
+    }
+
+    @Operation(summary = "发放优惠券")
+    @Parameters({
+            @Parameter (name = "distributeCouponDTO", description = "发放优惠券参数", required = true, schema = @Schema(implementation = DistributeCouponDTO.class))
+    })
+    @PostMapping("/coupons/distribute")
+    public Result<String> distributeCoupon(@RequestBody DistributeCouponDTO dto) {
+        Coupon coupon = couponService.getCouponById(dto.getCouponId());
+        List<Long> ids = dto.getCustomerIds();
+
+        for(Long customerId : ids) {
+            coupon.setUserId(customerId);
+            couponService.saveCoupon(coupon);
+        }
+
+        return Result.success();
+    }
+
+    @Operation(summary = "获取优惠活动列表")
+    @ApiResponse (responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Promotion.class)))
+    @GetMapping("/promotions")
+    public Result<List<Promotion>> getPromotions() {
+        List<Promotion> list = promotionService.getPromotion();
+
+        return Result.success(list);
+    }
+
+    @Operation(summary = "添加优惠活动")
+    @Parameters({
+            @Parameter(name = "promotionDTO", description = "优惠活动参数", required = true, schema = @Schema(implementation = PromotionDTO.class))
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = PromotionVO.class)))
+    @PostMapping("/promotions")
+    public Result<PromotionVO> savePromotion(@RequestBody PromotionDTO dto) {
+        Promotion promotion = new Promotion();
+        BeanUtils.copyProperties(dto, promotion);
+        promotionService.savePromotion(promotion);
+
+         PromotionVO promotionVO = PromotionVO.builder()
+                .promotionId(promotion.getId())
+                .status("success")
+                .build();
+
+        return Result.success(promotionVO);
+    }
+
+    @Operation(summary = "添加优惠活动")
+    @Parameter(name = "promotionId", description =  "优惠活动ID", required = true)
+    @DeleteMapping("/promotions/{promotionId}")
+    public Result<String> deletePromotion(@PathVariable Long promotionId) {
+        promotionService.deletePromotion(promotionId);
+
+        return Result.success();
+    }
+
+    @Operation(summary = "添加优惠活动")
+    @Parameters({
+            @Parameter(name = "promotionId", description =  "优惠活动ID", required = true),
+            @Parameter(name = "promotionDTO", description = "优惠活动参数", required = true, schema = @Schema(implementation = PromotionDTO.class))
+    })
+    @PutMapping("/promotions/{promotionId}")
+    public Result<String> updatePromotion(@PathVariable Long promotionId, @RequestBody PromotionDTO dto) {
+        Promotion promotion = new Promotion();
+        BeanUtils.copyProperties(dto, promotion);
+        promotion.setId(promotionId);
+
+        promotionService.updatePromotion(promotion);
 
         return Result.success();
     }

@@ -8,6 +8,10 @@
     <select id="getItemByUserIdAndItemId" resultType="com.mo.entity.CartItem">
         SELECT * FROM cart_items WHERE user_id = #{userId} AND item_id = #{itemId}
     </select>
+    <select id="getCartItemByUserIdAndItemId" resultType="com.mo.entity.CartItem">
+        SELECT * FROM cart_items
+        WHERE user_id = #{userId} AND item_id = #{itemId}
+    </select>
 
     <insert id="saveCartItem">
         INSERT INTO cart_items (user_id, item_id, item_type, quantity)
@@ -48,9 +52,4 @@
             </if>
         </where>
     </delete>
-
-    <select id="getCartItemByUserIdAndItemId" resultType="com.mo.entity.CartItem">
-        SELECT * FROM cart_items
-        WHERE user_id = #{userId} AND item_id = #{itemId}
-    </select>
 </mapper>

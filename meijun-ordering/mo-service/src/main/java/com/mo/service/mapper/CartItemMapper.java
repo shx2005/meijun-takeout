@@ -7,13 +7,14 @@ import java.util.List;
 
 @Mapper
 public interface CartItemMapper {
+
     List<CartItem> getItemsByUserId(Long userId);
+
     CartItem getItemByUserIdAndItemId(Long userId, Long itemId);
 
     void saveCartItem(CartItem cartItem);
     void deleteCartItemById(Long id);
     void updateCartItem(CartItem cartItem1);
-
     void deleteCartItemByUserId(Long userId);
     void deleteCartItem(CartItem item);
 }

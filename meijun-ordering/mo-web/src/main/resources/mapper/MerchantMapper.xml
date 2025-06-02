@@ -11,12 +11,13 @@
     <select id="getMerchantById" resultType="com.mo.entity.Merchant">
         select * from merchants where id = #{merchantId}
     </select>
+
     <insert id="saveMerchant"
             parameterType="com.mo.entity.Merchant"
             useGeneratedKeys="true"
             keyProperty="merchant.id">
-        insert into merchants (username,password,number,address,createTime,updateTime)
-        values (#{merchant.username},#{merchant.password},#{merchant.number},#{merchant.address},
+        insert into merchants (username,password,uuid,number,address,createTime,updateTime)
+        values (#{merchant.username},#{merchant.password},#{merchant.uuid},#{merchant.number},#{merchant.address},
                 #{merchant.createTime},#{merchant.updateTime})
     </insert>
 </mapper>

@@ -117,8 +117,8 @@ CREATE TABLE order_comments (
 );
 
 -- 创建订单售后表
-DROP TABLE IF EXISTS order_afters;
-CREATE TABLE order_afters (
+DROP TABLE IF EXISTS after_sales;
+CREATE TABLE after_sales (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT,
     user_id INT,
@@ -174,8 +174,8 @@ CREATE TABLE coupons (
     description TEXT,
     type ENUM('fixed', 'percentage'),
     value DECIMAL(10, 2),
-    min_amount DECIMAL(10, 2),
-    max_amount DECIMAL(10, 2),
+    min_amount DECIMAL(10, 2) default 0,
+    max_amount DECIMAL(10, 2) default 1000,
     start_time TIMESTAMP,
     end_time TIMESTAMP,
     createTime TIMESTAMP,
@@ -190,6 +190,20 @@ CREATE TABLE promotions (
     description TEXT,
     start_time TIMESTAMP,
     end_time TIMESTAMP,
+    createTime TIMESTAMP,
+    updateTime TIMESTAMP
+);
+
+-- 创建消息表
+CREATE TABLE messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    employee_id INT,
+    order_id INT,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    status ENUM('unread', 'read'),
+    senderType INT,
     createTime TIMESTAMP,
     updateTime TIMESTAMP
 );

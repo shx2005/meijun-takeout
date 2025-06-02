@@ -14,6 +14,10 @@ import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * 自动填充实体中的createTime, updateTime
+ * @author Anesidora
+ */
 @Slf4j
 @Aspect
 @Component

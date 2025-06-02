@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mo.service.mapper.MessageMapper">
+    <insert id="saveMessage"
+            parameterType="com.mo.entity.Message"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into messages(user_id,employee_id,order_id,title,content)
+        values(#{userId},#{employeeId},#{orderId},#{title},#{content})
+    </insert>
+
+    <delete id="deleteMessage" parameterType="Long">
+        delete from messages where id = #{id}
+    </delete>
+
+    <select id="getMessageById" parameterType="Long" resultType="com.mo.entity.Message">
+        select * from messages where id = #{id}
+    </select>
+</mapper>

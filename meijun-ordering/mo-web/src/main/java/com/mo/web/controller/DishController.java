@@ -1,5 +1,6 @@
 package com.mo.web.controller;
 
+import com.mo.api.dto.DishDTO;
 import com.mo.api.dto.DishPageQueryDTO;
 import com.mo.api.service.DishService;
 import com.mo.common.result.PageResult;
@@ -13,9 +14,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.BeanUtils;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -54,5 +54,31 @@ public class DishController {
         List<Dish> list = dishService.getPage(offset,size);
 
         return PageResult.success(list.size(), list, pageNum, pageSize);
+    }
+
+    @Operation(summary = "添加菜品")
+    @Parameters({
+            @Parameter(name = "dishDTO", schema = @Schema(implementation = DishDTO.class))
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Result.class)))
+    @PostMapping("/save")
+    public Result<String> saveDish(@RequestBody DishDTO dishDTO){
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dishDTO, dish);
+        dishService.saveDish(dish);
+
+        return Result.success();
+    }
+
+    @Operation(summary = "获取搜索菜品")
+    @Parameters({
+            @Parameter(name = "name", schema = @Schema(implementation = String.class))
+    })
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Dish.class)))
+    @GetMapping("/search")
+    public Result<List<Dish>> getSearchResult(@RequestParam String name){
+        List<Dish> dishes = dishService.getSearchResult(name);
+
+        return Result.success(dishes);
     }
 }

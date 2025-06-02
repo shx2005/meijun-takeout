@@ -8,8 +8,10 @@ import java.util.List;
 
 @Mapper
 public interface EmployeeMapper {
+
     Employee getEmployeeByUsername(@Param("username") String username);
     Employee getEmployeeByUuid(@Param("uuid") String uuid);
+    Employee getEmployeeById(@Param("id") Long id);
 
     List<Employee> getAll();
 

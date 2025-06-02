@@ -11,6 +11,10 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+/**
+ * 自动填充createUser, updateUser
+ * @author Anesidora
+ */
 @Slf4j
 @Aspect
 @Component

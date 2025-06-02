@@ -1,4 +1,4 @@
-package com.mo.service.typehandler;
+package com.mo.web.handler;
 
 import com.mo.common.enumeration.ItemType;
 import org.apache.ibatis.type.BaseTypeHandler;

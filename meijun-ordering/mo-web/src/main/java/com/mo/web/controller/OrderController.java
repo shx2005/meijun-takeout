@@ -56,7 +56,7 @@ public class OrderController {
             @Parameter(name = "orderPageQueryDTO", schema = @Schema(implementation = OrderPageQueryDTO.class))
     })
     @GetMapping("/page")
-    public PageResult getPage(OrderPageQueryDTO orderPageQueryDTO){
+    public PageResult getPage(@RequestBody OrderPageQueryDTO orderPageQueryDTO){
         int pageNum = orderPageQueryDTO.getPage();
         int pageSize = orderPageQueryDTO.getSize();
         Long userId = orderPageQueryDTO.getId();
@@ -87,7 +87,7 @@ public class OrderController {
     })
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = OrderComment.class)))
     @PostMapping("/comment")
-    public Result<OrderComment> saveOrderComment(OrderCommentDTO orderCommentDTO){
+    public Result<OrderComment> saveOrderComment(@RequestBody OrderCommentDTO orderCommentDTO){
         Long orderId = orderCommentDTO.getOrderId();
         String content = orderCommentDTO.getComment();
         OrderComment orderComment = orderService.saveOrderComment(orderId, content);
@@ -100,7 +100,7 @@ public class OrderController {
             @Parameter(name = "orderAfterSaleDTO", description = "订单售后参数", required = true, schema = @Schema(implementation = AfterSaleDTO.class))
     })
     @PostMapping("/after-sale")
-    public Result<String> applyForAfterSale(AfterSaleDTO afterSaleDTO){
+    public Result<String> applyForAfterSale(@RequestBody AfterSaleDTO afterSaleDTO){
         AfterSale afterSale = new AfterSale();
         BeanUtils.copyProperties(afterSaleDTO, afterSale);
         orderService.saveAfterSale(afterSale);
