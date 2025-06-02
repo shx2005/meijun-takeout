@@ -1,0 +1,34 @@
+flowchart TD
+    start([开始]) --> init[初始化UI]
+    init --> interaction[用户交互]
+    
+    interaction --> validation{进行校验?}
+    validation -->|Y| sendData[发送数据给后端]
+    validation -->|N| updateLocal[仅更新本地UI状态]
+    
+    sendData --> getData[从后端获取数据]
+    getData --> render[渲染页面]
+    
+    render --> needNav{需要导航到新页面?}
+    needNav -->|Y| route[执行路由跳转]
+    needNav -->|N| updateCurrent[更新当前页面]
+    
+    route --> loadNew[加载新页面]
+    loadNew --> continueCheck
+    updateCurrent --> continueCheck
+    updateLocal --> continueCheck
+    
+    continueCheck{继续使用应用?}
+    continueCheck -->|Y| interaction
+    continueCheck -->|N| exit[退出应用]
+    
+    exit --> stop([结束])
+    
+    %% 样式定义
+    classDef startEnd fill:#000,stroke:#000,color:white,stroke-width:2px;
+    classDef process fill:#fff,stroke:#333,stroke-width:1px;
+    classDef decision fill:#fff,stroke:#333,stroke-width:1px,shape:diamond;
+    
+    class start,stop startEnd;
+    class init,interaction,sendData,getData,render,route,loadNew,updateCurrent,updateLocal,exit process;
+    class validation,needNav,continueCheck decision; 

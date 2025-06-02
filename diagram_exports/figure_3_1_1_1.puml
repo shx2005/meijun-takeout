@@ -1,0 +1,92 @@
+@startuml
+skinparam classFontSize 16
+skinparam classFontName Arial
+skinparam classBackgroundColor White
+skinparam classBorderColor Black
+skinparam arrowColor Black
+skinparam packageBackgroundColor WhiteSmoke
+
+package "页面组件" {
+  class User {
+  }
+  
+  package "登录注册页面" {
+    class Login
+    class Register
+  }
+  
+  package "首页页面" {
+    class Index
+    class Category
+    class DishList
+  }
+  
+  package "商品详情页面" {
+    class DishDetail
+  }
+  
+  package "购物车页面" {
+    class Cart
+  }
+  
+  package "订单页面" {
+    class OrderList
+    class OrderDetail
+    class PayConfirm
+    class PaySuccess
+  }
+  
+  package "用户中心页面" {
+    class Mine
+    class Address
+    class AddressEdit
+    class Setting
+    class UserInfo
+  }
+}
+
+package "通用组件" {
+  class Navigation
+  class TabBar
+  class SearchBar
+  class Loading
+  class Empty
+  class Toast
+  class Modal
+}
+
+package "业务组件" {
+  class DishCard
+  class CartItem
+  class OrderItem
+  class AddressItem
+  class Counter
+  class RatingBar
+}
+
+' 关系连接
+User "1" -- "*" Index
+User "1" -- "*" Cart
+User "1" -- "*" OrderList
+
+Index "1" *-- "1" Category
+Index "1" *-- "1" DishList
+Category "1" -- "*" DishList
+
+DishList "1" -- "*" DishCard
+DishCard "1" -- "1" DishDetail
+DishCard "1" -- "*" Counter
+
+Cart "1" *-- "*" CartItem
+CartItem "1" -- "1" Counter
+
+OrderList "1" -- "*" OrderItem
+OrderItem "1" -- "1" OrderDetail
+
+Mine "1" -- "1" UserInfo
+Mine "1" -- "1" Address
+Mine "1" -- "1" Setting
+Address "1" -- "*" AddressItem
+AddressItem "1" -- "1" AddressEdit
+
+@enduml 

@@ -10,8 +10,8 @@
 							</view>
 							<scroll-view v-else scroll-x="true" class="address-scroll-view">
 								<view class="address-content">
-									{{address.detail}}
-								</view>
+								{{address.detail}}
+							</view>
 							</scroll-view>
 						</view>
 
@@ -270,34 +270,34 @@
 						} 
 						// 处理JSON格式的响应
 						else if (res[1].data && res[1].data.data) {
-							const userData = res[1].data.data;
+						const userData = res[1].data.data;
 							if (userData.address) {
 								console.log("从JSON中获取到地址:", userData.address);
-								
-								// 从用户信息中提取必要数据构建地址对象
-								this.address = {
-									detail: userData.address, // 地址详情
-									consignee: userData.name || userData.username || '', // 收货人姓名
-									phone: userData.phoneNum || userData.username || '', // 联系电话
-									gender: userData.gender === '男' ? 0 : 1 // 性别
-								};
-								
-								console.log("构建的地址对象:", this.address);
+						
+						// 从用户信息中提取必要数据构建地址对象
+						this.address = {
+							detail: userData.address, // 地址详情
+							consignee: userData.name || userData.username || '', // 收货人姓名
+							phone: userData.phoneNum || userData.username || '', // 联系电话
+							gender: userData.gender === '男' ? 0 : 1 // 性别
+						};
+						
+						console.log("构建的地址对象:", this.address);
 								return;
 							}
 						}
 					}
 					
 					// 如果没有成功获取地址
-					console.log("用户信息中未找到地址或获取失败");
-					this.address = null; // 地址为空时提示用户选择地址
-					
+						console.log("用户信息中未找到地址或获取失败");
+						this.address = null; // 地址为空时提示用户选择地址
+						
 					// 显示提示信息
-					uni.showToast({
-						title: '未设置地址，请从个人信息页添加地址',
-						icon: 'none',
-						duration: 2000
-					});
+						uni.showToast({
+							title: '未设置地址，请从个人信息页添加地址',
+							icon: 'none',
+							duration: 2000
+						});
 				} catch (error) {
 					console.error('获取地址失败:', error);
 					this.address = null;
@@ -428,8 +428,8 @@
 					
 					// 再次检查购物车是否为空
 					if (!this.cartData || this.cartData.length === 0) {
-						uni.$showMsg('购物车为空，请先添加商品');
-						return;
+					uni.$showMsg('购物车为空，请先添加商品');
+					return;
 					}
 				}
 				
@@ -503,11 +503,11 @@
 					// 检查响应状态
 					if (response && response[1].statusCode === 200) {
 						const res = response[1].data;
-						
+					
 						if (res && (res.code === 0 || res.code === 1 || res.code === 200 || res.success)) {
 							// 4. 订单提交成功后，清空购物车
-							// 清空本地购物车
-							uni.removeStorageSync('cartItems');
+						// 清空本地购物车
+						uni.removeStorageSync('cartItems');
 							this.cartData = [];
 							
 							// 循环调用API删除购物车中的所有商品
@@ -515,19 +515,19 @@
 							
 							// 获取订单ID
 							const orderId = res.id || res.data?.id || '';
-							
-							// 跳转到支付成功页面
-							uni.navigateTo({
+						
+						// 跳转到支付成功页面
+						uni.navigateTo({
 								url: '/pages/payConfirm/payConfirm?orderId=' + orderId
-							});
-							
-							uni.showToast({
-								title: '订单提交成功',
-								icon: 'success'
-							});
-						} else {
-							uni.showToast({
-								title: res?.msg || '订单提交失败',
+						});
+						
+						uni.showToast({
+							title: '订单提交成功',
+							icon: 'success'
+						});
+					} else {
+						uni.showToast({
+							title: res?.msg || '订单提交失败',
 								icon: 'none'
 							});
 						}

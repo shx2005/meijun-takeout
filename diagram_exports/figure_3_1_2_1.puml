@@ -1,0 +1,70 @@
+@startuml
+skinparam packageFontSize 16
+skinparam packageFontName Arial
+skinparam packageBackgroundColor White
+skinparam packageBorderColor Black
+skinparam arrowColor Black
+
+package "界面UI包" as UIPackage {
+  [页面组件]
+  [通用组件]
+  [业务组件]
+}
+
+package "API接口包" as APIPackage {
+  [用户API]
+  [商品API]
+  [购物车API]
+  [订单API]
+  [地址API]
+}
+
+package "数据处理包" as DataPackage {
+  [数据格式化]
+  [数据验证]
+  [数据缓存]
+  [状态管理]
+}
+
+package "基础设施包" as InfraPackage {
+  [网络服务]
+  [存储服务]
+  [日志服务]
+  [设备服务]
+}
+
+package "工具包" as UtilPackage {
+  [字符串处理]
+  [数值计算]
+  [时间处理]
+  [对象处理]
+}
+
+' 定义连接关系
+UIPackage -- APIPackage : 数据交互
+UIPackage -- DataPackage : 数据处理
+UIPackage -- InfraPackage : 基础服务
+UIPackage -- UtilPackage : 工具函数
+
+' 添加一些说明
+note bottom of UIPackage
+  负责用户界面展示和交互
+end note
+
+note bottom of APIPackage
+  提供与后端服务器的数据交互接口
+end note
+
+note bottom of DataPackage
+  处理数据格式转换、验证和缓存
+end note
+
+note bottom of InfraPackage
+  提供基础设施服务
+end note
+
+note bottom of UtilPackage
+  提供通用工具函数
+end note
+
+@enduml 

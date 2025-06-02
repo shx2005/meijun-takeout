@@ -258,9 +258,9 @@ export default {
                 
                 // 准备更新数据
                 const userInfoData = {
-                    name: this.editForm.name,
-                    gender: this.editForm.gender,
-                    address: this.editForm.address
+                        name: this.editForm.name,
+                        gender: this.editForm.gender,
+                        address: this.editForm.address
                 };
                 
                 // 使用API工具方法调用更新用户信息接口
@@ -270,23 +270,23 @@ export default {
                 
                 // 处理响应
                 if (response && (response.code === 0 || response.code === 200)) {
-                    uni.showToast({
-                        title: '保存成功',
-                        icon: 'success'
-                    })
-                    
-                    // 更新本地用户信息
-                    this.user.name = this.editForm.name
-                    this.user.gender = this.editForm.gender
-                    this.user.address = this.editForm.address
-                    
-                    // 更新缓存
-                    uni.setStorageSync('userInfo', this.user)
-                    
-                    // 关闭弹窗
-                    this.hideEditPopup()
-                } else {
-                    uni.showToast({
+                        uni.showToast({
+                            title: '保存成功',
+                            icon: 'success'
+                        })
+                        
+                        // 更新本地用户信息
+                        this.user.name = this.editForm.name
+                        this.user.gender = this.editForm.gender
+                        this.user.address = this.editForm.address
+                        
+                        // 更新缓存
+                        uni.setStorageSync('userInfo', this.user)
+                        
+                        // 关闭弹窗
+                        this.hideEditPopup()
+                    } else {
+                        uni.showToast({
                         title: response?.msg || '保存失败',
                         icon: 'none'
                     })

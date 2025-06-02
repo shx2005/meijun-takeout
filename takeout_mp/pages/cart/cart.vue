@@ -125,9 +125,9 @@ export default {
     async increaseQuantity(item) {
       try {
         // 先更新本地数量，提升用户体验的响应速度
-        item.quantity += 1;
-        this.calculateTotal();
-        this.saveToLocalStorage();
+      item.quantity += 1;
+      this.calculateTotal();
+      this.saveToLocalStorage();
         
         // 获取token
         const token = uni.getStorageSync('token');
@@ -187,9 +187,9 @@ export default {
       } else {
         try {
           // 先更新本地数量，提升用户体验的响应速度
-          item.quantity -= 1;
-          this.calculateTotal();
-          this.saveToLocalStorage();
+        item.quantity -= 1;
+        this.calculateTotal();
+        this.saveToLocalStorage();
           
           // 获取token
           const token = uni.getStorageSync('token');
@@ -237,12 +237,12 @@ export default {
     async removeCartItem(item) {
       try {
         // 先从本地移除，提升用户体验的响应速度
-        const index = this.cartItems.findIndex(cartItem => cartItem.id === item.id);
-        if (index > -1) {
-          // 删除数组中的项
-          this.cartItems.splice(index, 1);
-          this.calculateTotal();
-          this.saveToLocalStorage();
+      const index = this.cartItems.findIndex(cartItem => cartItem.id === item.id);
+      if (index > -1) {
+        // 删除数组中的项
+        this.cartItems.splice(index, 1);
+        this.calculateTotal();
+        this.saveToLocalStorage();
         }
         
         // 获取token
@@ -315,10 +315,10 @@ export default {
           if (res.confirm) {
             try {
               // 先清空本地购物车
-              this.cartItems = [];
-              this.totalPrice = '0.00';
+            this.cartItems = [];
+            this.totalPrice = '0.00';
               this.saveToLocalStorage();
-              
+            
               // 获取token
               const token = uni.getStorageSync('token');
               if (!token) {
@@ -331,11 +331,11 @@ export default {
               
               // 调用清空购物车API
               await this.clearCartInServer(token);
-              
-              uni.showToast({
-                title: '购物车已清空',
-                icon: 'success'
-              });
+            
+            uni.showToast({
+              title: '购物车已清空',
+              icon: 'success'
+            });
             } catch (error) {
               console.error('清空购物车失败:', error);
               uni.showToast({
@@ -426,11 +426,11 @@ export default {
         this.saveToLocalStorage();
         
         uni.hideLoading();
-        
-        // 跳转到下单页面
-        uni.navigateTo({
-          url: '/pages/addOrder/addOrder'
-        });
+      
+      // 跳转到下单页面
+      uni.navigateTo({
+        url: '/pages/addOrder/addOrder'
+      });
       } catch (error) {
         uni.hideLoading();
         console.error('处理购物车失败:', error);

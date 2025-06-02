@@ -42,7 +42,7 @@ export const employeeLoginApi = (data) => {
  */
 export const getMerchantInfoApi = () => {
   return merchantRequest.get({
-    url: '/api/v1/merchants/info'
+    url: '/api/v1/user/info'
   });
 };
 
@@ -53,7 +53,7 @@ export const getMerchantInfoApi = () => {
  */
 export const updateMerchantInfoApi = (data) => {
   return merchantRequest.put({
-    url: '/api/v1/merchants/info',
+    url: '/api/v1/user/update',
     data: data
   });
 };
@@ -68,7 +68,7 @@ export const updateMerchantInfoApi = (data) => {
  */
 export const getOrderListApi = (params) => {
   return merchantRequest.get({
-    url: '/api/v1/merchants/orders',
+    url: '/api/v1/orders/page',
     data: params
   });
 };
@@ -80,7 +80,7 @@ export const getOrderListApi = (params) => {
  */
 export const getOrderDetailApi = (orderId) => {
   return merchantRequest.get({
-    url: `/api/v1/merchants/orders/${orderId}`
+    url: `/api/v1/orders/${orderId}`
   });
 };
 
@@ -90,8 +90,9 @@ export const getOrderDetailApi = (orderId) => {
  * @returns {Promise}
  */
 export const acceptOrderApi = (orderId) => {
-  return merchantRequest.post({
-    url: `/api/v1/merchants/orders/${orderId}/accept`
+  return merchantRequest.put({
+    url: `/api/v1/merchants/orders/${orderId}/status`,
+    data: { status: 3 }
   });
 };
 
@@ -102,9 +103,9 @@ export const acceptOrderApi = (orderId) => {
  * @returns {Promise}
  */
 export const rejectOrderApi = (orderId, data) => {
-  return merchantRequest.post({
-    url: `/api/v1/merchants/orders/${orderId}/reject`,
-    data: data
+  return merchantRequest.put({
+    url: `/api/v1/merchants/orders/${orderId}/status`,
+    data: { status: 6, ...data }
   });
 };
 
@@ -114,8 +115,9 @@ export const rejectOrderApi = (orderId, data) => {
  * @returns {Promise}
  */
 export const deliverOrderApi = (orderId) => {
-  return merchantRequest.post({
-    url: `/api/v1/merchants/orders/${orderId}/deliver`
+  return merchantRequest.put({
+    url: `/api/v1/merchants/orders/${orderId}/status`,
+    data: { status: 4 }
   });
 };
 
@@ -125,8 +127,9 @@ export const deliverOrderApi = (orderId) => {
  * @returns {Promise}
  */
 export const completeOrderApi = (orderId) => {
-  return merchantRequest.post({
-    url: `/api/v1/merchants/orders/${orderId}/complete`
+  return merchantRequest.put({
+    url: `/api/v1/merchants/orders/${orderId}/status`,
+    data: { status: 5 }
   });
 };
 
@@ -137,9 +140,9 @@ export const completeOrderApi = (orderId) => {
  * @returns {Promise}
  */
 export const cancelOrderApi = (orderId, data) => {
-  return merchantRequest.post({
-    url: `/api/v1/merchants/orders/${orderId}/cancel`,
-    data: data
+  return merchantRequest.put({
+    url: `/api/v1/merchants/orders/${orderId}/status`,
+    data: { status: 6, ...data }
   });
 };
 
@@ -149,7 +152,7 @@ export const cancelOrderApi = (orderId, data) => {
  */
 export const getCategoriesApi = () => {
   return merchantRequest.get({
-    url: '/api/v1/merchants/categories'
+    url: '/api/v1/dishes/categories'
   });
 };
 
@@ -163,7 +166,7 @@ export const getCategoriesApi = () => {
  */
 export const getDishesApi = (params) => {
   return merchantRequest.get({
-    url: '/api/v1/merchants/dishes',
+    url: '/api/v1/dishes/page',
     data: params
   });
 };
@@ -175,7 +178,7 @@ export const getDishesApi = (params) => {
  */
 export const addDishApi = (data) => {
   return merchantRequest.post({
-    url: '/api/v1/merchants/dishes',
+    url: '/api/v1/dishes',
     data: data
   });
 };
@@ -188,7 +191,7 @@ export const addDishApi = (data) => {
  */
 export const updateDishApi = (dishId, data) => {
   return merchantRequest.put({
-    url: `/api/v1/merchants/dishes/${dishId}`,
+    url: `/api/v1/dishes/${dishId}`,
     data: data
   });
 };
@@ -200,7 +203,7 @@ export const updateDishApi = (dishId, data) => {
  */
 export const deleteDishApi = (dishId) => {
   return merchantRequest.delete({
-    url: `/api/v1/merchants/dishes/${dishId}`
+    url: `/api/v1/dishes/${dishId}`
   });
 };
 
@@ -212,7 +215,7 @@ export const deleteDishApi = (dishId) => {
  */
 export const changeDishStatusApi = (dishId, status) => {
   return merchantRequest.put({
-    url: `/api/v1/merchants/dishes/${dishId}/status`,
+    url: `/api/v1/dishes/${dishId}/status`,
     data: { status }
   });
 };
@@ -223,7 +226,7 @@ export const changeDishStatusApi = (dishId, status) => {
  */
 export const getEmployeesApi = () => {
   return merchantRequest.get({
-    url: '/api/v1/merchants/employees'
+    url: '/api/v1/merchants/staff'
   });
 };
 
@@ -234,7 +237,7 @@ export const getEmployeesApi = () => {
  */
 export const addEmployeeApi = (data) => {
   return merchantRequest.post({
-    url: '/api/v1/merchants/employees',
+    url: '/api/v1/merchants/staff',
     data: data
   });
 };
@@ -247,7 +250,7 @@ export const addEmployeeApi = (data) => {
  */
 export const updateEmployeeApi = (employeeId, data) => {
   return merchantRequest.put({
-    url: `/api/v1/merchants/employees/${employeeId}`,
+    url: `/api/v1/merchants/staff/${employeeId}`,
     data: data
   });
 };
@@ -259,7 +262,7 @@ export const updateEmployeeApi = (employeeId, data) => {
  */
 export const deleteEmployeeApi = (employeeId) => {
   return merchantRequest.delete({
-    url: `/api/v1/merchants/employees/${employeeId}`
+    url: `/api/v1/merchants/staff/${employeeId}`
   });
 };
 
@@ -272,8 +275,13 @@ export const deleteEmployeeApi = (employeeId) => {
  * @returns {Promise}
  */
 export const getStatisticsApi = (params) => {
-  return merchantRequest.get({
-    url: '/api/v1/merchants/statistics',
-    data: params
-  });
+  if (params.type === 'day') {
+    return merchantRequest.get({
+      url: '/api/v1/admin/sales/total'
+    });
+  } else {
+    return merchantRequest.get({
+      url: '/api/v1/admin/sales'
+    });
+  }
 }; 

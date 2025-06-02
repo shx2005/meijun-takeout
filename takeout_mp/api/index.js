@@ -40,17 +40,17 @@ export const addCartApi = (data) => {
 		// 保存到本地存储
 		uni.setStorageSync('cartItems', JSON.stringify(cartItems));
 		console.log('本地购物车更新成功:', cartItems);
-		
+	
 		// 返回成功响应
 		return Promise.resolve({
-			code: 0,
-			data: null,
+						code: 0,
+						data: null,
 			msg: '添加成功(本地)'
-		});
+					});
 	} catch (error) {
 		console.error('更新本地购物车失败:', error);
 		return Promise.reject(error);
-	}
+			}
 }
 
 // 辅助函数：根据商品ID获取商品信息
@@ -760,12 +760,12 @@ function preloadOrderHistory(token, disableCache = false) {
 				
 				// 如果未禁用缓存，则保存到本地存储
 				if (!disableCache) {
-					// 保存订单历史到本地存储
-					const orderHistoryData = {
-						data: res.data.data || res.data,
-						timestamp: Date.now()
-					};
-					uni.setStorageSync('orderHistoryData', JSON.stringify(orderHistoryData));
+				// 保存订单历史到本地存储
+				const orderHistoryData = {
+					data: res.data.data || res.data,
+					timestamp: Date.now()
+				};
+				uni.setStorageSync('orderHistoryData', JSON.stringify(orderHistoryData));
 				}
 			}
 		},
@@ -896,7 +896,7 @@ export const getOrderDetailApi = (orderId) => {
 	// 使用uni.request直接发送请求
 	return new Promise((resolve, reject) => {
 		// 获取token
-		const token = uni.getStorageSync('token');
+	const token = uni.getStorageSync('token');
 		if (!token) {
 			reject(new Error('请先登录'));
 			return;
@@ -906,10 +906,10 @@ export const getOrderDetailApi = (orderId) => {
 			url: `http://localhost:8080/api/v1/orders/${orderId}`,
 			method: 'GET',
 			header: {
-				'customerToken': token,
-				'Accept': 'application/json',
-				'userType': '3',
-				'Content-Type': 'application/json'
+		'customerToken': token,
+		'Accept': 'application/json',
+		'userType': '3',
+		'Content-Type': 'application/json'
 			},
 			success: (res) => {
 				console.log('订单详情API响应:', res);

@@ -1,0 +1,46 @@
+flowchart TB
+    %% 定义节点和子节点
+    subgraph UIPackage["界面UI包"]
+        UI1["页面组件"]
+        UI2["通用组件"]
+        UI3["业务组件"]
+    end
+
+    subgraph APIPackage["API接口包"]
+        API1["用户API"]
+        API2["商品API"]
+        API3["购物车API"]
+        API4["订单API"]
+        API5["地址API"]
+    end
+
+    subgraph DataPackage["数据处理包"]
+        Data1["数据格式化"]
+        Data2["数据验证"]
+        Data3["数据缓存"]
+        Data4["状态管理"]
+    end
+
+    subgraph InfraPackage["基础设施包"]
+        Infra1["网络服务"]
+        Infra2["存储服务"]
+        Infra3["日志服务"]
+        Infra4["设备服务"]
+    end
+
+    subgraph UtilPackage["工具包"]
+        Util1["字符串处理"]
+        Util2["数值计算"]
+        Util3["时间处理"]
+        Util4["对象处理"]
+    end
+
+    %% 定义连接关系
+    UIPackage <--> APIPackage
+    UIPackage <--> DataPackage
+    UIPackage <--> InfraPackage
+    UIPackage <--> UtilPackage
+
+    %% 添加说明标签
+    classDef packageClass fill:#f9f9f9,stroke:#333,stroke-width:1px;
+    class UIPackage,APIPackage,DataPackage,InfraPackage,UtilPackage packageClass; 

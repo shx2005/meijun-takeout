@@ -87,18 +87,22 @@
 				<view class="data-cards">
 					<view class="data-card">
 						<view class="data-title">今日订单</view>
-						<view class="data-value">15</view>
-						<view class="data-change up">+20%</view>
+						<view class="data-value">{{ statistics.today.orderCount }}</view>
+						<view class="data-change" :class="statistics.today.compareYesterday >= 0 ? 'up' : 'down'">
+							{{ statistics.today.compareYesterday >= 0 ? '+' : '' }}{{ statistics.today.compareYesterday }}%
+						</view>
 					</view>
 					<view class="data-card">
 						<view class="data-title">今日销售额</view>
-						<view class="data-value">¥1,280</view>
-						<view class="data-change up">+15%</view>
+						<view class="data-value">¥{{ statistics.today.totalAmount }}</view>
+						<view class="data-change" :class="statistics.today.compareYesterday >= 0 ? 'up' : 'down'">
+							{{ statistics.today.compareYesterday >= 0 ? '+' : '' }}{{ statistics.today.compareYesterday }}%
+						</view>
 					</view>
 					<view class="data-card">
 						<view class="data-title">热销菜品</view>
-						<view class="data-value">宫保鸡丁</view>
-						<view class="data-sub">已售28份</view>
+						<view class="data-value">{{ statistics.topDish.name || '暂无数据' }}</view>
+						<view class="data-sub" v-if="statistics.topDish.name">已售{{ statistics.topDish.count }}份</view>
 					</view>
 				</view>
 				
@@ -230,7 +234,8 @@
 		deliverOrderApi, 
 		completeOrderApi, 
 		cancelOrderApi,
-		getStatisticsApi 
+		getStatisticsApi,
+		getMerchantInfoApi
 	} from '../../api/merchant.js';
 	
 	export default {
@@ -275,15 +280,24 @@
 			}
 		},
 		onLoad() {
-			// 获取商家信息
-			const merchantInfoStr = uni.getStorageSync('merchantInfo');
-			if (merchantInfoStr) {
-				try {
-					this.merchantInfo = JSON.parse(merchantInfoStr);
-				} catch (e) {
-					console.error('解析商家信息失败', e);
-				}
+			// 检查token
+			const token = uni.getStorageSync('merchantToken');
+			if (!token) {
+				uni.showToast({
+					title: '请先登录',
+					icon: 'none'
+				});
+				
+				setTimeout(() => {
+					uni.redirectTo({
+						url: '/pages/merchantLogin/merchantLogin'
+					});
+				}, 1500);
+				return;
 			}
+			
+			// 获取商家信息
+			this.getMerchantInfo();
 			
 			// 获取订单列表
 			this.getOrderList();
@@ -338,7 +352,9 @@
 					// 设置请求参数
 					const params = {
 						page: this.pageInfo.page,
-						size: this.pageInfo.size
+						pageNum: this.pageInfo.page, // 添加pageNum参数（有些API可能使用pageNum而不是page）
+						size: this.pageInfo.size,
+						pageSize: this.pageInfo.size // 添加pageSize参数
 					};
 					
 					// 添加状态过滤
@@ -349,16 +365,45 @@
 					
 					// 调用API获取订单列表
 					try {
+						console.log('正在获取订单列表，参数:', params);
 						const res = await getOrderListApi(params);
 						console.log('订单列表响应:', res);
 						
-						if (res && res.records) {
+						if (res && (res.records || res.list)) {
 							// 处理成功的API响应
-							this.orderList = res.records || [];
+							const orderList = res.records || res.list || [];
+							this.orderList = orderList.map(order => {
+								// 处理订单项数据结构以适配页面显示
+								return {
+									...order,
+									orderNumber: order.orderNumber || order.number,
+									orderTime: order.orderTime || order.createTime,
+									orderDetails: order.items || order.orderDetails || [],
+									amount: order.total || order.amount,
+									status: this.convertOrderStatus(order.status)
+								};
+							});
 							this.pageInfo.total = res.total || 0;
+						} else if (Array.isArray(res)) {
+							// 如果直接返回数组
+							this.orderList = res.map(order => {
+								return {
+									...order,
+									orderNumber: order.orderNumber || order.number,
+									orderTime: order.orderTime || order.createTime,
+									orderDetails: order.items || order.orderDetails || [],
+									amount: order.total || order.amount,
+									status: this.convertOrderStatus(order.status)
+								};
+							});
+							this.pageInfo.total = res.length;
 						} else {
-							// API调用成功但返回了错误
+							// API调用成功但返回了意外格式
 							console.warn('获取订单列表返回格式异常', res);
+							uni.showToast({
+								title: '订单数据格式异常',
+								icon: 'none'
+							});
 							// 降级使用模拟数据
 							this.orderList = this.mockOrderData();
 						}
@@ -386,18 +431,24 @@
 					};
 					
 					try {
+						console.log('正在获取统计数据，参数:', params);
 						const res = await getStatisticsApi(params);
 						console.log('统计数据响应:', res);
 						
 						if (res) {
-							// 更新统计数据
-							this.statistics.today.orderCount = res.orderCount || 0;
-							this.statistics.today.totalAmount = res.totalAmount || 0;
+							// 后端可能有不同的数据结构，尝试适配
+							// 今日订单总数
+							this.statistics.today.orderCount = res.orderCount || res.count || 0;
+							// 今日销售额
+							this.statistics.today.totalAmount = res.totalAmount || res.total || 0;
+							// 环比增长
 							this.statistics.today.compareYesterday = res.compareYesterday || 0;
 							
-							if (res.topDish) {
-								this.statistics.topDish.name = res.topDish.name || '';
-								this.statistics.topDish.count = res.topDish.count || 0;
+							// 热销商品
+							if (res.topDish || (Array.isArray(res) && res.length > 0)) {
+								const topDish = res.topDish || res[0];
+								this.statistics.topDish.name = topDish.name || '';
+								this.statistics.topDish.count = topDish.count || topDish.sales || 0;
 							}
 						}
 					} catch (error) {
@@ -407,6 +458,24 @@
 				} catch (e) {
 					console.error(e);
 				}
+			},
+			
+			// 转换订单状态
+			convertOrderStatus(status) {
+				// 将后端返回的状态转换为前端使用的状态码
+				if (typeof status === 'string') {
+					switch (status.toUpperCase()) {
+						case 'PENDING': return 1;
+						case 'UNCOMFIRMED': return 2;
+						case 'CONFIRMED': return 3;
+						case 'DELIVERING': return 4;
+						case 'COMPLETED': return 5;
+						case 'CANCELED': return 6;
+						default: return 0;
+					}
+				}
+				// 如果已经是数字，直接返回
+				return status;
 			},
 			
 			mockOrderData() {
@@ -482,6 +551,7 @@
 					success: async (res) => {
 						if (res.confirm) {
 							try {
+								console.log('接单：', orderId);
 								const response = await acceptOrderApi(orderId);
 								if (response) {
 									// 更新成功
@@ -498,7 +568,7 @@
 									icon: 'none'
 								});
 								
-								// 模拟成功（用于演示）
+								// 开发阶段，出错也能演示
 								this.updateOrderStatus(orderId, 3);
 							}
 						}
@@ -514,6 +584,7 @@
 					success: async (res) => {
 						if (res.confirm) {
 							try {
+								console.log('开始配送：', orderId);
 								const response = await deliverOrderApi(orderId);
 								if (response) {
 									// 更新成功
@@ -530,7 +601,7 @@
 									icon: 'none'
 								});
 								
-								// 模拟成功（用于演示）
+								// 开发阶段，出错也能演示
 								this.updateOrderStatus(orderId, 4);
 							}
 						}
@@ -546,6 +617,7 @@
 					success: async (res) => {
 						if (res.confirm) {
 							try {
+								console.log('完成订单：', orderId);
 								const response = await completeOrderApi(orderId);
 								if (response) {
 									// 更新成功
@@ -562,7 +634,7 @@
 									icon: 'none'
 								});
 								
-								// 模拟成功（用于演示）
+								// 开发阶段，出错也能演示
 								this.updateOrderStatus(orderId, 5);
 							}
 						}
@@ -581,6 +653,7 @@
 								const data = { 
 									reason: '商家主动取消' 
 								};
+								console.log('取消订单：', orderId, data);
 								const response = await cancelOrderApi(orderId, data);
 								if (response) {
 									// 更新成功
@@ -597,7 +670,7 @@
 									icon: 'none'
 								});
 								
-								// 模拟成功（用于演示）
+								// 开发阶段，出错也能演示
 								this.updateOrderStatus(orderId, 6);
 							}
 						}
@@ -610,6 +683,31 @@
 				const order = this.orderList.find(item => item.id === orderId);
 				if (order) {
 					order.status = newStatus;
+				}
+			},
+			
+			// 获取商家信息
+			async getMerchantInfo() {
+				try {
+					const res = await getMerchantInfoApi();
+					console.log('商家信息:', res);
+					
+					if (res) {
+						this.merchantInfo = res;
+						// 存储商家信息到本地
+						uni.setStorageSync('merchantInfo', JSON.stringify(res));
+					}
+				} catch (error) {
+					console.error('获取商家信息失败', error);
+					// 尝试从本地存储获取
+					const merchantInfoStr = uni.getStorageSync('merchantInfo');
+					if (merchantInfoStr) {
+						try {
+							this.merchantInfo = JSON.parse(merchantInfoStr);
+						} catch (e) {
+							console.error('解析商家信息失败', e);
+						}
+					}
 				}
 			}
 		}

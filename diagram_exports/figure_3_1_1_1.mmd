@@ -1,0 +1,70 @@
+classDiagram
+    %% 用户类
+    class User {
+    }
+
+    %% 页面组件
+    namespace 页面组件 {
+        class Login
+        class Register
+        class Index
+        class Category
+        class DishList
+        class DishDetail
+        class Cart
+        class OrderList
+        class OrderDetail
+        class PayConfirm
+        class PaySuccess
+        class Mine
+        class Address
+        class AddressEdit
+        class Setting
+        class UserInfo
+    }
+
+    %% 通用组件
+    namespace 通用组件 {
+        class Navigation
+        class TabBar
+        class SearchBar
+        class Loading
+        class Empty
+        class Toast
+        class Modal
+    }
+
+    %% 业务组件
+    namespace 业务组件 {
+        class DishCard
+        class CartItem
+        class OrderItem
+        class AddressItem
+        class Counter
+        class RatingBar
+    }
+
+    %% 关系连接
+    User "1" --> "*" Index
+    User "1" --> "*" Cart
+    User "1" --> "*" OrderList
+
+    Index "1" *-- "1" Category
+    Index "1" *-- "1" DishList
+    Category "1" --> "*" DishList
+
+    DishList "1" --> "*" DishCard
+    DishCard "1" --> "1" DishDetail
+    DishCard "1" --> "*" Counter
+
+    Cart "1" *-- "*" CartItem
+    CartItem "1" --> "1" Counter
+
+    OrderList "1" --> "*" OrderItem
+    OrderItem "1" --> "1" OrderDetail
+
+    Mine "1" --> "1" UserInfo
+    Mine "1" --> "1" Address
+    Mine "1" --> "1" Setting
+    Address "1" --> "*" AddressItem
+    AddressItem "1" --> "1" AddressEdit 

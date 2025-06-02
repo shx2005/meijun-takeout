@@ -1,0 +1,57 @@
+@startuml
+title 订单管理接口关系图
+
+' 前端组件
+component "OrderList" as OrderList
+component "OrderDetail" as OrderDetail
+component "OrderEvaluate" as OrderEvaluate
+component "PayConfirm" as PayConfirm
+component "PaySuccess" as PaySuccess
+component "Refund" as Refund
+
+' API接口
+interface "订单接口" as OrderAPI
+interface "支付接口" as PaymentAPI
+interface "评价接口" as CommentAPI
+interface "退款接口" as RefundAPI
+
+' 后端服务
+component "订单服务" as OrderService
+component "支付服务" as PaymentService
+component "评价服务" as CommentService
+component "退款服务" as RefundService
+
+database "订单数据库" as OrderDB
+database "支付数据库" as PaymentDB
+database "评价数据库" as CommentDB
+database "退款数据库" as RefundDB
+
+' 连接关系
+OrderList --> OrderAPI : 获取订单列表
+OrderDetail --> OrderAPI : 获取订单详情
+OrderDetail --> OrderAPI : 取消订单/确认收货
+OrderDetail --> PaymentAPI : 支付订单
+OrderEvaluate --> CommentAPI : 提交评价
+Refund --> RefundAPI : 申请退款
+PayConfirm --> PaymentAPI : 获取支付状态
+PaySuccess --> OrderAPI : 查询订单状态
+
+OrderAPI --> OrderService
+PaymentAPI --> PaymentService
+CommentAPI --> CommentService
+RefundAPI --> RefundService
+
+OrderService --> OrderDB
+PaymentService --> PaymentDB
+CommentService --> CommentDB
+RefundService --> RefundDB
+
+' 组件间关系
+OrderList --> OrderDetail : 查看详情
+OrderDetail --> OrderEvaluate : 评价订单
+OrderDetail --> Refund : 申请退款
+OrderDetail --> PayConfirm : 支付订单
+PayConfirm --> PaySuccess : 支付成功
+
+footer "美俊外卖系统 - 订单管理接口关系图"
+@enduml 

@@ -1,0 +1,47 @@
+@startuml
+skinparam activityFontSize 16
+skinparam activityFontName Arial
+skinparam activityBackgroundColor White
+skinparam activityBorderColor Black
+skinparam arrowColor Black
+skinparam backgroundColor White
+
+start
+
+:初始化UI;
+note right: UI组件初始化，应用启动
+
+:用户交互;
+note right: 用户操作UI界面，触发事件
+
+if (进行校验?) then (Y)
+  :发送数据给后端;
+  note right: 通过API接口包与服务器交互
+  
+  :从后端获取数据;
+  note right: 接收服务器响应数据
+  
+  :渲染页面;
+  note right: 更新UI组件显示
+  
+  if (需要导航到新页面?) then (Y)
+    :执行路由跳转;
+    note right: 路由系统处理页面切换
+    :加载新页面;
+  else (N)
+    :更新当前页面;
+  endif
+else (N)
+  :仅更新本地UI状态;
+  note right: 不需要服务器交互的操作
+endif
+
+if (继续使用应用?) then (Y)
+  backward:用户交互;
+else (N)
+  :退出应用;
+endif
+
+stop
+
+@enduml 

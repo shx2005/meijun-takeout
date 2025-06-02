@@ -11,8 +11,8 @@ const merchantInstance = ajax.create({
 
 // 创建商家请求头的辅助函数
 export const createMerchantHeaders = (token, userType = '1') => {
-  // userType: 1=商家，2=员工
-  const tokenName = userType === '1' ? 'merchantToken' : 'employeeToken';
+  // userType: 0=admin, 1=merchant, 2=employee, 3=customer
+  const tokenName = 'tokenName';
   
   return {
     [tokenName]: token,
@@ -28,7 +28,6 @@ merchantInstance.interceptors.request.use(
     // 从本地存储获取商家token和用户类型
     const token = uni.getStorageSync('merchantToken');
     const userType = uni.getStorageSync('merchantUserType') || '1'; // 默认为商家用户类型
-    const tokenName = userType === '1' ? 'merchantToken' : 'employeeToken';
     
     console.log('商家请求拦截器中的token:', token);
     console.log('商家用户类型:', userType);
@@ -46,6 +45,10 @@ merchantInstance.interceptors.request.use(
         config.header.userType = '2';
       } else if (identity === 'MERCHANT') {
         config.header.userType = '1';
+      } else if (identity === 'ADMIN') {
+        config.header.userType = '0';
+      } else if (identity === 'CUSTOMER') {
+        config.header.userType = '3';
       }
     } else {
       // 非登录请求使用存储的用户类型
@@ -54,7 +57,7 @@ merchantInstance.interceptors.request.use(
 
     // 如果有token，添加到请求头
     if (token) {
-      config.header[tokenName] = token;
+      config.header.tokenName = token;
     }
     
     // 打印完整的请求信息，用于调试
@@ -91,7 +94,7 @@ merchantInstance.interceptors.response.use(
         // 尝试解析错误响应
         if (typeof res === 'string' && res.includes('<Map>')) {
           // 处理XML格式的错误响应
-          const errorMatch = res.match(/<e>(.*?)<\/error>/)
+          const errorMatch = res.match(/<e>(.*?)<\/e>/)
           if (errorMatch) {
             errMsg = errorMatch[1]
           }
@@ -162,7 +165,7 @@ merchantInstance.interceptors.response.use(
         const res = error.response.data
         if (typeof res === 'string' && res.includes('<Map>')) {
           // 处理XML格式的错误响应
-          const errorMatch = res.match(/<e>(.*?)<\/error>/)
+          const errorMatch = res.match(/<e>(.*?)<\/e>/)
           if (errorMatch) {
             errMsg = errorMatch[1]
           }

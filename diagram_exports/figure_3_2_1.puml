@@ -1,0 +1,24 @@
+@startuml
+skinparam activityFontSize 16
+skinparam activityFontName Arial
+skinparam activityBackgroundColor White
+skinparam activityBorderColor Black
+skinparam arrowColor Black
+
+start
+
+:初始化UI;
+
+repeat
+  :用户交互;
+  if (进行校验?) then (Y)
+    :发送数据给后端;
+    :从后端获取数据;
+    :渲染页面;
+  else (N)
+  endif
+repeat while (继续使用应用?) is (Y)
+
+stop
+
+@enduml 
