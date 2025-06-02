@@ -1,13 +1,14 @@
 package com.mo.web.controller;
 
-import com.mo.api.dto.AdminPageQueryDTO;
-import com.mo.api.dto.AdminSaveDTO;
-import com.mo.api.dto.AdminUpdateDTO;
+import com.mo.api.dto.*;
 import com.mo.api.service.AdminService;
+import com.mo.api.service.EmployeeService;
+import com.mo.api.service.StatisticService;
 import com.mo.common.enumeration.UserIdentity;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
 import com.mo.entity.Admin;
+import com.mo.entity.Employee;
 import com.mo.entity.Product;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,9 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -33,6 +32,10 @@ import java.util.Map;
 public class AdminController {
     @Autowired
     private AdminService adminService;
+    @Autowired
+    private StatisticService statisticService;
+    @Autowired
+    private EmployeeService employeeService;
 
     @Operation(summary = "获取所有管理员")
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Admin.class)))
@@ -101,35 +104,17 @@ public class AdminController {
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Product.class)))
     @GetMapping("/sales")
     public Result<List<Product>> getSales(){
-        Map<Long, Product> productDict = new HashMap<>();
 
-        for(var i:adminService.getAllOrderDetail()){
-            Long id = i.getItemId();
-            if(productDict.containsKey(id)){
-                productDict.compute(i.getItemId(),(key, value) -> {
-                    value.setSales(value.getSales() + i.getQuantity());
-                    return value;
-                });
-            }
-            else{
-                Product product = new Product();
-                product.setProductId(id);
-                product.setName(i.getName());
-                product.setSales(Long.valueOf(i.getQuantity()));
-                product.setType(i.getItemType());
-                productDict.put(id,product);
-            }
-        }
-        List<Product> list = productDict.values().stream().toList();
+        List<Product> list = statisticService.getSales();
 
         return Result.success(list);
     }
 
     @Operation (summary = "获取流量数据")
-    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Long.class)))
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Integer.class)))
     @GetMapping("/traffic")
-    public Result<Long> getTraffic(){
-        Long traffic = (long) adminService.getTraffic();
+    public Result<Integer> getTraffic(){
+        Integer traffic = statisticService.getTraffic();
 
         return Result.success(traffic);
     }
@@ -138,8 +123,75 @@ public class AdminController {
     @ApiResponse (responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = BigDecimal.class)))
     @GetMapping("/sales/total")
     public Result<BigDecimal> getSalesTotal(){
-        BigDecimal total = adminService.getSalesTotal();
+        double total = statisticService.getSalesTotal();
+        BigDecimal res = BigDecimal.valueOf(total);
 
-        return Result.success(total);
+        return Result.success(res);
+    }
+
+    @Operation (summary = "获取所有员工")
+    @ApiResponse (responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Employee.class)))
+    @GetMapping("/employee/all")
+    public Result<List<Employee>>  getAllEmployee(){
+        List<Employee> list = employeeService.getAllEmployee();
+
+        return Result.success(list);
+    }
+
+    @Operation (summary = "分页获取员工")
+     @Parameters ({
+            @Parameter(name = "employeePageQueryDTO", description = "员工分页参数", required = true, schema = @Schema(implementation = EmployeePageQueryDTO.class))
+    })
+    @ApiResponse (responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Employee.class)))
+    @GetMapping("/employee/page")
+    public PageResult getEmployeePage(EmployeePageQueryDTO dto){
+        int num = dto.getPageNum();
+        int size = dto.getPageSize();
+        int offset = (num - 1) * size;
+        List<Employee> list = employeeService.getEmployeePage(offset, size);
+
+        return PageResult.success(list.size(), list, num, size);
+    }
+
+    @Operation (summary = "添加员工")
+    @Parameters ({
+             @Parameter(name = "employeeDTO", description = "员工参数", required = true, schema = @Schema(implementation = EmployeeDTO.class))
+    })
+    @ApiResponse (responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = String.class)))
+    @PostMapping("/employee/add")
+    public Result<String> addEmployee(@RequestBody EmployeeDTO dto){
+        Employee employee = new Employee();
+        BeanUtils.copyProperties(dto, employee);
+
+        employeeService.saveEmployee(employee);
+
+        return Result.success();
+    }
+
+    @Operation (summary = "更新员工")
+     @Parameters ({
+             @Parameter(name = "id", description = "员工id", required = true, schema = @Schema(implementation = Long.class)),
+             @Parameter(name = "employeeDTO", description = "员工参数", required = true, schema = @Schema(implementation = EmployeeDTO.class))
+    })
+    @PutMapping ("/employee/{id}/update")
+    public Result<String> updateEmployee(@PathVariable Long id, @RequestBody EmployeeDTO dto){
+         Employee employee = new Employee();
+         BeanUtils.copyProperties(dto, employee);
+         employee.setId(id);
+
+          employeeService.updateEmployee(employee);
+
+          return Result.success();
+    }
+
+    @Operation (summary = "删除员工")
+    @Parameters ({
+            @Parameter(name = "id", description = "员工id", required = true, schema = @Schema(implementation = Long.class))
+    })
+    @DeleteMapping ("/employee/{id}/delete")
+     public Result<String> deleteEmployee(@PathVariable Long id){
+         employeeService.deleteEmployee(id);
+
+         return Result.success();
     }
 }

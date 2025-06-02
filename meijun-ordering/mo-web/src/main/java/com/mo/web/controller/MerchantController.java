@@ -16,11 +16,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.websocket.server.PathParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Slf4j
@@ -44,6 +46,8 @@ public class MerchantController {
     private CouponService couponService;
     @Autowired
     private PromotionService promotionService;
+    @Autowired
+    private StatisticService statisticService;
 
     @Operation(summary = "获取商户订单列表")
     @Parameters({
@@ -68,7 +72,7 @@ public class MerchantController {
     })
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Order.class)))
     @PutMapping("/orders/{orderId}/status")
-    Result<Order> updateOrderStatus(@PathVariable Long orderId, Integer status){
+    Result<Order> updateOrderStatus(@PathVariable Long orderId, @PathParam("status") Integer status){
         Order order = (Order) redisService.getEntity("order:" + orderId, Order.class);
         if(order == null) order = orderService.getOrderById(orderId);
         if(order == null) return Result.error();
@@ -97,7 +101,7 @@ public class MerchantController {
     })
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Employee.class)))
     @GetMapping("/staff/page")
-    public PageResult getEmployeePage(EmployeePageQueryDTO employeePageQueryDTO){
+    public PageResult getEmployeePage(@RequestBody EmployeePageQueryDTO employeePageQueryDTO){
         int pageNum = employeePageQueryDTO.getPageNum();
         int pageSize = employeePageQueryDTO.getPageSize();
         int offset = (pageNum - 1) * pageSize;
@@ -110,11 +114,11 @@ public class MerchantController {
 
     @Operation(summary = "保存员工信息")
     @Parameters({
-            @Parameter(name = "employee", schema = @Schema(implementation = Employee.class))
+            @Parameter(name = "employee", schema = @Schema(implementation = EmployeeDTO.class))
     })
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Employee.class)))
     @PostMapping("/staff")
-    public Result<Employee> saveEmployee(EmployeeDTO employeeDTO){
+    public Result<Employee> saveEmployee(@RequestBody EmployeeDTO employeeDTO){
         Employee employee = new Employee();
         BeanUtils.copyProperties(employeeDTO, employee);
 
@@ -130,7 +134,7 @@ public class MerchantController {
     })
     @ApiResponse(responseCode = "200", description = "成功")
     @PutMapping("/staff/{id}")
-    public Result<String> updateEmployee(@PathVariable Long id, EmployeeDTO employeeDTO){
+    public Result<String> updateEmployee(@PathVariable Long id, @RequestBody EmployeeDTO employeeDTO){
         Employee employee = new Employee();
         BeanUtils.copyProperties(employeeDTO, employee);
         employee.setId(id);
@@ -366,5 +370,34 @@ public class MerchantController {
         promotionService.updatePromotion(promotion);
 
         return Result.success();
+    }
+
+    @Operation (summary = "获取销售数据")
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Product.class)))
+    @GetMapping("/sales")
+    public Result<List<Product>> getSales(){
+
+        List<Product> list = statisticService.getSales();
+
+        return Result.success(list);
+    }
+
+    @Operation (summary = "获取流量数据")
+    @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Integer.class)))
+    @GetMapping("/traffic")
+    public Result<Integer> getTraffic(){
+        Integer traffic = statisticService.getTraffic();
+
+        return Result.success(traffic);
+    }
+
+    @Operation (summary = "获取销售总额")
+    @ApiResponse (responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = BigDecimal.class)))
+    @GetMapping("/sales/total")
+    public Result<BigDecimal> getSalesTotal(){
+        double total = statisticService.getSalesTotal();
+        BigDecimal res = BigDecimal.valueOf(total);
+
+        return Result.success(res);
     }
 }
