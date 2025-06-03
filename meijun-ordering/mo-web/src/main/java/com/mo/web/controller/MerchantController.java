@@ -4,8 +4,10 @@ import com.mo.api.dto.*;
 import com.mo.api.service.*;
 import com.mo.api.vo.CouponVO;
 import com.mo.api.vo.PromotionVO;
+import com.mo.common.constant.MessageConstant;
 import com.mo.common.enumeration.AfterSaleStatus;
 import com.mo.common.enumeration.OrderStatus;
+import com.mo.common.exception.OrderBusinessException;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
 import com.mo.entity.*;
@@ -16,7 +18,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.websocket.server.PathParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,10 +73,10 @@ public class MerchantController {
     })
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Order.class)))
     @PutMapping("/orders/{orderId}/status")
-    Result<Order> updateOrderStatus(@PathVariable Long orderId, @PathParam("status") Integer status){
+    Result<Order> updateOrderStatus(@PathVariable Long orderId, @RequestParam Integer status){
         Order order = (Order) redisService.getEntity("order:" + orderId, Order.class);
         if(order == null) order = orderService.getOrderById(orderId);
-        if(order == null) return Result.error();
+        if(order == null) throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
 
         OrderStatus orderStatus = OrderStatus.fromValue(status);
         order.setStatus(orderStatus);
