@@ -15,4 +15,5 @@ public class MessageConstant {
     public static final String USERTYPE_HEADER_INVALID = "header用户类型非法";
     public static final String COUPON_INVALITE_BY_AMOUNT = "优惠券未达金额要求";
     public static final String COUPON_INVALITE_BY_TIME = "优惠券未达指定时间段";
+    public static final String IDENTITY_CANNOT_BE_NULL = "用户身份不能为空";
 }

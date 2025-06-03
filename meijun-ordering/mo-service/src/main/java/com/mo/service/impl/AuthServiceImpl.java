@@ -45,6 +45,10 @@ public class AuthServiceImpl implements AuthService {
         UserIdentity identity = authLoginDTO.getIdentity();
         User user = null;
 
+        if (identity == null) {
+            throw new IllegalArgumentException(MessageConstant.IDENTITY_CANNOT_BE_NULL);
+        }
+
         switch(identity){
             case ADMIN -> {
                 user = adminMapper.getAdminByUsername(username);
