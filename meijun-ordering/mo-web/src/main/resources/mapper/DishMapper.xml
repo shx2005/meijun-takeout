@@ -19,6 +19,12 @@
                                and name like concat('%',#{name},'%')
     </select>
 
+
+    <select id="getDishById" resultType="com.mo.entity.Dish">
+        SELECT id, name, category_id, price, description, createTime, updateTime, merchant_id
+        FROM dishes WHERE id = #{id}
+    </select>
+    
     <insert id="saveDish"
             parameterType="com.mo.entity.Dish"
             useGeneratedKeys="true"
