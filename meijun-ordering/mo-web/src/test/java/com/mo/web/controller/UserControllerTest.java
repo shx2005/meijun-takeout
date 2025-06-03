@@ -5,8 +5,10 @@ import com.mo.api.service.RedisService;
 import com.mo.common.constant.RedisKeyConstant;
 import com.mo.web.MoWebApplication;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -17,7 +19,7 @@ public class UserControllerTest {
     private UserController userController;
     @Autowired
     private RedisService redisService;
-    @Autowired
+    @MockBean
     private DeliveryService deliveryService;
 
     @Test
@@ -36,6 +38,8 @@ public class UserControllerTest {
 
     @Test
     public void testDistance(){
+        Mockito.when(deliveryService.calculateDistance(Mockito.anyString(), Mockito.anyString())).thenReturn(3917.0);
+
         String userLocation = "116.466485,39.995197";
         String merchantLocation = "116.46424,40.020642";
         int distance = (int) deliveryService.calculateDistance(userLocation, merchantLocation);

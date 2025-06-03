@@ -6,6 +6,10 @@
         select * from carts
     </select>
 
+    <select id="getCartByUserId" parameterType="long" resultType="com.mo.entity.Cart">
+        SELECT * FROM carts WHERE user_id = #{userId} LIMIT 1
+    </select>
+
     <insert id="createCartIfNotExists">
         INSERT INTO carts (user_id)
         SELECT #{userId}
@@ -16,9 +20,9 @@
     <insert id="saveCart"
             parameterType="com.mo.entity.Cart"
             useGeneratedKeys="true"
-            keyProperty="cart.id">
+            keyProperty="id">
         insert into carts (user_id, createTime, updateTime)
-        values (#{cart.userId}, #{cart.createTime}, #{cart.updateTime})
+        values (#{userId}, #{createTime}, #{updateTime})
     </insert>
 
     <delete id="deleteCartByUserId">
