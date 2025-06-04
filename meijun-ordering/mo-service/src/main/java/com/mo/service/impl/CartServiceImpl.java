@@ -1,14 +1,20 @@
+// Test comment to check edit functionality
 package com.mo.service.impl;
 
 import com.mo.api.service.CartService;
+import com.mo.common.constant.MessageConstant;
+import com.mo.common.exception.CartBusinessException;
 import com.mo.entity.Cart;
 import com.mo.entity.CartItem;
+import com.mo.entity.Dish;
+import com.mo.common.enumeration.ItemType;
+import com.mo.entity.SetMeal;
 import com.mo.service.annotation.AutoFillTime;
 import com.mo.service.mapper.CartItemMapper;
 import com.mo.service.mapper.CartMapper;
+import com.mo.service.mapper.DishMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,11 +23,12 @@ import java.util.List;
 @Service
 public class CartServiceImpl implements CartService {
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-    @Autowired
     private CartMapper cartMapper;
     @Autowired
     private CartItemMapper cartItemMapper;
+
+    @Autowired
+    private DishMapper dishMapper;
 
     @Override
     public List<CartItem> getCart(Long userId){
@@ -38,22 +45,65 @@ public class CartServiceImpl implements CartService {
     public void addToCart(CartItem cartItem){
         Long userId = cartItem.getUserId();
         Long itemId = cartItem.getItemId();
-        cartMapper.createCartIfNotExists(userId);
+        ItemType itemType = cartItem.getItemType();
 
-        CartItem cartItem1 = cartItemMapper.getItemByUserIdAndItemId(userId, itemId);
-        if(cartItem1 != null && cartItem1.getItemType() == cartItem.getItemType()){
+        // 获取购物车，不存在则创建
+        Cart cart = cartMapper.getCartByUserId(userId);
+        Long cartId;
+        if (cart == null) {
+            Cart newCart = Cart.builder()
+                    .userId(userId)
+                    .build();
+
+            saveCart(newCart);
+            cartId = newCart.getId();
+        } else {
+           cartId = cart.getId();
+        }
+
+        cartItem.setCartId(cartId);
+
+        CartItem cartItem1 = cartItemMapper.getItemByUserIdAndItemId(userId, itemId, itemType);
+
+        if(cartItem1 != null){
             cartItem1.setQuantity(cartItem1.getQuantity() + cartItem.getQuantity());
+
             cartItemMapper.updateCartItem(cartItem1);
         } else {
+            switch (itemType){
+                case dish -> {
+                    Dish dish = dishMapper.getDishById(itemId);
+                    if(dish == null) throw new CartBusinessException(MessageConstant.DISH_NOT_FOUND);
+                    cartItem.setName(dish.getName());
+                    cartItem.setPrice(dish.getPrice());
+                }
+                case set_meal -> {
+                    SetMeal setMeal = null;
+                }
+            }
+
+            if (cartItem.getName() == null) {
+                 log.error("购物车项 {} 名字为空", itemId);
+                 throw new CartBusinessException(MessageConstant.CART_ITEM_NAME_NULL);
+            }
+            if (cartItem.getPrice() == null) {
+                 log.error("购物车项 {} 价格为空", itemId);
+                 throw new CartBusinessException(MessageConstant.CART_ITEM_PRICE_NULL);
+            }
+
             cartItemMapper.saveCartItem(cartItem);
         }
     }
 
     @Override
-    public void updateCartItem(CartItem cartItem){
-        CartItem cartItem1 = cartItemMapper.getItemByUserIdAndItemId(cartItem.getUserId(), cartItem.getItemId());
-        if(cartItem1 != null && cartItem1.getItemType() == cartItem.getItemType()){
-            cartItemMapper.updateCartItem(cartItem1);
+    public void updateCartItem(CartItem cartItem) {
+
+        int rowsAffected = cartItemMapper.updateCartItem(cartItem);
+
+        if (rowsAffected > 0) {
+            log.info("购物车项 {} 更新成功", cartItem.getId());
+        } else {
+            log.warn("购物车项 {} 更新失败", cartItem.getId());
         }
     }
 

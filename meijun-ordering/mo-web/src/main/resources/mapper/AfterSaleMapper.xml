@@ -6,33 +6,20 @@
             parameterType="com.mo.entity.AfterSale"
             useGeneratedKeys="true"
             keyProperty="id">
-        insert into after_sales(order_id,reason,status,amount,create_time)
-        values(#{orderId},#{reason},#{status},#{amount},#{createTime})
+        insert into after_sales(order_id,reason,status,createTime)
+        values(#{orderId},#{reason},#{status},#{createTime})
     </insert>
 
     <update id="updateAfterSale" parameterType="com.mo.entity.AfterSale">
-        update after_sales set
-        <if test="afterSale.orderId != null">
-            orderId = #{orderId}
-        </if>
-        <if test="afterSale.type != null">
-            type = #{type}
-        </if>
-        <if test="afterSale.reason != null">
-            reason = #{reason}
-        </if>
-        <if test="afterSale.content != null">
-            content = #{content}
-        </if>
-        <if test="afterSale.status != null">
-            status = #{status}
-        </if>
-        <if test="afterSale.amount != null">
-            amount = #{amount}
-        </if>
-        <if test="afterSale.updateTime != null">
-            update_time = #{updateTime}
-        </if>
+        update after_sales
+        <set>
+            <if test="orderId != null">order_id = #{orderId},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="reason != null">reason = #{reason},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateTime != null">updateTime = #{updateTime},</if>
+        </set>
         where id = #{id}
     </update>
 
@@ -43,7 +30,7 @@
     <select id="getAfterSaleById" parameterType="Long" resultType="com.mo.entity.AfterSale">
         select * from after_sales where id = #{id}
     </select>
-    <select id="getAfterSales" resultType="AfterSale">
+    <select id="getAfterSales" resultType="com.mo.entity.AfterSale">
         select * from after_sales where status = "pending"
     </select>
 </mapper>

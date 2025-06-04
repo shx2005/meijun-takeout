@@ -2,7 +2,6 @@ package com.mo.web.controller;
 
 import com.mo.api.service.RedisService;
 import com.mo.common.context.BaseContext;
-import com.mo.common.enumeration.ItemType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -64,6 +63,7 @@ public class CartController {
     public Result<String> addToCart(@RequestBody CartItemDTO cartDTO){
         CartItem cartItem = new CartItem();
         BeanUtils.copyProperties(cartDTO, cartItem);
+
         cartService.addToCart(cartItem);
         return Result.success();
     }

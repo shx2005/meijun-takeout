@@ -25,6 +25,6 @@ public class Product implements Serializable {
     private String name;
     @Schema (description = "商品类型")
     private ItemType type;
-     @Schema (description = "商品销量")
-    private Long sales;
+    @Schema (description = "商品销量")
+    private Integer sales;
 }

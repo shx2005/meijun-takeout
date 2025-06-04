@@ -11,6 +11,7 @@ import java.util.List;
 public interface OrderMapper {
 
     List<Order> getAll();
+
     List<Order> getPage(@Param("offset") int offset, @Param("size") int size, @Param("userId") Long userId);
 
     Order getOrderById(@Param("orderId") Long orderId);

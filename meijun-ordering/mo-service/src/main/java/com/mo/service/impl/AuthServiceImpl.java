@@ -1,15 +1,11 @@
 package com.mo.service.impl;
 
-import com.mo.common.exception.UnknownIdentityException;
+import com.mo.common.exception.*;
 import com.mo.service.annotation.AutoFillTime;
 import com.mo.api.dto.AuthLoginDTO;
-import com.mo.api.dto.AuthRegisterDTO;
 import com.mo.api.service.AuthService;
 import com.mo.common.constant.MessageConstant;
 import com.mo.common.enumeration.UserIdentity;
-import com.mo.common.exception.AccountNotFoundException;
-import com.mo.common.exception.PasswordErrorException;
-import com.mo.common.exception.RegisterFailedException;
 import com.mo.entity.Customer;
 import com.mo.entity.Employee;
 import com.mo.entity.Merchant;
@@ -24,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -43,21 +38,18 @@ public class AuthServiceImpl implements AuthService {
         String username = authLoginDTO.getUsername();
         String password = authLoginDTO.getPassword();
         UserIdentity identity = authLoginDTO.getIdentity();
-        User user = null;
+        User user;
+
+        if (identity == null) {
+            throw new AuthBusinessException(MessageConstant.UNKNOWN_IDENTITY);
+        }
 
         switch(identity){
-            case ADMIN -> {
-                user = adminMapper.getAdminByUsername(username);
-            }
-            case MERCHANT -> {
-                user = merchantMapper.getMerchantByUsername(username);
-            }
-            case EMPLOYEE -> {
-                user = employeeMapper.getEmployeeByUsername(username);
-            }
-            case CUSTOMER -> {
-                user = customerMapper.getCustomerByUsername(username);
-            }
+            case ADMIN -> user = adminMapper.getAdminByUsername(username);
+            case MERCHANT -> user = merchantMapper.getMerchantByUsername(username);
+            case EMPLOYEE -> user = employeeMapper.getEmployeeByUsername(username);
+            case CUSTOMER -> user = customerMapper.getCustomerByUsername(username);
+
             default -> throw new UnknownIdentityException(MessageConstant.UNKNOWN_IDENTITY);
         }
 

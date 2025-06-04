@@ -102,6 +102,17 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
+    public Object hGetEntity(String key, String hashKey, Class<?> clazz){
+        try{
+            Object obj = redisTemplate.opsForHash().get(key, hashKey);
+            if(obj == null) return null;
+            return objectMapper.readValue(obj.toString(), clazz);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public Boolean hSet(String key, String hashKey, Object value, long time) {
         redisTemplate.opsForHash().put(key, hashKey, value);
         return expire(key, time);
@@ -113,8 +124,33 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
+    public void hSetEntity(String key, String hashKey, Object value){
+        try{
+            String json = objectMapper.writeValueAsString(value);
+            redisTemplate.opsForHash().put(key, hashKey, json);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public Map<Object, Object> hGetAll(String key) {
         return redisTemplate.opsForHash().entries(key);
+    }
+
+    @Override
+    public Map<Object, Object> hGetAllEntity(String key, Class<?> clazz){
+        Map<Object, Object> map = redisTemplate.opsForHash().entries(key);
+        for(Map.Entry<Object, Object> entry : map.entrySet()){
+            try{
+                Object obj = entry.getValue();
+                Object val = objectMapper.readValue(obj.toString(), clazz);
+                entry.setValue(val);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return map;
     }
 
     @Override
@@ -126,6 +162,18 @@ public class RedisServiceImpl implements RedisService {
     @Override
     public void hSetAll(String key, Map<String, ?> map) {
         redisTemplate.opsForHash().putAll(key, map);
+    }
+
+    @Override
+    public void hSetAllEntity(String key, Map<String, Object> map){
+        for(Map.Entry<String, ?> entry : map.entrySet()){
+            try{
+                String json = objectMapper.writeValueAsString(entry.getValue());
+                redisTemplate.opsForHash().put(key, entry.getKey(), json);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Override
@@ -186,6 +234,22 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
+    public List<Object> lRangeEntity(String key, long start, long end, Class<?> clazz){
+        List<Object> list = redisTemplate.opsForList().range(key, start, end);
+        if(list == null) return null;
+        for(int i = 0; i < list.size(); i++){
+            try{
+                Object obj = list.get(i);
+                Object val = objectMapper.readValue(obj.toString(), clazz);
+                list.set(i, val);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return list;
+    }
+
+    @Override
     public Long lSize(String key) {
         return redisTemplate.opsForList().size(key);
     }
@@ -193,6 +257,17 @@ public class RedisServiceImpl implements RedisService {
     @Override
     public Object lIndex(String key, long index) {
         return redisTemplate.opsForList().index(key, index);
+    }
+
+    @Override
+    public Object lIndexEntity(String key, long index, Class<?> clazz){
+        try{
+            Object obj = redisTemplate.opsForList().index(key, index);
+            if(obj == null) return null;
+            return objectMapper.readValue(obj.toString(), clazz);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -208,6 +283,17 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
+    public Long lPushEntity(String key, Object value){
+        String json;
+        try {
+            json = objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return redisTemplate.opsForList().rightPush(key, json);
+    }
+
+    @Override
     public Long lPushAll(String key, Object... values) {
         return redisTemplate.opsForList().rightPushAll(key, values);
     }
@@ -217,6 +303,21 @@ public class RedisServiceImpl implements RedisService {
         Long count = redisTemplate.opsForList().rightPushAll(key, values);
         expire(key, time);
         return count;
+    }
+
+    @Override
+    public Long lPushAllEntity(String key, Object... values){
+        String[] jsons = new String[values.length];
+        for(int i = 0; i < values.length; i++){
+            try {
+                jsons[i] = objectMapper.writeValueAsString(values[i]);
+                redisTemplate.opsForList().rightPush(key, jsons[i]);
+
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return redisTemplate.opsForList().size(key);
     }
 
     @Override

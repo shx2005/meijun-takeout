@@ -1,6 +1,5 @@
 package com.mo.entity;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.mo.common.enumeration.ItemType;
 import lombok.AllArgsConstructor;
@@ -36,7 +35,7 @@ public class CartItem implements Serializable {
     @Schema(description = "购物车项数量")
     private Integer quantity;
     @Schema(description = "购物车项单价")
-    private BigDecimal unitPrice;
+    private BigDecimal price;
     @Schema(description = "购物车项总价")
-    private BigDecimal totalPrice;
+    private BigDecimal total;
 }

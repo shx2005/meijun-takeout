@@ -12,12 +12,14 @@ import com.mo.web.MoWebApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.jdbc.Sql;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = MoWebApplication.class)
+@Sql({"/sql/insert-test-merchant.sql", "/sql/insert-test-dish.sql", "/sql/insert-test-customer.sql"})
 public class OrderControllerTest {
     @Autowired
     OrderController orderController;
@@ -31,11 +33,11 @@ public class OrderControllerTest {
     // 1. 添加购物车商品
     CartItem cartItem = new CartItem();
     cartItem.setItemId(1L);
-    cartItem.setItemType(ItemType.fromValue(1)); // 假设为普通菜品类型
+    cartItem.setItemType(ItemType.fromValue(0)); // 假设为普通菜品类型
     cartItem.setName("宫保鸡丁");
     cartItem.setUserId(1L);
     cartItem.setQuantity(2); // 数量为2
-    cartItem.setUnitPrice(new BigDecimal("25.00")); // 单价25元
+    cartItem.setPrice(new BigDecimal("25.00")); // 单价25元
     cartService.addToCart(cartItem);
 
     // 2. 构建 OrderSubmitDTO

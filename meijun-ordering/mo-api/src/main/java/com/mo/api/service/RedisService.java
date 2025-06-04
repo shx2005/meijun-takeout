@@ -16,6 +16,9 @@ public interface RedisService {
      */
     void set(String key, Object value, long time);
 
+    /**
+     * 保存实体
+     */
     void setEntity(String key, Object value);
 
     /**
@@ -28,6 +31,9 @@ public interface RedisService {
      */
     Object get(String key);
 
+    /**
+     * 获取实体
+     */
     Object getEntity(String key, Class<?> clazz);
 
     /**
@@ -70,6 +76,8 @@ public interface RedisService {
      */
     Object hGet(String key, String hashKey);
 
+    Object hGetEntity(String key, String hashKey, Class<?> clazz);
+
     /**
      * 向Hash结构中放入一个属性
      */
@@ -80,10 +88,14 @@ public interface RedisService {
      */
     void hSet(String key, String hashKey, Object value);
 
+    void hSetEntity(String key, String hashKey, Object value);
+
     /**
      * 直接获取整个Hash结构
      */
     Map<Object, Object> hGetAll(String key);
+
+    Map<Object, Object> hGetAllEntity(String key, Class<?> clazz);
 
     /**
      * 直接设置整个Hash结构
@@ -94,6 +106,8 @@ public interface RedisService {
      * 直接设置整个Hash结构
      */
     void hSetAll(String key, Map<String, ?> map);
+
+    void hSetAllEntity(String key, Map<String, Object> map);
 
     /**
      * 删除Hash结构中的属性
@@ -150,6 +164,8 @@ public interface RedisService {
      */
     List<Object> lRange(String key, long start, long end);
 
+    List<Object> lRangeEntity(String key, long start, long end, Class<?> clazz);
+
     /**
      * 获取List结构的长度
      */
@@ -159,6 +175,8 @@ public interface RedisService {
      * 根据索引获取List中的属性
      */
     Object lIndex(String key, long index);
+
+    Object lIndexEntity(String key, long index, Class<?> clazz);
 
     /**
      * 向List结构中添加属性
@@ -170,6 +188,8 @@ public interface RedisService {
      */
     Long lPush(String key, Object value, long time);
 
+    Long lPushEntity(String key, Object value);
+
     /**
      * 向List结构中批量添加属性
      */
@@ -179,6 +199,8 @@ public interface RedisService {
      * 向List结构中批量添加属性
      */
     Long lPushAll(String key, Long time, Object... values);
+
+    Long lPushAllEntity(String key, Object... values);
 
     /**
      * 从List结构中移除属性
