@@ -6,14 +6,17 @@
         select * from orders
     </select>
     <select id="getPage" resultType="com.mo.entity.Order">
-        select * from orders where customer_id = #{userId}
+        select * ,customer_id as userId
+        from orders where customer_id = #{userId}
         limit #{offset},#{size}
     </select>
     <select id="getOrderById" resultType="com.mo.entity.Order">
-        select * from orders where id = #{orderId}
+        select * ,customer_id as userId
+        from orders where id = #{orderId}
     </select>
     <select id="getOrderByPeriod" resultType="com.mo.entity.Order">
-        select * from orders where createTime between #{startDate} AND #{endDate}
+        select * ,customer_id as userId
+        from orders where createTime between #{startDate} AND #{endDate}
     </select>
 
     <update id="updateOrderStatus">

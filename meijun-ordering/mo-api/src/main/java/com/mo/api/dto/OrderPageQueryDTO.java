@@ -15,9 +15,9 @@ public class OrderPageQueryDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "页码")
-    private int page;
+    private int page = 1;
     @Schema(description = "每页数据量")
-    private int size;
+    private int size = 10;
     @Schema(description = "订单状态")
     private Integer status;
     @Schema(description = "用户id")
