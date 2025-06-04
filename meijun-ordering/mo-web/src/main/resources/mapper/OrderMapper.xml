@@ -13,7 +13,7 @@
         select * from orders where id = #{orderId}
     </select>
     <select id="getOrderByPeriod" resultType="com.mo.entity.Order">
-        select * from orders where create_time between #{startDate} AND #{endDate}
+        select * from orders where createTime between #{startDate} AND #{endDate}
     </select>
 
     <update id="updateOrderStatus">
@@ -24,7 +24,7 @@
             parameterType="com.mo.entity.Order"
             useGeneratedKeys="true"
             keyProperty="id">
-        insert into orders(customer_id, merchant_id, orderTime, status, total)
-        values(#{userId}, #{merchantId}, #{orderTime}, #{status}, #{total})
+        insert into orders(customer_id, merchant_id, orderTime, status, total, createTime, updateTime)
+        values(#{userId}, #{merchantId}, #{orderTime}, #{status}, #{total}, #{createTime}, #{updateTime})
     </insert>
 </mapper>

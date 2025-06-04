@@ -2,7 +2,6 @@ package com.mo.web.controller;
 
 import com.mo.api.service.RedisService;
 import com.mo.common.context.BaseContext;
-import com.mo.common.enumeration.ItemType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -64,30 +63,6 @@ public class CartController {
     public Result<String> addToCart(@RequestBody CartItemDTO cartDTO){
         CartItem cartItem = new CartItem();
         BeanUtils.copyProperties(cartDTO, cartItem);
-
-        // 从 BaseContext 获取当前用户的 uuid
-        String uuid = BaseContext.getCurrentId();
-        if (uuid == null) {
-            log.error("Failed to get current user uuid from BaseContext. User might not be logged in properly or context is missing.");
-            return Result.error("User not authenticated."); // 或者更合适的错误响应
-        }
-
-        // 从 Redis 获取真实的 userId (Long)
-        Object userIdObj = redisService.hGet(RedisKeyConstant.USER_ID, uuid);
-        if (userIdObj == null) {
-            log.error("User ID not found in Redis for uuid: {}", uuid);
-            return Result.error("User information not found, please login again.");
-        }
-        Long currentUserId;
-        try {
-            currentUserId = ((Number) userIdObj).longValue();
-        } catch (ClassCastException e) {
-            log.error("Failed to cast userId from Redis to Long for uuid: {}. Value was: {}", uuid, userIdObj, e);
-            return Result.error("Invalid user information format.");
-        }
-        
-        // 将获取到的 userId 设置到 cartItem 对象中
-        cartItem.setUserId(currentUserId);
 
         cartService.addToCart(cartItem);
         return Result.success();

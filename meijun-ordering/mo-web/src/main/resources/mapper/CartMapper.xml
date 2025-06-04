@@ -7,7 +7,7 @@
     </select>
 
     <select id="getCartByUserId" parameterType="long" resultType="com.mo.entity.Cart">
-        SELECT * FROM carts WHERE user_id = #{userId} LIMIT 1
+        select * from carts where user_id = #{userId} limit 1
     </select>
 
     <insert id="createCartIfNotExists">

@@ -5,7 +5,7 @@ import com.mo.api.vo.OrderSubmitVO;
 import com.mo.common.constant.MessageConstant;
 import com.mo.common.enumeration.OrderPayStaus;
 import com.mo.common.enumeration.OrderStatus;
-import com.mo.common.exception.CartBussinessException;
+import com.mo.common.exception.CartBusinessException;
 import com.mo.entity.*;
 import com.mo.service.annotation.AutoFillTime;
 import com.mo.service.mapper.*;
@@ -73,12 +73,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @AutoFillTime
     public OrderSubmitVO saveOrder(Order order){
         Long userId = order.getUserId();
         List<CartItem> cartItems = cartItemMapper.getItemsByUserId(userId);
         //  判断购物车是否为空
         if(cartItems == null || cartItems.isEmpty()){
-            throw new CartBussinessException(MessageConstant.CART_NULL);
+            throw new CartBusinessException(MessageConstant.CART_NULL);
         }
         // 设置订单信息
         order.setOrderTime(LocalDateTime.now());

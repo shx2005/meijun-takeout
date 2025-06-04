@@ -1,6 +1,6 @@
 -- 创建数据库
-CREATE DATABASE IF NOT EXISTS `test-db`;
-USE `test-db`;
+CREATE DATABASE IF NOT EXISTS `mo_db`;
+USE `mo_db`;
 
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS order_details;

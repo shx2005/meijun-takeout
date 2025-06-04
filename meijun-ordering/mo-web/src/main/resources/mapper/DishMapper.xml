@@ -21,16 +21,16 @@
 
 
     <select id="getDishById" resultType="com.mo.entity.Dish">
-        SELECT id, name, category_id, price, description, createTime, updateTime, merchant_id
-        FROM dishes WHERE id = #{id}
+        select * from dishes where id = #{id}
     </select>
     
     <insert id="saveDish"
             parameterType="com.mo.entity.Dish"
             useGeneratedKeys="true"
             keyProperty="dish.id">
-        insert into dishes(name,category_id,price,image,description,status,sale,create_time,update_time,create_user,update_user)
-        values(#{dish.name},#{dish.categoryId},#{dish.price},#{dish.image},#{dish.description},#{dish.status},#{dish.sale},
-               #{dish.createTime},#{dish.updateTime},#{dish.createUser},#{dish.updateUser})
+        insert into dishes(name,category_id,price,image,description,
+                           status,sale,create_time,update_time,create_user,update_user)
+        values(#{dish.name},#{dish.categoryId},#{dish.price},#{dish.image},#{dish.description},
+               #{dish.status},#{dish.sale},#{dish.createTime},#{dish.updateTime},#{dish.createUser},#{dish.updateUser})
     </insert>
 </mapper>

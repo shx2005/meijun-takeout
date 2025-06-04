@@ -3,72 +3,48 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.mo.service.mapper.CartItemMapper">
     <select id="getItemsByUserId" resultType="com.mo.entity.CartItem">
-        SELECT
-            ci.id,
-            ci.cart_id as cartId,
-            ci.item_id as itemId,
-            ci.item_type as itemType,
-            ci.quantity,
-            ci.name,
-            ci.price as unitPrice,
-            c.user_id as userId
-        FROM
-            cart_items ci
-        JOIN
-            carts c ON ci.cart_id = c.id
-        WHERE
-            c.user_id = #{userId}
+        select * from cart_items
+        where user_id = #{userId}
     </select>
     <select id="getItemByUserIdAndItemId" resultType="com.mo.entity.CartItem">
-        SELECT ci.*, c.user_id as userId
-        FROM cart_items ci
-        JOIN carts c ON ci.cart_id = c.id
-        WHERE c.user_id = #{userId} AND ci.item_id = #{itemId}
-    </select>
-    <select id="getCartItemByUserIdAndItemId" resultType="com.mo.entity.CartItem">
-        SELECT ci.*, c.user_id as userId
-        FROM cart_items ci
-        JOIN carts c ON ci.cart_id = c.id
-        WHERE c.user_id = #{userId} AND ci.item_id = #{itemId}
+        select * from cart_items
+        where user_id = #{userId} and item_id = #{itemId} and item_type = #{itemType}
     </select>
 
     <insert id="saveCartItem" parameterType="com.mo.entity.CartItem" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO cart_items (cart_id, item_id, name, item_type, quantity, price)
-        VALUES (#{cartId}, #{itemId}, #{name}, #{itemType}, #{quantity}, #{unitPrice})
+        insert into cart_items(name, cart_id, user_id, item_id, item_type, quantity, price)
+        values(#{name}, #{cartId}, #{userId}, #{itemId}, #{itemType}, #{quantity}, #{price})
     </insert>
 
     <update id="updateCartItem" parameterType="com.mo.entity.CartItem">
-        UPDATE cart_items ci
-        JOIN carts c ON ci.cart_id = c.id
-        SET ci.quantity = #{quantity}
-        WHERE c.user_id = #{userId} AND ci.item_id = #{itemId}
+        update cart_items
+        <if test="quantity != null">
+            set quantity = #{quantity}
+        </if>
+         where id = #{id}
     </update>
 
     <delete id="deleteCartItemById">
-        DELETE FROM cart_items WHERE id = #{id}
+       delete from cart_items where id = #{id}
     </delete>
     <delete id="deleteCartItemByUserId" parameterType="long">
-        DELETE ci FROM cart_items ci
-        JOIN carts c ON ci.cart_id = c.id
-        WHERE c.user_id = #{userId}
+        delete from cart_items
+        where user_id = #{userId}
     </delete>
     <delete id="deleteCartItem" parameterType="com.mo.entity.CartItem">
-        DELETE ci FROM cart_items ci
-        <if test="userId != null">
-            JOIN carts c ON ci.cart_id = c.id
-        </if>
+        delete from cart_items
         <where>
             <if test="id != null">
-                AND ci.id = #{id}
-            </if>
-            <if test="userId != null">
-                AND c.user_id = #{userId}
+                and id = #{id}
             </if>
             <if test="itemId != null">
-                AND ci.item_id = #{itemId}
+                and item_id = #{itemId}
             </if>
             <if test="itemType != null">
-                AND ci.item_type = #{itemType}
+                and item_type = #{itemType}
+            </if>
+            <if test="userId != null">
+                and user_id = #{userId}
             </if>
         </where>
     </delete>

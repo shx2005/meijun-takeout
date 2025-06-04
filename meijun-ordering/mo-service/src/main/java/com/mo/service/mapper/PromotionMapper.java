@@ -11,6 +11,8 @@ public interface PromotionMapper {
     List<Promotion> getPromotion();
 
     void savePromotion(Promotion promotion);
+
     void deletePromotionById(Long promotionId);
+
     void updatePromotion(Promotion promotion);
 }

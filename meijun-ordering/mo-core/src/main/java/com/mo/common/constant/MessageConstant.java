@@ -16,4 +16,7 @@ public class MessageConstant {
     public static final String COUPON_INVALITE_BY_AMOUNT = "优惠券未达金额要求";
     public static final String COUPON_INVALITE_BY_TIME = "优惠券未达指定时间段";
     public static final String IDENTITY_CANNOT_BE_NULL = "用户身份不能为空";
+    public static final String DISH_NOT_FOUND = "菜品不存在";
+    public static final String CART_ITEM_NAME_NULL = "菜品名称为空";
+    public static final String CART_ITEM_PRICE_NULL = "菜品价格为空";
 }

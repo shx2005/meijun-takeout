@@ -1,5 +1,6 @@
 package com.mo.service.mapper;
 
+import com.mo.common.enumeration.ItemType;
 import com.mo.entity.CartItem;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -10,11 +11,15 @@ public interface CartItemMapper {
 
     List<CartItem> getItemsByUserId(Long userId);
 
-    CartItem getItemByUserIdAndItemId(Long userId, Long itemId);
+    CartItem getItemByUserIdAndItemId(Long userId, Long itemId, ItemType itemType);
 
     void saveCartItem(CartItem cartItem);
+
     void deleteCartItemById(Long id);
+
     int updateCartItem(CartItem cartItem);
+
     void deleteCartItemByUserId(Long userId);
+
     void deleteCartItem(CartItem item);
 }
