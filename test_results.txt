@@ -1,0 +1,52 @@
+[32m========== 顾客登录测试 ==========[0m
+{
+   "error" : "Internal Server Error",
+   "path" : "/api/v1/auth/login",
+   "status" : 500,
+   "timestamp" : 1748869612761
+}
+[33m用户Token: [0m
+[32m
+========== 获取顾客购物车 ==========[0m
+{
+   "error" : "Unauthorized",
+   "path" : "/api/v1/cart",
+   "status" : 401,
+   "timestamp" : 1748869612832
+}
+[32m
+========== 商家登录测试 ==========[0m
+{
+   "error" : "Internal Server Error",
+   "path" : "/api/v1/auth/login",
+   "status" : 500,
+   "timestamp" : 1748869612853
+}
+[33m商家Token: [0m
+[32m
+========== 获取商家订单列表 ==========[0m
+{
+   "error" : "Unauthorized",
+   "path" : "/api/v1/merchants/orders",
+   "status" : 401,
+   "timestamp" : 1748869612886
+}
+[32m
+========== 员工登录测试 ==========[0m
+{
+   "error" : "Internal Server Error",
+   "path" : "/api/v1/auth/login",
+   "status" : 500,
+   "timestamp" : 1748869612907
+}
+[33m员工Token: [0m
+[32m
+========== 获取员工订单视图 ==========[0m
+{
+   "error" : "Unauthorized",
+   "path" : "/api/v1/orders/overview",
+   "status" : 401,
+   "timestamp" : 1748869612938
+}
+[32m
+========== 测试完成 ==========[0m
