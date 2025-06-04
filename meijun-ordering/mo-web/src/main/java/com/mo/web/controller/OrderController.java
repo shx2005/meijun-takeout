@@ -8,7 +8,6 @@ import com.mo.api.service.CartService;
 import com.mo.api.service.OrderService;
 import com.mo.api.service.RedisService;
 import com.mo.api.vo.OrderSubmitVO;
-import com.mo.common.constant.RedisKeyConstant;
 import com.mo.common.context.BaseContext;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
@@ -35,12 +34,6 @@ import java.util.List;
 public class OrderController {
     @Autowired
     private OrderService orderService;
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-    @Autowired
-    private CartService cartService;
-    @Autowired
-    private RedisService redisService;
 
     @Operation(summary = "获取订单列表")
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Order.class)))
@@ -60,7 +53,7 @@ public class OrderController {
         int pageNum = orderPageQueryDTO.getPage();
         int pageSize = orderPageQueryDTO.getSize();
         Long userId = orderPageQueryDTO.getId();
-        String uuid = BaseContext.getCurrentId();
+
         int offset = (pageNum - 1) * pageSize;
         int size = pageSize;
 
@@ -81,7 +74,7 @@ public class OrderController {
         return Result.success(order);
     }
 
-    @Operation(summary = "获取订单分页")
+    @Operation(summary = "保存订单评价")
     @Parameters({
             @Parameter(name = "orderCommentQueryDTO", schema = @Schema(implementation = OrderCommentDTO.class))
     })
@@ -95,7 +88,7 @@ public class OrderController {
         return Result.success(orderComment);
     }
 
-    @Operation(summary = "保存订单评价")
+    @Operation(summary = "提交订单售后")
     @Parameters({
             @Parameter(name = "orderAfterSaleDTO", description = "订单售后参数", required = true, schema = @Schema(implementation = AfterSaleDTO.class))
     })
