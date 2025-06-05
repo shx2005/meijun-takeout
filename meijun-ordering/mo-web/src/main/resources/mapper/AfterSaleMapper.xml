@@ -6,8 +6,8 @@
             parameterType="com.mo.entity.AfterSale"
             useGeneratedKeys="true"
             keyProperty="id">
-        insert into after_sales(order_id,reason,status,createTime)
-        values(#{orderId},#{reason},#{status},#{createTime})
+        insert into after_sales(order_id,reason,status,content,createTime)
+        values(#{orderId},#{reason},#{status},#{content},#{createTime})
     </insert>
 
     <update id="updateAfterSale" parameterType="com.mo.entity.AfterSale">
