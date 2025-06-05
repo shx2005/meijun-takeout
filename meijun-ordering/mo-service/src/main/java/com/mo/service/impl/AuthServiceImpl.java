@@ -1,6 +1,11 @@
 package com.mo.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mo.api.dto.MpLoginDTO;
 import com.mo.common.exception.*;
+import com.mo.common.properties.MpProperties;
 import com.mo.service.annotation.AutoFillTime;
 import com.mo.api.dto.AuthLoginDTO;
 import com.mo.api.service.AuthService;
@@ -18,8 +23,11 @@ import com.mo.service.mapper.MerchantMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -32,6 +40,12 @@ public class AuthServiceImpl implements AuthService {
     private MerchantMapper merchantMapper;
     @Autowired
     private EmployeeMapper employeeMapper;
+    @Autowired
+    private MpProperties mpProperties;
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private static final String WX_LOGIN = "https://api.weixin.qq.com/sns/jscode2session";
 
     @Override
     public User login(AuthLoginDTO authLoginDTO){
@@ -62,6 +76,30 @@ public class AuthServiceImpl implements AuthService {
         if(!user.getPassword().equals(password)) throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
 
         return user;
+    }
+
+    @Override
+    @AutoFillTime
+    @AutoFillUuid
+    public User mpLogin(MpLoginDTO dto){
+        String openid = getOpenid(dto.getCode());
+
+        if(openid == null || openid.isEmpty()){
+            throw new LoginFailedException(MessageConstant.LOGIN_FAILED);
+        }
+
+        Customer customer = customerMapper.getCustomerByOpenid(openid);
+        if(customer == null){
+            customer = Customer.builder()
+                    .identity(UserIdentity.CUSTOMER)
+                    .username("default")
+                    .password("123456")
+                    .balance(BigDecimal.ZERO)
+                    .openid(openid)
+                    .build();
+            customerMapper.saveCustomer(customer);
+        }
+        return customer;
     }
 
     @Override
@@ -106,5 +144,24 @@ public class AuthServiceImpl implements AuthService {
             }
             default -> throw new RegisterFailedException("未知身份");
         }
+    }
+
+    private String getOpenid(String code){
+        Map<String, String> params = new HashMap<>();
+        params.put("appid", mpProperties.getAppid());
+        params.put("secret", mpProperties.getSecret());
+        params.put("js_code", code);
+        params.put("grant_type", "authorization_code");
+        RestTemplate restTemplate = new RestTemplate();
+
+        String response = restTemplate.getForObject(WX_LOGIN, String.class, params);
+        JsonNode jsonNode = null;
+        try {
+            jsonNode = objectMapper.readTree(response);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        return jsonNode.get("openid").asText();
     }
 }

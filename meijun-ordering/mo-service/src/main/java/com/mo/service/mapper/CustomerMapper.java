@@ -13,6 +13,8 @@ public interface CustomerMapper {
 
     Customer getCustomerByUuid(@Param("uuid") String uuid);
 
+    Customer getCustomerByOpenid(String openid);
+
     void saveCustomer(@Param("customer") Customer customer);
 
     void updateCustomer(Customer customer);

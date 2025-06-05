@@ -2,6 +2,7 @@ package com.mo.web.controller;
 
 import com.mo.api.dto.AuthLoginDTO;
 import com.mo.api.dto.AuthRegisterDTO;
+import com.mo.api.dto.MpLoginDTO;
 import com.mo.api.service.RedisService;
 import com.mo.api.vo.AuthLoginVo;
 import com.mo.common.constant.JwtClaimsConstant;
@@ -95,22 +96,10 @@ public class AuthController {
             @Parameter(name = "loginData", description = "登录参数", required = true, schema = @Schema(implementation = Map.class))
     })
     @PostMapping("/mp/login")
-    public Result<AuthLoginVo> mpLogin(@RequestBody Map<String, String> loginData) {
-        log.info("微信小程序登录: {}", loginData);
+    public Result<AuthLoginVo> mpLogin(@RequestBody MpLoginDTO dto) {
+        log.info("微信小程序登录: {}", dto);
         
-        // 获取微信小程序传来的code等信息
-        String code = loginData.get("code");
-        String encryptedData = loginData.get("encryptedData");
-        String getPhoneCode = loginData.get("getPhoneCode");
-        
-        // 这里应该调用微信API获取openid等信息
-        // 为了演示，我们直接构造一个模拟用户
-        User user = new User();
-        user.setId(1L); // 假设用户ID为1
-        user.setUsername("微信用户");
-        user.setName("微信用户");
-        user.setUuid(java.util.UUID.randomUUID().toString());
-        user.setIdentity(UserIdentity.CUSTOMER);
+        User user = authService.mpLogin(dto);
         
         Map<String, Object> claims = new HashMap<>();
         String id = JwtClaimsConstant.getId(user.getIdentity());

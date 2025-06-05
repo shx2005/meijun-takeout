@@ -1,6 +1,7 @@
 package com.mo.api.service;
 
 import com.mo.api.dto.AuthLoginDTO;
+import com.mo.api.dto.MpLoginDTO;
 import com.mo.entity.User;
 
 public interface AuthService {
@@ -12,6 +13,8 @@ public interface AuthService {
      * @throws IllegalArgumentException 如果输入参数为空或无效。
      */
     User login(AuthLoginDTO authLoginDTO);
+
+    User mpLogin(MpLoginDTO dto);
 
     void saveUser(User user);
 }

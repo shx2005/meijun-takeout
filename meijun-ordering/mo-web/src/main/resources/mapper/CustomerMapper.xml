@@ -14,6 +14,9 @@
     <select id="getAllCustomer" resultType="com.mo.entity.Customer">
          select * from customers
     </select>
+    <select id="getCustomerByOpenid" resultMap="com.mo.entity.Customer">
+        select * from customers where wechat_openid = #{openid}
+    </select>
     <select id="searchForCustomer" resultType="com.mo.entity.Customer">
         select * from customers where
             <if test="name != null and name != ''">
