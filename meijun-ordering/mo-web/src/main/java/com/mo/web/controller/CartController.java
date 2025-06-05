@@ -1,6 +1,7 @@
 package com.mo.web.controller;
 
 import com.mo.api.service.RedisService;
+import com.mo.api.vo.CartVo;
 import com.mo.common.context.BaseContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Slf4j
@@ -41,18 +43,22 @@ public class CartController {
      */
     @Operation(summary = "获取购物车", description = "获取用户最后创建的购物车")
     @GetMapping("")
-    public Result<Cart> getCart(){
+    public Result<CartVo> getCart(){
         String uuid  = BaseContext.getCurrentId();
         Object obj = redisService.hGet(RedisKeyConstant.USER_ID, uuid);
         Long userId = ((Number) obj).longValue();
         List<CartItem> cartItems = cartService.getCart(userId);
+        BigDecimal total = cartItems.stream()
+                .map(CartItem::getTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        Cart cart = Cart.builder()
+        CartVo vo = CartVo.builder()
                 .userId(userId)
                 .items(cartItems)
+                .total(total)
                 .build();
 
-        return Result.success(cart);
+        return Result.success(vo);
     }
 
     @Operation(summary = "添加商品到购物车", description = "将指定商品添加到用户购物车")

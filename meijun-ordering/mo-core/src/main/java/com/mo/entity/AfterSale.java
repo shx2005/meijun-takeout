@@ -1,7 +1,6 @@
 package com.mo.entity;
 import com.mo.common.enumeration.AfterSaleStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.mo.common.enumeration.AfterSaleType;
 import lombok.Data;
