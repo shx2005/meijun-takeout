@@ -87,8 +87,16 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.pending);
         order.setPayStatus(OrderPayStaus.unpaid);
         order.setOrderNumber(String.valueOf(System.currentTimeMillis()));
-        BigDecimal total = cartItems.stream().map(CartItem::getTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal total = cartItems.stream()
+                        .map(item -> {
+                            BigDecimal price = item.getPrice();
+                            int quantity = item.getQuantity();
+                            BigDecimal tot = price.multiply(new BigDecimal(quantity));
+                            item.setTotal(tot);
+                            return tot;
+                        })
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         order.setTotal(total);
 
         orderMapper.saveOrder(order);

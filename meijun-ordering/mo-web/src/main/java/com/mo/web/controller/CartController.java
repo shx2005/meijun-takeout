@@ -49,8 +49,15 @@ public class CartController {
         Long userId = ((Number) obj).longValue();
         List<CartItem> cartItems = cartService.getCart(userId);
         BigDecimal total = cartItems.stream()
-                .map(CartItem::getTotal)
+                .map(item -> {
+                    BigDecimal price = item.getPrice();
+                    int quantity = item.getQuantity();
+                    BigDecimal tot = price.multiply(new BigDecimal(quantity));
+                    item.setTotal(tot);
+                    return tot;
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
 
         CartVo vo = CartVo.builder()
                 .userId(userId)
