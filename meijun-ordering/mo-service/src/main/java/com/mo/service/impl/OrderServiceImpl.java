@@ -64,8 +64,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @AutoFillTime
-    public void updateOrderStatus(Long orderId, Integer status){
-        orderMapper.updateOrderStatus(orderId,status);
+    public void updateOrder(Order order){
+        orderMapper.updateOrder(order);
     }
 
     @Override

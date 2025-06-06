@@ -18,16 +18,17 @@
 
     <update id="updateAdmin" parameterType="com.mo.entity.Admin">
         update admins
-        set
+        <set>
             <if test="admin.username != null and admin.username != ''" >
-                username = #{admin.username}
+                username = #{admin.username},
             </if>
             <if test="admin.password != null and admin.password != ''" >
-                password = #{admin.password}
+                `password` = #{admin.password},
             </if>
             <if test="admin.updateTime != null" >
-                updateTime = #{admin.updateTime}
+                updateTime = #{admin.updateTime},
             </if>
+        </set>
         where id = #{id}
     </update>
 

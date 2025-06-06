@@ -13,12 +13,24 @@
     <update id="updateAfterSale" parameterType="com.mo.entity.AfterSale">
         update after_sales
         <set>
-            <if test="orderId != null">order_id = #{orderId},</if>
-            <if test="type != null">type = #{type},</if>
-            <if test="reason != null">reason = #{reason},</if>
-            <if test="content != null">content = #{content},</if>
-            <if test="status != null">status = #{status},</if>
-            <if test="updateTime != null">updateTime = #{updateTime},</if>
+            <if test="orderId != null">
+                order_id = #{orderId},
+            </if>
+            <if test="type != null">
+                `type` = #{type},
+            </if>
+            <if test="reason != null">
+                reason = #{reason},
+            </if>
+            <if test="content != null">
+                content = #{content},
+            </if>
+            <if test="status != null">
+                `status` = #{status},
+            </if>
+            <if test="updateTime != null">
+                updateTime = #{updateTime},
+            </if>
         </set>
         where id = #{id}
     </update>
@@ -31,6 +43,6 @@
         select * from after_sales where id = #{id}
     </select>
     <select id="getAfterSales" resultType="com.mo.entity.AfterSale">
-        select * from after_sales where status = "pending"
+        select * from after_sales where status = 'pending'
     </select>
 </mapper>

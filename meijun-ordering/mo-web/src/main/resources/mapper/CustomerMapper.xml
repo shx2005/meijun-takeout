@@ -28,6 +28,25 @@
             </if>
     </select>
 
+    <update id="updateCustomer" parameterType="com.mo.entity.Customer">
+        update customers
+        <set>
+            <if test="customer.username != null">
+                username = #{customer.username},
+            </if>
+            <if test="customer.password != null">
+                `password` = #{customer.password},
+            </if>
+            <if test="customer.avatar_url != null">
+                avatar_url = #{customer.avatar_url},
+            </if>
+            <if test="customer.balance != null">
+                balance = #{customer.balance},
+            </if>
+        </set>
+        where id = #{customer.id}
+    </update>
+
     <insert id="saveCustomer"
             parameterType="com.mo.entity.Customer"
             useGeneratedKeys="true"

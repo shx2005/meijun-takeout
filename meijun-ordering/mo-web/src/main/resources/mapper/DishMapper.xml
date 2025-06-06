@@ -29,7 +29,7 @@
             useGeneratedKeys="true"
             keyProperty="dish.id">
         insert into dishes(name,category_id,price,image,description,
-                           status,sale,create_time,update_time,create_user,update_user)
+                           status,sale,createTime,updateTime,create_user,update_user)
         values(#{dish.name},#{dish.categoryId},#{dish.price},#{dish.image},#{dish.description},
                #{dish.status},#{dish.sale},#{dish.createTime},#{dish.updateTime},#{dish.createUser},#{dish.updateUser})
     </insert>

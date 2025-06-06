@@ -17,7 +17,7 @@ public interface OrderService {
 
     OrderComment saveOrderComment(Long orderId, String content);
 
-    void updateOrderStatus(Long orderId, Integer status);
+    void updateOrder(Order order);
 
     void saveAfterSale(AfterSale afterSale);
 

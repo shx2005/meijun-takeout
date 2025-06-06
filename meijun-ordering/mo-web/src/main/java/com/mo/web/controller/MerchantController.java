@@ -66,7 +66,7 @@ public class MerchantController {
         return Result.success(order);
     }
 
-    @Operation(summary = "获取订单详情", description = "获取指定订单的详细信息")
+    @Operation(summary = "修改订单状态", description = "修改指定订单的状态")
     @Parameters({
             @Parameter(name = "orderId", description = "订单ID", required = true),
             @Parameter(name = "status", description = "订单状态", required = true)
@@ -81,7 +81,7 @@ public class MerchantController {
         OrderStatus orderStatus = OrderStatus.fromValue(status);
         order.setStatus(orderStatus);
 
-        orderService.updateOrderStatus(orderId, status);
+        orderService.updateOrder(order);
         redisService.del("order:" + orderId);
 
         return Result.success(order);

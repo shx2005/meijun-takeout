@@ -20,8 +20,32 @@
         from orders where createTime between #{startDate} AND #{endDate}
     </select>
 
-    <update id="updateOrderStatus">
-        update orders set status = #{status} where id = #{orderId}
+    <update id="updateOrder">
+        update orders
+        <set>
+            <if test="order.userId != null">
+                customer_id = #{order.userId},
+            </if>
+            <if test="order.merchantId != null">
+                merchant_id = #{order.merchantId},
+            </if>
+            <if test="order.orderTime != null">
+                orderTime = #{order.orderTime},
+            </if>
+            <if test="order.status != null">
+                status = #{order.status},
+            </if>
+            <if test="order.payStatus != null">
+                pay_status = #{order.payStatus},
+            </if>
+            <if test="order.total != null">
+                total = #{order.total},
+            </if>
+            <if test="order.updateTime != null">
+                updateTime = #{order.updateTime},
+            </if>
+        </set>
+        where id = #{order.id}
     </update>
 
     <insert id="saveOrder"
