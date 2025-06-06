@@ -3,6 +3,7 @@ package com.mo.api.service;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Redis操作服务类
@@ -52,6 +53,11 @@ public interface RedisService {
     Boolean expire(String key, long time);
 
     /**
+     * 设置过期时间
+     */
+    Boolean expire(String key, long time, TimeUnit unit);
+
+    /**
      * 获取过期时间
      */
     Long getExpire(String key);
@@ -80,6 +86,7 @@ public interface RedisService {
 
     /**
      * 向Hash结构中放入一个属性
+     * @param time 超时时间,默认为秒
      */
     Boolean hSet(String key, String hashKey, Object value, long time);
 
