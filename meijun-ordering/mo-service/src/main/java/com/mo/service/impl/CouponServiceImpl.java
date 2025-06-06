@@ -50,19 +50,19 @@ public class CouponServiceImpl implements CouponService {
         Coupon coupon = couponMapper.getCouponById(couponValidateDTO.getCouponId());
         LocalDateTime now = LocalDateTime.now();
 
-        if (now.isAfter(coupon.getEndTime()) && now.isBefore(coupon.getStartTime())) {
-            Long orderId = couponValidateDTO.getOrderId();
-            Order order = orderMapper.getOrderById(orderId);
-            BigDecimal amount = getBigDecimal(order, coupon);
-
-            return CouponValidateVo.builder()
-                    .amount(amount)
-                    .orderId(orderId)
-                    .payType(couponValidateDTO.getPayType())
-                    .build();
+        if (now.isAfter(coupon.getEndTime()) || now.isBefore(coupon.getStartTime())) {
+            throw new CouponInvalidateException(MessageConstant.COUPON_INVALITE_BY_TIME);
         }
 
-        throw new CouponInvalidateException(MessageConstant.COUPON_INVALITE_BY_TIME);
+        Long orderId = couponValidateDTO.getOrderId();
+        Order order = orderMapper.getOrderById(orderId);
+        BigDecimal amount = getBigDecimal(order, coupon);
+
+        return CouponValidateVo.builder()
+                .amount(amount)
+                .orderId(orderId)
+                .payType(couponValidateDTO.getPayType())
+                .build();
     }
 
     @Override
