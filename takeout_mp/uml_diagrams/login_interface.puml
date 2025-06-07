@@ -1,0 +1,25 @@
+@startuml
+title 登录注册接口关系图
+
+' 前端组件
+component "Login" as Login
+component "Register" as Register
+
+' API接口
+interface "认证接口" as AuthAPI
+
+' 后端服务
+component "用户认证服务" as AuthService
+database "用户数据库" as UserDB
+
+' 连接关系
+Login --> AuthAPI : 用户登录
+Register --> AuthAPI : 用户注册
+AuthAPI --> AuthService
+AuthService --> UserDB
+
+' 组件间关系
+Login <--> Register : 跳转
+
+footer "美俊外卖系统 - 登录注册接口关系图"
+@enduml 

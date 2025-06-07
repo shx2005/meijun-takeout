@@ -10,7 +10,13 @@
 					<text>退款金额</text>
 				</view>
 				<view class="item-content">
-					<text class="amount">￥{{ (orderAmount / 100).toFixed(2) }}</text>
+					<input 
+						class="input" 
+						type="digit" 
+						v-model="refundAmount" 
+						placeholder="请输入退款金额"
+						@input="onRefundAmountChange"
+					/>
 					<text class="amount-desc">最多{{ (orderAmount / 100).toFixed(2) }}元</text>
 				</view>
 			</view>
@@ -106,6 +112,7 @@
 			return {
 				orderId: '',
 				orderAmount: 0, // 单位：分
+				refundAmount: '', // 退款金额，用户输入，单位：元
 				reasonList: [
 					'请选择退款原因',
 					'商品质量问题',
@@ -228,11 +235,49 @@
 				this.fileList.splice(event.index, 1);
 			},
 			
+			// 监听退款金额变化
+			onRefundAmountChange(e) {
+				// 限制只能输入数字和小数点
+				let value = e.target.value;
+				// 清除非数字和小数点
+				value = value.replace(/[^\d.]/g, '');
+				// 确保只有一个小数点
+				const parts = value.split('.');
+				if (parts.length > 2) {
+					value = parts[0] + '.' + parts.slice(1).join('');
+				}
+				// 限制小数点后两位
+				if (parts.length > 1 && parts[1].length > 2) {
+					value = parts[0] + '.' + parts[1].substring(0, 2);
+				}
+				
+				this.refundAmount = value;
+			},
+			
 			// 表单验证
 			validateForm() {
 				if (this.reasonIndex === 0) {
 					uni.showToast({
 						title: '请选择退款原因',
+						icon: 'none'
+					});
+					return false;
+				}
+				
+				// 验证退款金额
+				if (!this.refundAmount || parseFloat(this.refundAmount) <= 0) {
+					uni.showToast({
+						title: '请输入有效的退款金额',
+						icon: 'none'
+					});
+					return false;
+				}
+				
+				// 检查退款金额是否超出订单总金额
+				const refundAmountCents = Math.round(parseFloat(this.refundAmount) * 100);
+				if (refundAmountCents > this.orderAmount) {
+					uni.showToast({
+						title: `退款金额不能超过${(this.orderAmount / 100).toFixed(2)}元`,
 						icon: 'none'
 					});
 					return false;
@@ -283,6 +328,8 @@
 						reason: this.reasonList[this.reasonIndex],
 						description: this.description,
 						contactInfo: this.contactInfo,
+						// 将用户输入的金额（元）转换为分
+						amount: Math.round(parseFloat(this.refundAmount) * 100),
 						// 图片列表，实际接口可能需要图片URL列表
 						images: this.fileList.map(item => item.url)
 					};

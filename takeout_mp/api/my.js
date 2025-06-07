@@ -26,10 +26,74 @@ export { getUserInfoApi };
 
 // 更新用户信息
 export const updateUserInfoApi = (data) => {
-	return uni.$ajax.put({
-		url: 'v1/user/info',
-		data: data
-	})
+	// 从本地存储获取token
+	const token = uni.getStorageSync('token');
+	console.log('更新用户信息时的token:', token);
+	console.log('更新用户信息的数据:', JSON.stringify(data));
+	
+	// 使用Promise包装请求
+	return new Promise((resolve, reject) => {
+		// 直接使用uni.request发送请求
+		uni.request({
+			url: 'http://localhost:8080/api/v1/user/update',
+			method: 'POST', // 尝试POST方法
+			header: {
+				'customerToken': token,
+				'Accept': 'application/json',
+				'userType': '3',
+				'Content-Type': 'application/json'
+			},
+			data: data,
+			success: (res) => {
+				console.log('更新用户信息响应:', res);
+				if (res.statusCode === 200 || res.statusCode === 405) {
+					// 如果返回405，说明需要使用GET方法，重新尝试
+					if (res.statusCode === 405) {
+						console.log('POST方法不允许，尝试使用GET方法');
+						
+						// 构建查询字符串
+						const queryParams = Object.keys(data)
+							.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+							.join('&');
+						
+						// 使用GET方法重试
+						uni.request({
+							url: `http://localhost:8080/api/v1/user/update?${queryParams}`,
+							method: 'GET',
+							header: {
+								'customerToken': token,
+								'Accept': 'application/json',
+								'userType': '3',
+								'Content-Type': 'application/json'
+							},
+							success: (getRes) => {
+								console.log('GET方法更新用户信息响应:', getRes);
+								if (getRes.statusCode === 200) {
+									resolve(getRes.data);
+								} else {
+									console.error('GET方法更新用户信息失败:', getRes.statusCode, getRes.data);
+									reject(getRes);
+								}
+							},
+							fail: (err) => {
+								console.error('GET方法更新用户信息请求失败:', err);
+								reject(err);
+							}
+						});
+					} else {
+						resolve(res.data);
+					}
+				} else {
+					console.error('更新用户信息失败:', res.statusCode, res.data);
+					reject(res);
+				}
+			},
+			fail: (err) => {
+				console.error('更新用户信息请求失败:', err);
+				reject(err);
+			}
+		});
+	});
 }
 
 // 手机密码登录
@@ -58,79 +122,82 @@ export const phoneLoginApi = (data) => {
 				
 				// 检查状态码
 				if (res.statusCode === 200) {
-					// 处理登录响应
-					let token = null;
-					let userId = null;
-					let username = null;
-					
-					// 从响应中解析数据
-					if (res.data && res.data.data && res.data.data.token) {
-						token = res.data.data.token;
-						userId = res.data.data.id;
-						username = res.data.data.username;
-					} else if (res.data && res.data.token) {
-						token = res.data.token;
-						userId = res.data.id;
-						username = res.data.username;
-					}
-					
-					if (token) {
-						// 将原始token直接存储，不再进行Base64编码和结构化处理
-						console.log('后端返回的原始token:', token);
-						uni.setStorageSync('originalToken', token);
-						uni.setStorageSync('token', token);
+					// 检查响应数据中的code字段来判断登录是否成功
+					if (res.data && res.data.code === 200 && res.data.success === true) {
+						// 登录成功，处理响应数据
+						let token = null;
+						let userId = null;
+						let username = null;
 						
-						// 保存用户ID，确保为数字类型
-						if (userId) {
-							// 确保ID是数字类型
-							if (typeof userId === 'string') {
-								try {
-									userId = parseInt(userId);
-								} catch (e) {
-									console.error('解析用户ID失败:', e);
-								}
-							}
-							uni.setStorageSync('userId', userId);
+						// 从响应中解析数据
+						if (res.data.data && res.data.data.token) {
+							token = res.data.data.token;
+							userId = res.data.data.id;
+							username = res.data.data.username;
 						}
-					}
-					
-					// 返回响应对象
-					if (typeof res.data === 'object') {
+						
+						if (token) {
+							// 将原始token直接存储，不再进行Base64编码和结构化处理
+							console.log('后端返回的原始token:', token);
+							uni.setStorageSync('originalToken', token);
+							uni.setStorageSync('token', token);
+							
+							// 保存用户ID，确保为数字类型
+							if (userId) {
+								// 确保ID是数字类型
+								if (typeof userId === 'string') {
+									try {
+										userId = parseInt(userId);
+									} catch (e) {
+										console.error('解析用户ID失败:', e);
+									}
+								}
+								uni.setStorageSync('userId', userId);
+							}
+						}
+						
+						// 返回成功响应
 						resolve({ 
 							statusCode: res.statusCode, 
 							data: res.data 
 						});
-					} else if (typeof res.data === 'string' && res.data.includes('<r>')) {
-						try {
-							// 简单解析XML获取token
-							const tokenMatch = res.data.match(/<token>(.*?)<\/token>/);
-							const idMatch = res.data.match(/<id>(.*?)<\/id>/);
-							const uuidMatch = res.data.match(/<uuid>(.*?)<\/uuid>/);
-							const usernameMatch = res.data.match(/<username>(.*?)<\/username>/);
-							const nameMatch = res.data.match(/<n>(.*?)<\/name>/);
-							
-							if (tokenMatch && tokenMatch[1]) {
-								const result = {
-									statusCode: res.statusCode,
-									data: {
-										token: tokenMatch[1],
-										id: idMatch && idMatch[1] ? parseInt(idMatch[1]) : null,
-										uuid: uuidMatch && uuidMatch[1] ? uuidMatch[1] : null,
-										username: usernameMatch && usernameMatch[1] ? usernameMatch[1] : null,
-										name: nameMatch && nameMatch[1] ? nameMatch[1] : null
-									}
-								};
-								console.log('从XML中提取的数据封装后:', result);
-								resolve(result);
-							} else {
-								resolve(res);
-							}
-						} catch (e) {
-							console.error('解析XML失败:', e);
+					} else {
+						// 登录失败，从data.msg获取错误信息
+						console.log('登录失败，错误信息:', res.data.msg);
+						resolve({ 
+							statusCode: res.statusCode, 
+							data: res.data,
+							success: false
+						});
+					}
+				} else if (typeof res.data === 'string' && res.data.includes('<r>')) {
+					try {
+						// 简单解析XML获取token
+						const tokenMatch = res.data.match(/<token>(.*?)<\/token>/);
+						const idMatch = res.data.match(/<id>(.*?)<\/id>/);
+						const uuidMatch = res.data.match(/<uuid>(.*?)<\/uuid>/);
+						const usernameMatch = res.data.match(/<username>(.*?)<\/username>/);
+						const nameMatch = res.data.match(/<n>(.*?)<\/name>/);
+						
+						if (tokenMatch && tokenMatch[1]) {
+							const result = {
+								statusCode: res.statusCode,
+								data: {
+									token: tokenMatch[1],
+									id: idMatch && idMatch[1] ? parseInt(idMatch[1]) : null,
+									uuid: uuidMatch && uuidMatch[1] ? uuidMatch[1] : null,
+									username: usernameMatch && usernameMatch[1] ? usernameMatch[1] : null,
+									name: nameMatch && nameMatch[1] ? nameMatch[1] : null
+								}
+							};
+							console.log('从XML中提取的数据封装后:', result);
+							resolve(result);
+						} else {
 							resolve(res);
 						}
-					} else {
-						resolve({ statusCode: res.statusCode, data: res.data }); 
+					} catch (e) {
+						console.error('解析XML失败:', e);
+						resolve(res);
 					}
 				} else {
 					// 输出更详细的错误信息以便调试

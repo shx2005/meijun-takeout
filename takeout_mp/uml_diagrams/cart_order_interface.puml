@@ -1,0 +1,50 @@
+@startuml
+title 购物车订单接口关系图
+
+' 前端组件
+component "Cart" as Cart
+component "AddOrder" as AddOrder
+component "Address" as Address
+component "PayConfirm" as PayConfirm
+
+' API接口
+interface "购物车接口" as CartAPI
+interface "订单接口" as OrderAPI
+interface "地址接口" as AddressAPI
+interface "支付接口" as PaymentAPI
+
+' 后端服务
+component "购物车服务" as CartService
+component "订单服务" as OrderService
+component "地址服务" as AddressService
+component "支付服务" as PaymentService
+
+database "购物车数据库" as CartDB
+database "订单数据库" as OrderDB
+database "地址数据库" as AddressDB
+database "支付数据库" as PaymentDB
+
+' 连接关系
+Cart --> CartAPI : 管理购物车
+AddOrder --> OrderAPI : 提交订单
+AddOrder --> AddressAPI : 获取地址
+AddOrder --> CartAPI : 获取购物车信息
+PayConfirm --> PaymentAPI : 创建支付
+
+CartAPI --> CartService
+OrderAPI --> OrderService
+AddressAPI --> AddressService
+PaymentAPI --> PaymentService
+
+CartService --> CartDB
+OrderService --> OrderDB
+AddressService --> AddressDB
+PaymentService --> PaymentDB
+
+' 组件间关系
+Cart --> AddOrder : 去结算
+AddOrder --> Address : 选择地址
+AddOrder --> PayConfirm : 提交订单
+
+footer "美俊外卖系统 - 购物车订单接口关系图"
+@enduml 

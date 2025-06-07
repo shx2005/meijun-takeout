@@ -1,0 +1,41 @@
+@startuml
+title 优惠券支付接口关系图
+
+' 前端组件
+component "Coupon" as Coupon
+component "CouponSelect" as CouponSelect
+component "AddOrder" as AddOrder
+component "PayConfirm" as PayConfirm
+component "PaySuccess" as PaySuccess
+
+' API接口
+interface "优惠券接口" as CouponAPI
+interface "支付接口" as PaymentAPI
+
+' 后端服务
+component "优惠券服务" as CouponService
+component "支付服务" as PaymentService
+
+database "优惠券数据库" as CouponDB
+database "支付数据库" as PaymentDB
+
+' 连接关系
+Coupon --> CouponAPI : 获取优惠券列表
+CouponSelect --> CouponAPI : 获取可用优惠券
+AddOrder --> CouponAPI : 使用优惠券
+PayConfirm --> PaymentAPI : 创建支付
+PaySuccess --> PaymentAPI : 获取支付状态
+
+CouponAPI --> CouponService
+PaymentAPI --> PaymentService
+
+CouponService --> CouponDB
+PaymentService --> PaymentDB
+
+' 组件间关系
+AddOrder --> CouponSelect : 选择优惠券
+AddOrder --> PayConfirm : 提交订单
+PayConfirm --> PaySuccess : 支付成功
+
+footer "美俊外卖系统 - 优惠券支付接口关系图"
+@enduml 

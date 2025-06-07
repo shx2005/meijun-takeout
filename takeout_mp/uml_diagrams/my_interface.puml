@@ -1,0 +1,47 @@
+@startuml
+title 个人中心接口关系图
+
+' 前端组件
+component "My" as My
+component "UserInfo" as UserInfo
+component "Setting" as Setting
+component "OrderList" as OrderList
+component "Address" as Address
+
+' API接口
+interface "用户接口" as UserAPI
+interface "反馈接口" as FeedbackAPI
+interface "订单接口" as OrderAPI
+
+' 后端服务
+component "用户服务" as UserService
+component "反馈服务" as FeedbackService
+component "订单服务" as OrderService
+
+database "用户数据库" as UserDB
+database "反馈数据库" as FeedbackDB
+database "订单数据库" as OrderDB
+
+' 连接关系
+My --> UserAPI : 获取用户信息/登出
+My --> FeedbackAPI : 提交反馈/投诉
+My --> OrderAPI : 获取最新订单
+UserInfo --> UserAPI : 获取/更新用户信息
+Setting --> UserAPI : 修改用户信息
+
+UserAPI --> UserService
+FeedbackAPI --> FeedbackService
+OrderAPI --> OrderService
+
+UserService --> UserDB
+FeedbackService --> FeedbackDB
+OrderService --> OrderDB
+
+' 组件间关系
+My --> UserInfo : 查看用户信息
+My --> Setting : 进入设置
+My --> OrderList : 查看全部订单
+My --> Address : 管理收货地址
+
+footer "美俊外卖系统 - 个人中心接口关系图"
+@enduml 

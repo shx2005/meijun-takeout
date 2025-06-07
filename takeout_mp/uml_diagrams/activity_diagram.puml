@@ -1,0 +1,124 @@
+@startuml 美俊外卖系统活动流程图
+
+!theme plain
+skinparam backgroundColor white
+skinparam activityBorderColor black
+skinparam activityBackgroundColor white
+skinparam arrowColor black
+
+start
+
+:用户进入应用;
+
+if (是否已登录?) then (否)
+  :跳转到登录页面;
+  :用户输入手机号和密码;
+  
+  if (验证通过?) then (是)
+    :登录成功;
+  else (否)
+    :显示错误信息;
+    stop
+  endif
+else (是)
+  :自动登录;
+endif
+
+:进入首页;
+
+repeat
+  :浏览菜品分类;
+  :查看菜品列表;
+  
+  if (是否查看菜品详情?) then (是)
+    :进入菜品详情页;
+    
+    if (是否添加到购物车?) then (是)
+      if (是否有规格选择?) then (是)
+        :选择规格;
+      else (否)
+        :直接添加;
+      endif
+      :更新购物车;
+    else (否)
+      :返回菜品列表;
+    endif
+  else (否)
+    :继续浏览;
+  endif
+  
+  if (是否进入购物车?) then (是)
+    break
+  else (否)
+    :继续浏览菜品;
+  endif
+repeat while (用户继续浏览?)
+
+:进入购物车页面;
+:查看已选菜品;
+
+if (购物车为空?) then (是)
+  :显示空购物车提示;
+  :返回首页;
+  stop
+else (否)
+  :调整菜品数量;
+  :计算总价;
+endif
+
+if (是否结算?) then (否)
+  :继续购物;
+  stop
+else (是)
+  :进入订单确认页;
+endif
+
+if (是否有默认地址?) then (是)
+  :使用默认地址;
+else (否)
+  if (是否有历史地址?) then (是)
+    :选择历史地址;
+  else (否)
+    :添加新地址;
+    :输入地址信息;
+    :保存地址;
+  endif
+endif
+
+:选择配送时间;
+:选择支付方式;
+:填写备注(可选);
+
+:提交订单;
+:生成订单;
+
+:进入支付页面;
+:完成支付;
+
+:显示支付成功页面;
+
+:进入订单列表;
+:查看订单状态;
+
+if (是否查看订单详情?) then (是)
+  :进入订单详情页;
+  
+  if (订单已完成?) then (是)
+    if (是否评价?) then (是)
+      :进入评价页面;
+      :提交评价;
+    else (否)
+      :不评价;
+    endif
+  else (否)
+    :查看订单进度;
+  endif
+else (否)
+  :留在订单列表;
+endif
+
+stop
+
+footer "美俊外卖系统 - 活动流程图"
+
+@enduml 
