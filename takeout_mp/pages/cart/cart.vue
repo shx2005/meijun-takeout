@@ -55,15 +55,15 @@ export default {
   },
   onLoad() {
     // 页面加载时获取购物车数据
-    this.loadCartFromLocalStorage();
+    this.fetchCartData();
   },
   onShow() {
-    // 每次页面显示时重新从本地存储获取购物车数据
-    this.loadCartFromLocalStorage();
+    // 每次页面显示时重新获取购物车数据
+    this.fetchCartData();
   },
   methods: {
-    // 从本地存储加载购物车数据
-    loadCartFromLocalStorage() {
+    // 从服务器获取购物车数据
+    async fetchCartData() {
       try {
         this.loading = true;
         
@@ -82,6 +82,57 @@ export default {
           return;
         }
         
+        // 从服务器获取购物车数据
+        const res = await uni.request({
+          url: 'http://localhost:8080/api/v1/cart',
+          method: 'GET',
+          header: {
+            'customerToken': token,
+            'Accept': 'application/json',
+            'userType': '3',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('购物车数据响应:', res);
+        
+        if (res && res[1].statusCode === 200 && res[1].data) {
+          // 服务器数据获取成功
+          let cartData = res[1].data;
+          
+          // 解析购物车数据
+          if (cartData.data && cartData.data.items) {
+            // 格式化购物车数据
+            this.cartItems = cartData.data.items.map(item => ({
+              id: item.itemId,
+              name: item.name || '菜品',
+              price: item.price || 0,
+              image: item.image || '/static/images/default-food.png',
+              quantity: item.quantity || 1
+            }));
+          } else {
+            // 没有购物车数据或格式不对，尝试使用本地数据
+            this.loadCartFromLocalStorage();
+          }
+        } else {
+          // 服务器请求失败，使用本地数据
+          this.loadCartFromLocalStorage();
+        }
+        
+        // 计算总价
+        this.calculateTotal();
+      } catch (error) {
+        console.error('获取购物车数据失败:', error);
+        // 出错时使用本地数据
+        this.loadCartFromLocalStorage();
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    // 从本地存储加载购物车数据
+    loadCartFromLocalStorage() {
+      try {
         // 从本地存储获取购物车数据
         const cartItemsStr = uni.getStorageSync('cartItems');
         if (cartItemsStr) {
@@ -109,8 +160,6 @@ export default {
       } catch (error) {
         console.error('加载本地购物车数据失败:', error);
         this.cartItems = [];
-      } finally {
-        this.loading = false;
       }
     },
 
@@ -125,9 +174,9 @@ export default {
     async increaseQuantity(item) {
       try {
         // 先更新本地数量，提升用户体验的响应速度
-      item.quantity += 1;
-      this.calculateTotal();
-      this.saveToLocalStorage();
+        item.quantity += 1;
+        this.calculateTotal();
+        this.saveToLocalStorage();
         
         // 获取token
         const token = uni.getStorageSync('token');
@@ -151,11 +200,16 @@ export default {
           },
           data: {
             itemId: item.id,
+            itemType: "dish", // 使用小写的dish，与后端枚举值一致
             quantity: 1  // 每次添加1个
           }
         });
         
         console.log('添加商品API响应:', res);
+        
+        if (res && res[1].statusCode !== 200) {
+          throw new Error('添加商品失败');
+        }
       } catch (error) {
         console.error('添加商品失败:', error);
         // 如果API调用失败，回滚本地状态
@@ -187,9 +241,9 @@ export default {
       } else {
         try {
           // 先更新本地数量，提升用户体验的响应速度
-        item.quantity -= 1;
-        this.calculateTotal();
-        this.saveToLocalStorage();
+          item.quantity -= 1;
+          this.calculateTotal();
+          this.saveToLocalStorage();
           
           // 获取token
           const token = uni.getStorageSync('token');
@@ -201,10 +255,10 @@ export default {
             return;
           }
           
-          // 调用减少购物车API
+          // 调用更新购物车API
           const res = await uni.request({
-            url: 'http://localhost:8080/api/v1/cart/sub',
-            method: 'POST',
+            url: 'http://localhost:8080/api/v1/cart/update',
+            method: 'PUT',
             header: {
               'customerToken': token,
               'Accept': 'application/json',
@@ -213,11 +267,16 @@ export default {
             },
             data: {
               itemId: item.id,
-              quantity: 1  // 每次减少1个
+              itemType: "dish", // 使用小写的dish，与后端枚举值一致
+              quantity: item.quantity
             }
           });
           
-          console.log('减少商品API响应:', res);
+          console.log('更新商品API响应:', res);
+          
+          if (res && res[1].statusCode !== 200) {
+            throw new Error('更新商品失败');
+          }
         } catch (error) {
           console.error('减少商品数量失败:', error);
           // 如果API调用失败，回滚本地状态
@@ -237,12 +296,12 @@ export default {
     async removeCartItem(item) {
       try {
         // 先从本地移除，提升用户体验的响应速度
-      const index = this.cartItems.findIndex(cartItem => cartItem.id === item.id);
-      if (index > -1) {
-        // 删除数组中的项
-        this.cartItems.splice(index, 1);
-        this.calculateTotal();
-        this.saveToLocalStorage();
+        const index = this.cartItems.findIndex(cartItem => cartItem.id === item.id);
+        if (index > -1) {
+          // 删除数组中的项
+          this.cartItems.splice(index, 1);
+          this.calculateTotal();
+          this.saveToLocalStorage();
         }
         
         // 获取token
@@ -266,16 +325,20 @@ export default {
             'Content-Type': 'application/json'
           },
           data: {
-            itemId: item.id
+            cartItemId: item.id  // 使用cartItemId作为参数名
           }
         });
         
         console.log('删除商品API响应:', res);
         
-        uni.showToast({
-          title: '已移除商品',
-          icon: 'success'
-        });
+        if (res && res[1].statusCode === 200) {
+          uni.showToast({
+            title: '已移除商品',
+            icon: 'success'
+          });
+        } else {
+          throw new Error('删除商品失败');
+        }
       } catch (error) {
         console.error('删除商品失败:', error);
         uni.showToast({
@@ -315,8 +378,8 @@ export default {
           if (res.confirm) {
             try {
               // 先清空本地购物车
-            this.cartItems = [];
-            this.totalPrice = '0.00';
+              this.cartItems = [];
+              this.totalPrice = '0.00';
               this.saveToLocalStorage();
             
               // 获取token
@@ -329,13 +392,13 @@ export default {
                 return;
               }
               
-              // 调用清空购物车API
+              // 调用清空购物车API - 遍历删除所有项
               await this.clearCartInServer(token);
             
-            uni.showToast({
-              title: '购物车已清空',
-              icon: 'success'
-            });
+              uni.showToast({
+                title: '购物车已清空',
+                icon: 'success'
+              });
             } catch (error) {
               console.error('清空购物车失败:', error);
               uni.showToast({
@@ -376,7 +439,7 @@ export default {
                 'Content-Type': 'application/json'
               },
               data: {
-                itemId: item.itemId || item.id
+                cartItemId: item.itemId || item.id
               }
             });
           }
@@ -427,10 +490,10 @@ export default {
         
         uni.hideLoading();
       
-      // 跳转到下单页面
-      uni.navigateTo({
-        url: '/pages/addOrder/addOrder'
-      });
+        // 跳转到下单页面
+        uni.navigateTo({
+          url: '/pages/addOrder/addOrder'
+        });
       } catch (error) {
         uni.hideLoading();
         console.error('处理购物车失败:', error);
