@@ -366,9 +366,16 @@
 					// 检查响应是否成功且有数据
 					const response = res[1];
 					if (response && response.statusCode === 200 && response.data) {
-						const result = response.data;
+						let result = response.data;
 						
-						if (result.code === 200 && result.data && result.data.items && result.data.items.length > 0) {
+						// 检查是否为XML格式的响应
+						if (typeof result === 'string' && result.includes('<Result>')) {
+							console.log('检测到XML格式购物车响应，开始解析');
+							result = this.parseXMLCartResponse(result);
+							console.log('XML解析后的结果:', result);
+						}
+						
+						if (result && result.code === 200 && result.data && result.data.items && result.data.items.length > 0) {
 							// 使用服务器返回的购物车数据
 							this.cartData = result.data.items.map(item => ({
 								id: item.itemId || item.id,
@@ -382,6 +389,7 @@
 						} else {
 							// 购物车为空
 							this.cartData = [];
+							console.log('购物车为空');
 						}
 					} else {
 						// 获取失败
@@ -414,6 +422,74 @@
 						icon: 'none'
 					});
 					this.cartData = [];
+				}
+			},
+
+			// 解析XML格式的购物车响应
+			parseXMLCartResponse(xmlString) {
+				try {
+					console.log('开始解析XML购物车响应');
+					
+					// 提取基本信息
+					const codeMatch = xmlString.match(/<code>(.*?)<\/code>/);
+					const msgMatch = xmlString.match(/<msg>(.*?)<\/msg>/);
+					const successMatch = xmlString.match(/<success>(.*?)<\/success>/);
+					const totalMatch = xmlString.match(/<total>(.*?)<\/total>/);
+					
+					// 提取所有购物车项
+					const itemsMatches = xmlString.match(/<items>(.*?)<\/items>/g);
+					const items = [];
+					
+					if (itemsMatches) {
+						itemsMatches.forEach(itemXml => {
+							const idMatch = itemXml.match(/<id>(.*?)<\/id>/);
+							const nameMatch = itemXml.match(/<name>(.*?)<\/name>/);
+							const cartIdMatch = itemXml.match(/<cartId>(.*?)<\/cartId>/);
+							const userIdMatch = itemXml.match(/<userId>(.*?)<\/userId>/);
+							const itemIdMatch = itemXml.match(/<itemId>(.*?)<\/itemId>/);
+							const itemTypeMatch = itemXml.match(/<itemType>(.*?)<\/itemType>/);
+							const quantityMatch = itemXml.match(/<quantity>(.*?)<\/quantity>/);
+							const priceMatch = itemXml.match(/<price>(.*?)<\/price>/);
+							const itemTotalMatch = itemXml.match(/<total>(.*?)<\/total>/);
+							
+							if (idMatch && nameMatch && itemIdMatch) {
+								items.push({
+									id: parseInt(idMatch[1]),
+									name: nameMatch[1],
+									cartId: cartIdMatch ? parseInt(cartIdMatch[1]) : null,
+									userId: userIdMatch ? parseInt(userIdMatch[1]) : null,
+									itemId: parseInt(itemIdMatch[1]),
+									itemType: itemTypeMatch ? itemTypeMatch[1] : 'dish',
+									quantity: quantityMatch ? parseInt(quantityMatch[1]) : 1,
+									price: priceMatch ? parseFloat(priceMatch[1]) : 0,
+									total: itemTotalMatch ? parseFloat(itemTotalMatch[1]) : 0
+								});
+							}
+						});
+					}
+					
+					const result = {
+						code: codeMatch ? parseInt(codeMatch[1]) : 200,
+						msg: msgMatch ? msgMatch[1] : 'OK',
+						data: {
+							id: null,
+							userId: 1,
+							items: items,
+							total: totalMatch ? parseFloat(totalMatch[1]) : 0
+						},
+						success: successMatch ? successMatch[1] === 'true' : true
+					};
+					
+					console.log('XML解析完成，结果:', result);
+					return result;
+				} catch (error) {
+					console.error('解析XML购物车响应失败:', error);
+					return {
+						code: 500,
+						msg: 'XML解析失败',
+						data: { items: [] },
+						success: false
+					};
 				}
 			},
 			async goToPaySuccess() {

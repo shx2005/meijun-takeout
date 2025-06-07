@@ -1201,6 +1201,8 @@
 			// 从购物车中减少菜品
 			async subtractCart(item) {
 				try {
+					console.log('开始减少商品数量:', item.name, 'ID:', item.id);
+					
 					// 检查登录状态
 					const token = uni.getStorageSync('token');
 					if (!token) {
@@ -1211,9 +1213,13 @@
 					// 获取当前商品在购物车中的信息
 					const currentItem = this.cartItems.find(cartItem => cartItem.id === item.id);
 					if (!currentItem) {
+						console.log('商品不在本地购物车中，商品ID:', item.id);
+						console.log('当前购物车项:', this.cartItems);
 						uni.$showMsg('商品不在购物车中');
 						return;
 					}
+					
+					console.log('找到购物车项:', currentItem);
 					
 					// 找到购物车中对应的项目ID（cartItemId）
 					// 需要重新获取购物车数据来获取正确的cartItemId
@@ -1227,15 +1233,34 @@
 						}
 					});
 					
+					console.log('获取购物车响应:', cartResponse);
+					
 					let cartItemId = null;
-					if (cartResponse && cartResponse[1].statusCode === 200 && cartResponse[1].data && cartResponse[1].data.data && cartResponse[1].data.data.items) {
-						const cartItem = cartResponse[1].data.data.items.find(ci => ci.itemId === item.id);
-						if (cartItem) {
-							cartItemId = cartItem.id; // 这是购物车项的ID
+					if (cartResponse && cartResponse[1].statusCode === 200 && cartResponse[1].data) {
+						let cartData = cartResponse[1].data;
+						
+						// 检查是否为XML格式的响应
+						if (typeof cartData === 'string' && cartData.includes('<Result>')) {
+							console.log('检测到XML格式响应，开始解析');
+							cartData = this.parseXMLCartResponse(cartData);
+							console.log('XML解析后的结果:', cartData);
+						}
+						
+						// 查找对应的购物车项
+						if (cartData && cartData.data && cartData.data.items) {
+							const cartItem = cartData.data.items.find(ci => ci.itemId === item.id);
+							if (cartItem) {
+								cartItemId = cartItem.id; // 这是购物车项的ID
+								console.log('找到购物车项ID:', cartItemId);
+							} else {
+								console.log('在服务器购物车中未找到商品，itemId:', item.id);
+								console.log('服务器购物车项:', cartData.data.items);
+							}
 						}
 					}
 					
 					if (!cartItemId) {
+						console.log('找不到购物车项ID');
 						uni.$showMsg('找不到购物车项');
 						return;
 					}
@@ -1255,6 +1280,8 @@
 						return;
 					}
 					
+					console.log('开始删除购物车项，cartItemId:', cartItemId);
+					
 					// 先删除该购物车项
 					await uni.request({
 						url: `http://localhost:8080/api/v1/cart/delete?cartItemId=${cartItemId}`,
@@ -1270,6 +1297,8 @@
 					// 如果还有剩余数量，重新添加
 					if (currentItem.number > 1) {
 						const userId = uni.getStorageSync('userId') || 1;
+						console.log('重新添加商品，数量:', currentItem.number - 1);
+						
 						await uni.request({
 							url: 'http://localhost:8080/api/v1/cart/add',
 							method: 'POST',
@@ -1301,6 +1330,8 @@
 			// 从购物车中完全移除商品
 			async removeFromCart(item) {
 				try {
+					console.log('开始移除商品:', item.name, 'ID:', item.id);
+					
 					const token = uni.getStorageSync('token');
 					if (!token) {
 						uni.$showMsg('请先登录');
@@ -1318,15 +1349,33 @@
 						}
 					});
 					
+					console.log('获取购物车响应:', cartResponse);
+					
 					let cartItemId = null;
-					if (cartResponse && cartResponse[1].statusCode === 200 && cartResponse[1].data && cartResponse[1].data.data && cartResponse[1].data.data.items) {
-						const cartItem = cartResponse[1].data.data.items.find(ci => ci.itemId === item.id);
-						if (cartItem) {
-							cartItemId = cartItem.id;
+					if (cartResponse && cartResponse[1].statusCode === 200 && cartResponse[1].data) {
+						let cartData = cartResponse[1].data;
+						
+						// 检查是否为XML格式的响应
+						if (typeof cartData === 'string' && cartData.includes('<Result>')) {
+							console.log('检测到XML格式响应，开始解析');
+							cartData = this.parseXMLCartResponse(cartData);
+							console.log('XML解析后的结果:', cartData);
+						}
+						
+						// 查找对应的购物车项
+						if (cartData && cartData.data && cartData.data.items) {
+							const cartItem = cartData.data.items.find(ci => ci.itemId === item.id);
+							if (cartItem) {
+								cartItemId = cartItem.id;
+								console.log('找到购物车项ID:', cartItemId);
+							} else {
+								console.log('在服务器购物车中未找到商品，itemId:', item.id);
+							}
 						}
 					}
 					
 					if (!cartItemId) {
+						console.log('找不到购物车项ID');
 						uni.$showMsg('找不到购物车项');
 						return;
 					}
