@@ -351,19 +351,19 @@
 					}
 					
 					// 从服务器获取购物车数据
-					const res = await uni.request({
-						url: 'http://localhost:8080/api/v1/cart',
-						method: 'GET',
-						header: {
-							'customerToken': token,
-							'userType': '3',
-							'Content-Type': 'application/json'
-						}
-					});
-					
-					console.log('服务器购物车数据响应:', res);
-					
-					// 检查响应是否成功且有数据
+							const res = await uni.request({
+								url: 'http://localhost:8080/api/v1/cart',
+								method: 'GET',
+								header: {
+									'customerToken': token,
+									'userType': '3',
+									'Content-Type': 'application/json'
+								}
+							});
+							
+							console.log('服务器购物车数据响应:', res);
+							
+							// 检查响应是否成功且有数据
 					const response = res[1];
 					if (response && response.statusCode === 200 && response.data) {
 						let result = response.data;
@@ -376,21 +376,21 @@
 						}
 						
 						if (result && result.code === 200 && result.data && result.data.items && result.data.items.length > 0) {
-							// 使用服务器返回的购物车数据
+									// 使用服务器返回的购物车数据
 							this.cartData = result.data.items.map(item => ({
-								id: item.itemId || item.id,
-								name: item.name || '菜品',
-								image: item.image || '/static/images/default-food.png',
-								number: item.quantity || 1,
+										id: item.itemId || item.id,
+										name: item.name || '菜品',
+										image: item.image || '/static/images/default-food.png',
+										number: item.quantity || 1,
 								amount: item.price || 0
-							}));
-							
-							console.log('从服务器获取的购物车数据:', this.cartData);
+									}));
+									
+									console.log('从服务器获取的购物车数据:', this.cartData);
 						} else {
 							// 购物车为空
 							this.cartData = [];
 							console.log('购物车为空');
-						}
+							}
 					} else {
 						// 获取失败
 						console.error('获取购物车数据失败:', response);
@@ -511,7 +511,7 @@
 							title: '购物车为空，请先添加商品',
 							icon: 'none'
 						});
-						return;
+					return;
 					}
 				}
 				
@@ -535,70 +535,30 @@
 						return sum + (item.number * item.amount);
 					}, 0);
 					
-					// 准备订单数据 - 使用用户指定的简化参数格式
-					const orderData = {
+					// 准备订单信息（不提交订单，只传递信息）
+					const orderInfo = {
 						userId: 1,
-						total: totalPrice
+						total: totalPrice,
+						address: this.address,
+						cartData: this.cartData // 传递购物车数据
 					};
 					
-					console.log('准备提交订单:', orderData);
-					
-					// 提交订单
-					const response = await uni.request({
-						url: 'http://localhost:8080/api/v1/orders/submit',
-						method: 'POST',
-						header: {
-							'customerToken': token,
-							'Accept': 'application/json',
-							'userType': '3',
-							'Content-Type': 'application/json'
-						},
-						data: orderData
-					});
-					
-					console.log('订单提交响应:', response);
-					
-					// 检查响应状态
-					const res = response[1];
-					if (res && res.statusCode === 200) {
-						const result = res.data;
-					
-						if (result && (result.code === 0 || result.code === 200 || result.success)) {
-							// 订单提交成功
-							const orderId = result.data?.id || result.id || '';
-							const orderNumber = result.data?.orderNumber || '';
+					console.log('准备跳转到支付确认页面，订单信息:', orderInfo);
 							
-							// 跳转到支付确认页面，传递订单信息
-							const orderInfo = {
-								orderId: orderId,
-								orderNumber: orderNumber,
-								total: totalPrice
-							};
-							
-							uni.navigateTo({
-								url: '/pages/payConfirm/payConfirm?orderInfo=' + encodeURIComponent(JSON.stringify(orderInfo))
-							});
-							
-							uni.showToast({
-								title: '订单提交成功',
-								icon: 'success'
-							});
-						} else {
-							uni.showToast({
-								title: result?.msg || '订单提交失败',
-								icon: 'none'
-							});
-						}
-					} else {
-						uni.showToast({
-							title: '订单提交失败',
-							icon: 'none'
+					// 直接跳转到支付确认页面，不提交订单
+						uni.navigateTo({
+						url: '/pages/payConfirm/payConfirm?orderInfo=' + encodeURIComponent(JSON.stringify(orderInfo))
 						});
-					}
+						
+						uni.showToast({
+						title: '正在跳转到支付页面',
+							icon: 'success'
+						});
+					
 				} catch (error) {
-					console.error('提交订单失败', error);
+					console.error('跳转支付页面失败', error);
 					uni.showToast({
-						title: '提交订单失败，请重试',
+						title: '跳转失败，请重试',
 						icon: 'none'
 					});
 				} finally {

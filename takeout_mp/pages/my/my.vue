@@ -471,8 +471,8 @@
 
 					console.log('登录结果:', result);
 					
-					// 检查响应状态
-					if (result && result.statusCode === 200 && result.data) {
+					// 检查响应状态 - 改为从data.code判断登录成功与否
+					if (result && result.data && result.data.code === 200 && result.data.success === true) {
 						// 从响应中提取token
 						let token = null;
 						// 优先从 result.data.data.token 提取 token（服务器可能返回嵌套数据）
@@ -510,7 +510,7 @@
 							uni.$showMsg('登录成功但未获取到有效的登录凭证，请联系管理员');
 						}
 					} else {
-						// 处理错误
+						// 处理错误 - 从data.msg获取错误信息
 						let errorMsg = '登录失败，请稍后重试';
 						
 						if (result && result.data && result.data.msg) {

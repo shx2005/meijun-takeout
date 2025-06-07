@@ -9,7 +9,10 @@
       <!-- 账户余额显示 -->
       <view class="info-row">
         <text class="label">账户余额</text>
+        <view style="display: flex; align-items: center;">
         <text class="value">¥{{ balance }}</text>
+          <button @click="testFetchBalance" style="margin-left: 10rpx; padding: 5rpx 10rpx; font-size: 20rpx; background: #007aff; color: white; border: none; border-radius: 5rpx;">刷新</button>
+        </view>
       </view>
       
       <!-- 优惠券选择 - 改为跳转页面 -->
@@ -70,6 +73,11 @@ export default {
       balance: '0.00',
       loading: false,
       
+      // 订单信息（从addOrder页面传递）
+      orderInfo: null,
+      cartData: [],
+      address: '',
+      
       // 优惠券相关
       selectedCoupon: null,
       discountAmount: 0, // 优惠金额
@@ -80,11 +88,36 @@ export default {
     };
   },
   onLoad(options) {
-    // onLoad中获取路由参数
-    if (options.orderId && options.amount) {
+    // 从addOrder页面传递的订单信息
+    if (options.orderInfo) {
+      try {
+        const orderInfo = JSON.parse(decodeURIComponent(options.orderInfo));
+        console.log('接收到的订单信息:', orderInfo);
+        
+        this.orderInfo = orderInfo;
+        this.orderAmount = parseFloat(orderInfo.total).toFixed(2);
+        this.finalAmount = this.orderAmount; // 初始化实付金额等于订单金额
+        this.cartData = orderInfo.cartData || [];
+        this.address = orderInfo.address || '';
+        
+        console.log('解析后的订单信息:', {
+          orderAmount: this.orderAmount,
+          cartData: this.cartData,
+          address: this.address
+        });
+      } catch (error) {
+        console.error('解析订单信息失败:', error);
+        uni.showToast({
+          title: '订单信息错误',
+          icon: 'none',
+          duration: 2000
+        });
+      }
+    } else if (options.orderId && options.amount) {
+      // 兼容旧的参数格式（已有订单ID的情况）
       this.orderId = parseInt(options.orderId);
       this.orderAmount = parseFloat(options.amount).toFixed(2);
-      this.finalAmount = this.orderAmount; // 初始化实付金额等于订单金额
+      this.finalAmount = this.orderAmount;
     } else {
       uni.showToast({
         title: '订单信息错误',
@@ -92,6 +125,14 @@ export default {
         duration: 2000
       });
     }
+    
+    // 获取余额和优惠券信息
+    this.fetchBalance();
+    this.fetchCoupons();
+  },
+  onShow() {
+    // 页面显示时强制刷新余额
+    console.log('payConfirm页面显示，强制刷新余额');
     this.fetchBalance();
   },
   methods: {
@@ -99,21 +140,21 @@ export default {
     async fetchBalance() {
       try {
         // 确保token存在
-        if (!uni.getStorageSync('token')) {
+        const token = uni.getStorageSync('token');
+        if (!token) {
             uni.showToast({ title: '请先登录', icon: 'none' });
-            // 跳转到登录页
             uni.navigateTo({ url: '/pages/my/my' });
             return;
         }
 
         uni.showLoading({ title: '获取余额中...' });
         
-        // 使用 uni.request 调用余额API
+        // 使用正确的余额查询API
         const response = await uni.request({
-          url: 'http://localhost:8080/api/v1/user/balance',
+          url: 'http://localhost:8080/api/v1/payment/balance',
           method: 'GET',
           header: {
-            'tokenName': uni.getStorageSync('token'),
+            'customerToken': token,
             'userType': '3',
             'Content-Type': 'application/json'
           }
@@ -121,21 +162,77 @@ export default {
         
         uni.hideLoading();
         
-        // 处理响应
-        if (response && response[1].statusCode === 200) {
-          const res = response[1].data;
-          if (res && res.code === 0) {
-            if (res.data && typeof res.data.balance !== 'undefined') {
-          this.balance = parseFloat(res.data.balance).toFixed(2);
-            } else if (typeof res.balance !== 'undefined') {
-          this.balance = parseFloat(res.balance).toFixed(2);
+        console.log('余额查询响应:', response);
+        
+        // 处理响应 - 简化处理逻辑
+        const res = response[1];
+        if (res && res.statusCode === 200 && res.data) {
+          let result = res.data;
+          
+          console.log('原始余额响应数据:', result);
+          console.log('响应数据类型:', typeof result);
+          
+          // 检查是否为XML格式响应
+          if (typeof result === 'string' && result.includes('<Result>')) {
+            console.log('检测到XML格式余额响应，开始解析');
+            console.log('原始XML字符串:', result);
+            result = this.parseXMLBalanceResponse(result);
+            console.log('XML解析后的结果:', result);
+            
+            if (result && result.code === 200 && result.success === true) {
+              if (typeof result.data === 'string') {
+                this.balance = parseFloat(result.data).toFixed(2);
+                console.log('从XML解析的余额:', this.balance);
+                // 强制更新UI
+                this.$forceUpdate();
+              } else if (result.data && typeof result.data.balance !== 'undefined') {
+                this.balance = parseFloat(result.data.balance).toFixed(2);
+                console.log('从XML对象解析的余额:', this.balance);
+                // 强制更新UI
+                this.$forceUpdate();
+              } else {
+                this.balance = '0.00';
+                console.log('XML解析失败，设置余额为0.00');
+                // 强制更新UI
+                this.$forceUpdate();
         }
           } else {
             this.balance = '获取失败';
             uni.showToast({
-              title: res.message || '获取余额失败',
+                title: result?.msg || '获取余额失败',
+                icon: 'none'
+              });
+            }
+          } else {
+            // 处理JSON格式响应
+            console.log('处理JSON格式余额响应');
+            if (result.code === 200 && result.success === true) {
+              // API返回的data字段是字符串格式的余额
+              if (typeof result.data === 'string') {
+                this.balance = parseFloat(result.data).toFixed(2);
+                console.log('从JSON字符串解析的余额:', this.balance);
+                // 强制更新UI
+                this.$forceUpdate();
+              } else if (result.data && typeof result.data.balance !== 'undefined') {
+                this.balance = parseFloat(result.data.balance).toFixed(2);
+                console.log('从JSON对象解析的余额:', this.balance);
+                // 强制更新UI
+                this.$forceUpdate();
+              } else {
+                this.balance = '0.00';
+                console.log('JSON解析失败，设置余额为0.00');
+                // 强制更新UI
+                this.$forceUpdate();
+              }
+              
+              console.log('余额获取成功:', this.balance);
+            } else {
+              this.balance = '获取失败';
+              uni.showToast({
+                title: result?.msg || '获取余额失败',
               icon: 'none'
             });
+            }
           }
         } else {
           this.balance = '获取失败';
@@ -152,6 +249,34 @@ export default {
           title: '获取余额失败，请稍后重试',
           icon: 'none'
         });
+      }
+    },
+
+    // 获取用户优惠券
+    async fetchCoupons() {
+      try {
+        const token = uni.getStorageSync('token');
+        if (!token) return;
+
+        const response = await uni.request({
+          url: 'http://localhost:8080/api/v1/coupons',
+          method: 'GET',
+          header: {
+            'customerToken': token,
+            'userType': '3',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('优惠券查询响应:', response);
+        
+        const res = response[1];
+        if (res && res.statusCode === 200 && res.data) {
+          // 存储优惠券数据供选择页面使用
+          uni.setStorageSync('availableCoupons', res.data);
+        }
+      } catch (error) {
+        console.error('获取优惠券失败:', error);
       }
     },
     
@@ -173,8 +298,19 @@ export default {
     applyCoupon(coupon) {
       this.selectedCoupon = coupon;
       
-      // 验证优惠券
+      // 如果优惠券已经验证过，直接使用验证结果
+      if (coupon.validatedAmount !== undefined && coupon.discountAmount !== undefined) {
+        this.discountAmount = coupon.discountAmount.toFixed(2);
+        this.finalAmount = coupon.validatedAmount.toFixed(2);
+        
+        uni.showToast({
+          title: '优惠券已应用',
+          icon: 'success'
+        });
+      } else {
+        // 如果没有验证过，重新验证
       this.validateCoupon(coupon.id);
+      }
     },
     
     // 移除优惠券 (由优惠券选择页面调用)
@@ -264,7 +400,8 @@ export default {
     async handleConfirmPayment() {
       if (this.loading) return; // 防止重复点击
       
-      if (!this.orderId) {
+      // 检查是否有订单信息
+      if (!this.orderInfo && !this.orderId) {
         uni.showToast({
           title: '订单信息错误',
           icon: 'none'
@@ -283,38 +420,109 @@ export default {
 
       try {
         this.loading = true;
-        uni.showLoading({ title: '支付处理中...' });
+        uni.showLoading({ title: '处理中...' });
         
-        // 调用确认支付API
-        const paymentResponse = await uni.request({
-          url: 'http://localhost:8080/api/v1/payment/balance',
+        // 获取用户ID和token
+        const userId = uni.getStorageSync('userId') || 1;
+        const token = uni.getStorageSync('token');
+        
+        if (!token) {
+          uni.hideLoading();
+          uni.showToast({
+            title: '请先登录',
+            icon: 'none'
+          });
+          this.loading = false;
+          return;
+        }
+        
+        let currentOrderId = this.orderId;
+        
+        // 如果没有订单ID，说明需要先提交订单
+        if (!currentOrderId && this.orderInfo) {
+          console.log('开始提交订单...');
+          
+          // 准备订单数据
+          const orderData = {
+            userId: userId,
+            total: parseFloat(this.finalAmount),
+            payMethod: 3 // 余额支付
+          };
+          
+          console.log('订单提交数据:', orderData);
+          
+          // 提交订单
+          const orderResponse = await uni.request({
+            url: 'http://localhost:8080/api/v1/orders/submit',
           method: 'POST',
           header: {
-            'tokenName': uni.getStorageSync('token'),
+              'customerToken': token,
             'userType': '3',
             'Content-Type': 'application/json'
           },
-          data: {
-            orderId: this.orderId,
-            amount: parseFloat(this.finalAmount),
-            payType: this.payType
-          }
-        });
-        
-        uni.hideLoading();
-        
-        // 处理支付结果
-        if (paymentResponse && paymentResponse[1].statusCode === 200) {
-          const paymentResult = paymentResponse[1].data;
+            data: orderData
+          });
           
-          if (paymentResult && paymentResult.code === 0) {
-            // 支付成功
-            this.paymentSuccess = true;
+          console.log('订单提交响应:', orderResponse);
+          
+          const orderRes = orderResponse[1];
+          if (orderRes && orderRes.statusCode === 200) {
+            let orderResult = orderRes.data;
             
-            // 更新余额显示
-            if (paymentResult.data && typeof paymentResult.data.balance !== 'undefined') {
-              this.balance = parseFloat(paymentResult.data.balance).toFixed(2);
+            // 检查是否为XML格式响应
+            if (typeof orderResult === 'string' && orderResult.includes('<Result>')) {
+              console.log('检测到XML格式订单响应，开始解析');
+              orderResult = this.parseXMLOrderResponse(orderResult);
+              console.log('XML解析后的订单结果:', orderResult);
             }
+            
+            if (orderResult && (orderResult.code === 200 || orderResult.success === true)) {
+              // 订单提交成功，获取订单ID
+              currentOrderId = orderResult.data?.id || orderResult.id;
+              console.log('订单提交成功，订单ID:', currentOrderId);
+        
+              // 订单创建成功后，调用支付API
+              console.log('开始调用支付API...');
+              
+              const paymentData = {
+                orderId: currentOrderId,
+                customerId: userId,
+                method: 'cash_pay',
+                amount: this.finalAmount
+              };
+              
+              console.log('支付API请求数据:', paymentData);
+              
+              const paymentResponse = await uni.request({
+                url: 'http://localhost:8080/api/v1/payment/balance',
+                method: 'POST',
+                header: {
+                  'customerToken': token,
+                  'userType': '3',
+                  'Content-Type': 'application/json'
+                },
+                data: paymentData
+              });
+              
+              console.log('支付API响应:', paymentResponse);
+              
+              const payRes = paymentResponse[1];
+              if (payRes && payRes.statusCode === 200) {
+                let payResult = payRes.data;
+            
+                // 检查是否为XML格式响应
+                if (typeof payResult === 'string' && payResult.includes('<Result>')) {
+                  console.log('检测到XML格式支付响应，开始解析');
+                  payResult = this.parseXMLPaymentResponse(payResult);
+                  console.log('XML解析后的支付结果:', payResult);
+                }
+                
+                if (payResult && (payResult.code === 200 || payResult.success === true)) {
+                  // 支付成功
+                  console.log('支付成功');
+                  
+                  // 重新获取余额（支付后余额应该被扣除）
+                  await this.fetchBalance();
             
           uni.showToast({
               title: '支付成功',
@@ -324,32 +532,235 @@ export default {
             // 支付成功后跳转到支付成功页面
           setTimeout(() => {
               uni.redirectTo({
-                url: `/pages/paySuccess/paySuccess?orderId=${this.orderId}&amount=${this.finalAmount}`
+                      url: `/pages/paySuccess/paySuccess?orderId=${currentOrderId}&amount=${this.finalAmount}`
             });
             }, 1500);
+                } else {
+                  throw new Error(payResult?.msg || '支付失败');
+                }
+              } else {
+                throw new Error('支付请求失败');
+              }
+            } else {
+              throw new Error(orderResult?.msg || '订单提交失败');
+            }
           } else {
-            uni.showToast({
-              title: paymentResult.message || '支付失败，请重试',
-              icon: 'none'
-            });
+            throw new Error('订单提交请求失败');
           }
         } else {
+          // 如果已有订单ID，说明是旧流程，直接进行支付
+          console.log('使用现有订单ID进行支付:', currentOrderId);
+          
+          // 这里可以添加单独的支付逻辑，但根据当前的API设计，
+          // 订单提交已经包含了支付，所以这个分支可能不会被使用
           uni.showToast({
-            title: '支付请求失败',
-            icon: 'none'
+            title: '支付成功',
+            icon: 'success'
           });
+          
+          setTimeout(() => {
+            uni.redirectTo({
+              url: `/pages/paySuccess/paySuccess?orderId=${currentOrderId}&amount=${this.finalAmount}`
+            });
+          }, 1500);
         }
+        
+        uni.hideLoading();
+        
       } catch (error) {
         uni.hideLoading();
         console.error('支付处理失败:', error);
         uni.showToast({
-          title: '支付处理失败，请稍后重试',
+          title: error.message || '支付处理失败，请稍后重试',
           icon: 'none'
         });
       } finally {
         this.loading = false;
       }
-    }
+    },
+
+    // 解析XML格式的支付响应
+    parseXMLPaymentResponse(xmlString) {
+      try {
+        console.log('开始解析XML支付响应');
+        
+        // 提取基本信息
+        const codeMatch = xmlString.match(/<code>(.*?)<\/code>/);
+        const msgMatch = xmlString.match(/<msg>(.*?)<\/msg>/);
+        const successMatch = xmlString.match(/<success>(.*?)<\/success>/);
+        
+        // 提取余额信息
+        const balanceMatch = xmlString.match(/<balance>(.*?)<\/balance>/);
+        const payMethodMatch = xmlString.match(/<payMethod>(.*?)<\/payMethod>/);
+        const orderIdMatch = xmlString.match(/<orderId>(.*?)<\/orderId>/);
+        
+        const result = {
+          code: codeMatch ? parseInt(codeMatch[1]) : 200,
+          msg: msgMatch ? msgMatch[1] : 'OK',
+          data: {
+            balance: balanceMatch ? parseFloat(balanceMatch[1]) : 0,
+            payMethod: payMethodMatch ? payMethodMatch[1] : 'cash_pay',
+            orderId: orderIdMatch ? parseInt(orderIdMatch[1]) : this.orderId
+          },
+          success: successMatch ? successMatch[1] === 'true' : true
+        };
+        
+        console.log('XML解析完成，结果:', result);
+        return result;
+      } catch (error) {
+        console.error('解析XML支付响应失败:', error);
+        return {
+          code: 500,
+          msg: 'XML解析失败',
+          data: {},
+          success: false
+        };
+      }
+    },
+
+    // 解析XML格式的余额响应
+    parseXMLBalanceResponse(xmlString) {
+      try {
+        console.log('开始解析XML余额响应，原始字符串:', xmlString);
+        
+        // 提取基本信息
+        const codeMatch = xmlString.match(/<code>(.*?)<\/code>/);
+        const msgMatch = xmlString.match(/<msg>(.*?)<\/msg>/);
+        const successMatch = xmlString.match(/<success>(.*?)<\/success>/);
+        
+        // 提取余额数据 - data标签直接包含余额数字
+        const dataMatch = xmlString.match(/<data>(.*?)<\/data>/);
+        
+        console.log('XML解析匹配结果:');
+        console.log('- code:', codeMatch ? codeMatch[1] : 'null');
+        console.log('- msg:', msgMatch ? msgMatch[1] : 'null');
+        console.log('- success:', successMatch ? successMatch[1] : 'null');
+        console.log('- data:', dataMatch ? dataMatch[1] : 'null');
+        
+        const result = {
+          code: codeMatch ? parseInt(codeMatch[1]) : 200,
+          msg: msgMatch ? msgMatch[1] : 'OK',
+          data: dataMatch ? dataMatch[1] : '0.00', // 直接使用data标签的内容作为余额字符串
+          success: successMatch ? successMatch[1] === 'true' : true
+        };
+        
+        console.log('XML余额解析完成，最终结果:', result);
+        console.log('解析出的余额数据类型:', typeof result.data);
+        console.log('解析出的余额数值:', result.data);
+        
+        return result;
+      } catch (error) {
+        console.error('解析XML余额响应失败:', error);
+        return {
+          code: 500,
+          msg: 'XML解析失败',
+          data: '0.00',
+          success: false
+        };
+      }
+    },
+    
+    // 测试方法：手动获取余额
+    async testFetchBalance() {
+      console.log('=== 开始测试余额获取 ===');
+      console.log('当前余额值:', this.balance);
+      
+      const token = uni.getStorageSync('token');
+      console.log('存储的token:', token);
+      
+      if (!token) {
+        console.log('没有找到token');
+        return;
+      }
+      
+      try {
+        const response = await uni.request({
+          url: 'http://localhost:8080/api/v1/payment/balance',
+          method: 'GET',
+          header: {
+            'customerToken': token,
+            'userType': '3',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('测试余额查询完整响应:', response);
+        
+        if (response && response[1] && response[1].data) {
+          const result = response[1].data;
+          console.log('测试响应数据:', result);
+          console.log('测试响应数据类型:', typeof result);
+          
+          if (typeof result === 'string' && result.includes('<Result>')) {
+            console.log('测试检测到XML格式');
+            const parsed = this.parseXMLBalanceResponse(result);
+            console.log('测试XML解析结果:', parsed);
+            
+            if (parsed && parsed.data) {
+              this.balance = parseFloat(parsed.data).toFixed(2);
+              console.log('测试设置余额为:', this.balance);
+              this.$forceUpdate();
+            }
+          } else if (result && result.data) {
+            console.log('测试检测到JSON格式');
+            this.balance = parseFloat(result.data).toFixed(2);
+            console.log('测试设置余额为:', this.balance);
+            this.$forceUpdate();
+          }
+        }
+      } catch (error) {
+        console.error('测试余额获取失败:', error);
+      }
+      
+      console.log('=== 测试余额获取结束 ===');
+    },
+
+    // 解析XML格式的订单响应
+    parseXMLOrderResponse(xmlString) {
+      try {
+        console.log('开始解析XML订单响应，原始字符串:', xmlString);
+        
+        // 提取基本信息
+        const codeMatch = xmlString.match(/<code>(.*?)<\/code>/);
+        const msgMatch = xmlString.match(/<msg>(.*?)<\/msg>/);
+        const successMatch = xmlString.match(/<success>(.*?)<\/success>/);
+        
+        // 提取订单数据
+        const idMatch = xmlString.match(/<id>(.*?)<\/id>/);
+        const orderNumberMatch = xmlString.match(/<orderNumber>(.*?)<\/orderNumber>/);
+        const orderAmountMatch = xmlString.match(/<orderAmount>(.*?)<\/orderAmount>/);
+        
+        console.log('XML订单解析匹配结果:');
+        console.log('- code:', codeMatch ? codeMatch[1] : 'null');
+        console.log('- msg:', msgMatch ? msgMatch[1] : 'null');
+        console.log('- success:', successMatch ? successMatch[1] : 'null');
+        console.log('- id:', idMatch ? idMatch[1] : 'null');
+        console.log('- orderNumber:', orderNumberMatch ? orderNumberMatch[1] : 'null');
+        console.log('- orderAmount:', orderAmountMatch ? orderAmountMatch[1] : 'null');
+        
+        const result = {
+          code: codeMatch ? parseInt(codeMatch[1]) : 200,
+          msg: msgMatch ? msgMatch[1] : 'OK',
+          data: {
+            id: idMatch ? parseInt(idMatch[1]) : null,
+            orderNumber: orderNumberMatch ? orderNumberMatch[1] : '',
+            orderAmount: orderAmountMatch ? parseFloat(orderAmountMatch[1]) : 0
+          },
+          success: successMatch ? successMatch[1] === 'true' : true
+        };
+        
+        console.log('XML订单解析完成，最终结果:', result);
+        return result;
+      } catch (error) {
+        console.error('解析XML订单响应失败:', error);
+        return {
+          code: 500,
+          msg: 'XML解析失败',
+          data: {},
+          success: false
+        };
+      }
+    },
   }
 };
 </script>

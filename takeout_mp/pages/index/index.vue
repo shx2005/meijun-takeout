@@ -1013,9 +1013,9 @@
 									};
 								});
 								console.log('从服务器加载购物车数据成功，共', this.cartItems.length, '项:', this.cartItems);
-							} else {
+					} else {
 								// 服务器返回空购物车
-								this.cartItems = [];
+						this.cartItems = [];
 								console.log('服务器返回空购物车数据 - items为空或不是数组');
 							}
 						} else {
@@ -1181,9 +1181,9 @@
 							console.log('添加购物车成功，开始重新加载购物车数据');
 							// 添加成功，重新从服务器获取购物车数据
 							await this.loadCartFromServer();
-							
+					
 							// 显示成功提示
-							uni.$showMsg('已添加到购物车');
+					uni.$showMsg('已添加到购物车');
 						} else {
 							console.log('添加购物车失败，响应数据:', res.data);
 							throw new Error('添加失败');
@@ -1252,7 +1252,7 @@
 							if (cartItem) {
 								cartItemId = cartItem.id; // 这是购物车项的ID
 								console.log('找到购物车项ID:', cartItemId);
-							} else {
+					} else {
 								console.log('在服务器购物车中未找到商品，itemId:', item.id);
 								console.log('服务器购物车项:', cartData.data.items);
 							}
@@ -1293,7 +1293,7 @@
 							'Content-Type': 'application/json'
 						}
 					});
-					
+						
 					// 如果还有剩余数量，重新添加
 					if (currentItem.number > 1) {
 						const userId = uni.getStorageSync('userId') || 1;
@@ -1426,8 +1426,8 @@
 			// 前往购物车页面或结算页面
 			goToCart() {
 				if (this.cartCount > 0) {
-					uni.navigateTo({
-						url: '/pages/cart/cart'
+						uni.navigateTo({
+							url: '/pages/cart/cart'
 					});
 				} else {
 					uni.$showMsg('购物车是空的哦~');
@@ -1438,7 +1438,7 @@
 			submitOrder() {
 				if (this.cartCount > 0) {
 					uni.navigateTo({
-						url: '/pages/cart/cart'
+							url: '/pages/cart/cart'
 					});
 				} else {
 					uni.$showMsg('请先选择菜品');

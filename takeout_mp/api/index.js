@@ -870,10 +870,31 @@ function preloadOrderHistory(token, disableCache = false) {
 }
 
 export const registerApi = (data) => {
-	return uni.$ajax.post({
-		url: "v1/auth/register",
-		data: data
-	})
+	return new Promise((resolve, reject) => {
+		// 直接使用uni.request发送请求
+		uni.request({
+			url: 'http://localhost:8080/api/v1/auth/register',
+			method: 'POST',
+			header: {
+				'Content-Type': 'application/json',
+				'Accept': 'application/json',
+				'userType': '3'
+			},
+			data: data,
+			success: (res) => {
+				console.log('注册响应:', res);
+				if (res.statusCode === 200) {
+					resolve(res.data);
+				} else {
+					reject(res);
+				}
+			},
+			fail: (err) => {
+				console.error('注册请求失败:', err);
+				reject(err);
+			}
+		});
+	});
 }
 
 export const logoutApi = () => {

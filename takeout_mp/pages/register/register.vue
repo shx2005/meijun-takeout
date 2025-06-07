@@ -92,13 +92,14 @@ export default {
 				const registerParams = {
 					username: this.phone,
 					password: this.password,
-					identity: 3,
+					identity: "CUSTOMER",
 					openid: this.phone
 				};
 				console.log('注册参数:', registerParams);
 				const result = await registerApi(registerParams);
 				console.log('注册结果:', result);
-				if (result && result.code === 0) {
+				
+				if (result && result.code === 200 && result.success === true) {
 					uni.$showMsg('注册成功', 'success');
 					setTimeout(() => {
 						uni.navigateBack();
@@ -123,6 +124,8 @@ export default {
 					errorMsg = error.message;
 				} else if (error.errMsg) {
 					errorMsg = error.errMsg;
+				} else if (error.data && error.data.msg) {
+					errorMsg = error.data.msg;
 				}
 				uni.showModal({
 					title: '注册异常',

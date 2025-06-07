@@ -148,7 +148,7 @@ export default {
         this.loading = false;
       }
     },
-
+    
     // 解析XML格式的购物车响应
     parseXMLCartResponse(xmlString) {
       try {
@@ -291,30 +291,30 @@ export default {
       try {
         console.log('减少商品数量:', item.name);
         
-        if (item.quantity <= 1) {
-          // 如果只剩一个，询问是否从购物车移除
-          uni.showModal({
-            title: '提示',
-            content: '是否从购物车移除该商品？',
+      if (item.quantity <= 1) {
+        // 如果只剩一个，询问是否从购物车移除
+        uni.showModal({
+          title: '提示',
+          content: '是否从购物车移除该商品？',
             success: async (res) => {
-              if (res.confirm) {
+            if (res.confirm) {
                 // 确认移除，直接调用删除API
                 await this.removeCartItem(item);
-              }
             }
-          });
+          }
+        });
           return;
         }
         
-        const token = uni.getStorageSync('token');
-        if (!token) {
-          uni.showToast({
-            title: '请先登录',
-            icon: 'none'
-          });
-          return;
-        }
-        
+          const token = uni.getStorageSync('token');
+          if (!token) {
+            uni.showToast({
+              title: '请先登录',
+              icon: 'none'
+            });
+            return;
+          }
+          
         // 先删除该购物车项
         await uni.request({
           url: `http://localhost:8080/api/v1/cart/delete?cartItemId=${item.cartItemId}`,
@@ -357,12 +357,12 @@ export default {
           duration: 1000
         });
         
-      } catch (error) {
-        console.error('减少商品数量失败:', error);
-        uni.showToast({
-          title: '操作失败，请重试',
-          icon: 'none'
-        });
+        } catch (error) {
+          console.error('减少商品数量失败:', error);
+          uni.showToast({
+            title: '操作失败，请重试',
+            icon: 'none'
+          });
       }
     },
 
@@ -397,10 +397,10 @@ export default {
         // 重新从服务器获取购物车数据
         await this.fetchCartData();
         
-        uni.showToast({
-          title: '已移除商品',
-          icon: 'success'
-        });
+          uni.showToast({
+            title: '已移除商品',
+            icon: 'success'
+          });
         
       } catch (error) {
         console.error('删除商品失败:', error);
