@@ -8,9 +8,11 @@
 							<view v-if="address == null">
 								<text style="color: gainsboro;font-size: 36rpx">请选择收货地址</text>
 							</view>
-							<view v-else>
+							<scroll-view v-else scroll-x="true" class="address-scroll-view">
+								<view class="address-content">
 								{{address.detail}}
 							</view>
+							</scroll-view>
 						</view>
 
 						<view class="name">
@@ -207,67 +209,105 @@
 			//获取默认地址 (现在主要从用户信息获取，再尝试地址列表)
 			async getDefaultAddress() {
 				try {
-					console.log("尝试从用户信息接口获取地址...");
-					const userInfoRes = await request({ 
-						url: '/api/v1/user/info',
-						method: 'GET'
+					console.log("从用户信息接口获取地址...");
+					
+					// 获取token
+					const token = uni.getStorageSync('token');
+					if (!token) {
+						console.log("未登录，无法获取地址");
+						uni.showToast({
+							title: '请先登录',
+							icon: 'none',
+							duration: 2000
+						});
+						return;
+					}
+					
+					// 使用uni.request直接调用API
+					const res = await uni.request({
+						url: 'http://localhost:8080/api/v1/user/info',
+						method: 'GET',
+						header: {
+							'customerToken': token,
+							'userType': '3',
+							'Content-Type': 'application/json'
+						}
 					});
 
-					if (userInfoRes && (userInfoRes.code === 0 || userInfoRes.code === 1 || userInfoRes.code === 200) && userInfoRes.data && userInfoRes.data.address) {
-						console.log("从用户信息中获取到地址:", userInfoRes.data.address);
+					console.log("用户信息响应:", res);
+
+					// 先检查响应是否成功
+					if (res && res[1].statusCode === 200) {
+						// 处理XML格式的响应
+						const responseData = res[1].data;
+						
+						// 检查是否为XML格式的字符串
+						if (typeof responseData === 'string' && responseData.includes('<Result>')) {
+							console.log('解析XML格式的用户信息');
+							
+							// 从XML中提取地址
+							const addressMatch = responseData.match(/<address>(.*?)<\/address>/);
+							const nameMatch = responseData.match(/<name>(.*?)<\/name>/);
+							const usernameMatch = responseData.match(/<username>(.*?)<\/username>/);
+							const phoneMatch = responseData.match(/<phoneNum>(.*?)<\/phoneNum>/);
+							const genderMatch = responseData.match(/<gender>(.*?)<\/gender>/);
+							
+							if (addressMatch && addressMatch[1]) {
+								const address = addressMatch[1];
+								console.log("从XML中获取到地址:", address);
+								
+								// 构建地址对象
+								this.address = {
+									detail: address,
+									consignee: nameMatch && nameMatch[1] ? nameMatch[1] : (usernameMatch && usernameMatch[1] ? usernameMatch[1] : ''),
+									phone: phoneMatch && phoneMatch[1] ? phoneMatch[1] : (usernameMatch && usernameMatch[1] ? usernameMatch[1] : ''),
+									gender: genderMatch && genderMatch[1] === '男' ? 0 : 1
+								};
+								
+								console.log("构建的地址对象:", this.address);
+								return;
+							}
+						} 
+						// 处理JSON格式的响应
+						else if (res[1].data && res[1].data.data) {
+						const userData = res[1].data.data;
+							if (userData.address) {
+								console.log("从JSON中获取到地址:", userData.address);
+						
+						// 从用户信息中提取必要数据构建地址对象
 						this.address = {
-							detail: userInfoRes.data.address, // 主要显示这个
-							consignee: userInfoRes.data.name || (userInfoRes.data.nickName || ''), // 尝试用用户名或昵称
-							phone: userInfoRes.data.phone || '',   // 尝试用用户电话
-							// id: undefined, // 明确这个地址不是来自地址簿，没有id
+							detail: userData.address, // 地址详情
+							consignee: userData.name || userData.username || '', // 收货人姓名
+							phone: userData.phoneNum || userData.username || '', // 联系电话
+							gender: userData.gender === '男' ? 0 : 1 // 性别
 						};
-						return; // 成功获取到用户地址，直接返回
-					}
-
-					// 如果用户信息中没有地址，或者接口调用有问题，尝试从地址列表获取
-					console.log("用户信息中未找到地址或获取失败，尝试从地址列表获取...");
-					const addressListRes = await addressListApi(); // 确保 addressListApi 已导入
-					// 检查 addressListRes 的具体结构，API文档中未明确，常见结构为 res.data 是数组或 res 直接是数组
-					let addresses = [];
-					if (addressListRes) {
-						if (Array.isArray(addressListRes.data) && addressListRes.data.length > 0) {
-							addresses = addressListRes.data;
-						} else if (Array.isArray(addressListRes) && addressListRes.length > 0) { // 兼容直接返回数组的情况
-							addresses = addressListRes;
-						}
-					}
-
-					if (addresses.length > 0) {
-						console.log("从地址列表获取到地址:", addresses[0]);
-						this.address = addresses[0]; // 使用地址列表的第一个
-					} else {
-						console.log("地址列表也为空或获取失败");
-						this.address = null; // 都没有获取到，则为null
-					}
-
-				} catch (error) {
-					console.error('获取地址过程中发生错误（可能是用户信息接口或地址列表接口）:', error);
-					// 即使上面出错，也尝试一下地址列表作为最终手段，以防万一
-					try {
-						console.log("捕获异常后，最后尝试从地址列表获取...");
-						const addressListRes = await addressListApi();
-						let addresses = [];
-						if (addressListRes) {
-							if (Array.isArray(addressListRes.data) && addressListRes.data.length > 0) {
-								addresses = addressListRes.data;
-							} else if (Array.isArray(addressListRes) && addressListRes.length > 0) {
-								addresses = addressListRes;
+						
+						console.log("构建的地址对象:", this.address);
+								return;
 							}
 						}
-						if (addresses.length > 0) {
-							this.address = addresses[0];
-						} else {
-							this.address = null;
-						}
-					} catch (finalFallbackError) {
-						console.error("最终尝试从地址列表获取也失败:", finalFallbackError);
-						this.address = null; // 最终确保为null
 					}
+					
+					// 如果没有成功获取地址
+						console.log("用户信息中未找到地址或获取失败");
+						this.address = null; // 地址为空时提示用户选择地址
+						
+					// 显示提示信息
+						uni.showToast({
+							title: '未设置地址，请从个人信息页添加地址',
+							icon: 'none',
+							duration: 2000
+						});
+				} catch (error) {
+					console.error('获取地址失败:', error);
+					this.address = null;
+					
+					// 显示错误信息
+					uni.showToast({
+						title: '获取地址失败，请重试',
+						icon: 'none',
+						duration: 2000
+					});
 				}
 			},
 			//获取送达时间
@@ -294,103 +334,276 @@
 					// 显示加载状态
 					uni.showLoading({ title: '加载中...' });
 					
-					// 调用购物车API获取最新数据
-					const res = await cartListApi();
+					// 检查登录状态
+					const token = uni.getStorageSync('token');
+					if (!token) {
+						uni.hideLoading();
+						uni.showToast({
+							title: '请先登录',
+							icon: 'none'
+						});
+						setTimeout(() => {
+							uni.navigateTo({
+								url: '/pages/my/my'
+							});
+						}, 1500);
+						return;
+					}
+					
+					// 从服务器获取购物车数据
+							const res = await uni.request({
+								url: 'http://localhost:8080/api/v1/cart',
+								method: 'GET',
+								header: {
+									'customerToken': token,
+									'userType': '3',
+									'Content-Type': 'application/json'
+								}
+							});
+							
+							console.log('服务器购物车数据响应:', res);
+							
+							// 检查响应是否成功且有数据
+					const response = res[1];
+					if (response && response.statusCode === 200 && response.data) {
+						let result = response.data;
+						
+						// 检查是否为XML格式的响应
+						if (typeof result === 'string' && result.includes('<Result>')) {
+							console.log('检测到XML格式购物车响应，开始解析');
+							result = this.parseXMLCartResponse(result);
+							console.log('XML解析后的结果:', result);
+						}
+						
+						if (result && result.code === 200 && result.data && result.data.items && result.data.items.length > 0) {
+									// 使用服务器返回的购物车数据
+							this.cartData = result.data.items.map(item => ({
+										id: item.itemId || item.id,
+										name: item.name || '菜品',
+										image: item.image || '/static/images/default-food.png',
+										number: item.quantity || 1,
+								amount: item.price || 0
+									}));
+									
+									console.log('从服务器获取的购物车数据:', this.cartData);
+						} else {
+							// 购物车为空
+							this.cartData = [];
+							console.log('购物车为空');
+							}
+					} else {
+						// 获取失败
+						console.error('获取购物车数据失败:', response);
+						this.cartData = [];
+					}
 					
 					// 隐藏加载状态
 					uni.hideLoading();
 					
-					// 处理API响应
-					if (res && (res.code === 0 || res.code === 1 || res.code === 200)) {
-						// 根据API响应格式提取购物车项
-						let cartItems = [];
-						
-						// 检查不同可能的数据结构
-						if (Array.isArray(res.data)) {
-							// 直接是购物车项数组
-							cartItems = res.data;
-						} else if (res.data && Array.isArray(res.data.items)) {
-							// 有items字段的购物车对象
-							cartItems = res.data.items;
-						} else if (res.items && Array.isArray(res.items)) {
-							// 直接有items字段
-							cartItems = res.items;
-						}
-						
-						// 映射购物车数据到所需格式
-						this.cartData = cartItems.map(item => ({
-							id: item.itemId || item.id,
-							name: item.name || '菜品',
-							image: item.image || '/static/images/default-food.png',
-							number: item.quantity || item.number || 1,
-							amount: item.price || item.amount || 0
-						}));
-						
-						// 检查购物车是否为空
-						if (this.cartData.length === 0) {
-							uni.showModal({
-								title: '提示',
-								content: '购物车为空，是否返回点餐页面？',
-								success: function(modalRes) {
-									if (modalRes.confirm) {
-										uni.switchTab({
-											url: '/pages/index/index'
-										});
-									}
+					// 如果没有数据，提示用户
+					if (!this.cartData || this.cartData.length === 0) {
+						uni.showModal({
+							title: '提示',
+							content: '购物车为空，是否返回点餐页面？',
+							success: function(modalRes) {
+								if (modalRes.confirm) {
+									uni.switchTab({
+										url: '/pages/index/index'
+									});
 								}
-							});
-						}
-					} else {
-						uni.$showMsg(res?.msg || '获取购物车失败');
-						this.cartData = [];
+							}
+						});
 					}
 				} catch (error) {
 					console.error('获取购物车数据失败:', error);
 					uni.hideLoading();
-					uni.$showMsg('获取购物车失败，请重试');
+					uni.showToast({
+						title: '获取购物车失败，请重试',
+						icon: 'none'
+					});
 					this.cartData = [];
+				}
+			},
+
+			// 解析XML格式的购物车响应
+			parseXMLCartResponse(xmlString) {
+				try {
+					console.log('开始解析XML购物车响应');
+					
+					// 提取基本信息
+					const codeMatch = xmlString.match(/<code>(.*?)<\/code>/);
+					const msgMatch = xmlString.match(/<msg>(.*?)<\/msg>/);
+					const successMatch = xmlString.match(/<success>(.*?)<\/success>/);
+					const totalMatch = xmlString.match(/<total>(.*?)<\/total>/);
+					
+					// 提取所有购物车项
+					const itemsMatches = xmlString.match(/<items>(.*?)<\/items>/g);
+					const items = [];
+					
+					if (itemsMatches) {
+						itemsMatches.forEach(itemXml => {
+							const idMatch = itemXml.match(/<id>(.*?)<\/id>/);
+							const nameMatch = itemXml.match(/<name>(.*?)<\/name>/);
+							const cartIdMatch = itemXml.match(/<cartId>(.*?)<\/cartId>/);
+							const userIdMatch = itemXml.match(/<userId>(.*?)<\/userId>/);
+							const itemIdMatch = itemXml.match(/<itemId>(.*?)<\/itemId>/);
+							const itemTypeMatch = itemXml.match(/<itemType>(.*?)<\/itemType>/);
+							const quantityMatch = itemXml.match(/<quantity>(.*?)<\/quantity>/);
+							const priceMatch = itemXml.match(/<price>(.*?)<\/price>/);
+							const itemTotalMatch = itemXml.match(/<total>(.*?)<\/total>/);
+							
+							if (idMatch && nameMatch && itemIdMatch) {
+								items.push({
+									id: parseInt(idMatch[1]),
+									name: nameMatch[1],
+									cartId: cartIdMatch ? parseInt(cartIdMatch[1]) : null,
+									userId: userIdMatch ? parseInt(userIdMatch[1]) : null,
+									itemId: parseInt(itemIdMatch[1]),
+									itemType: itemTypeMatch ? itemTypeMatch[1] : 'dish',
+									quantity: quantityMatch ? parseInt(quantityMatch[1]) : 1,
+									price: priceMatch ? parseFloat(priceMatch[1]) : 0,
+									total: itemTotalMatch ? parseFloat(itemTotalMatch[1]) : 0
+								});
+							}
+						});
+					}
+					
+					const result = {
+						code: codeMatch ? parseInt(codeMatch[1]) : 200,
+						msg: msgMatch ? msgMatch[1] : 'OK',
+						data: {
+							id: null,
+							userId: 1,
+							items: items,
+							total: totalMatch ? parseFloat(totalMatch[1]) : 0
+						},
+						success: successMatch ? successMatch[1] === 'true' : true
+					};
+					
+					console.log('XML解析完成，结果:', result);
+					return result;
+				} catch (error) {
+					console.error('解析XML购物车响应失败:', error);
+					return {
+						code: 500,
+						msg: 'XML解析失败',
+						data: { items: [] },
+						success: false
+					};
 				}
 			},
 			async goToPaySuccess() {
 				if (!this.address) {
-					uni.$showMsg('请选择收货地址');
+					uni.showToast({
+						title: '请选择收货地址',
+						icon: 'none'
+					});
 					return;
 				}
 				
-				if (this.cartData.length === 0) {
-					uni.$showMsg('购物车为空，请先添加商品');
+				if (!this.cartData || this.cartData.length === 0) {
+					// 如果购物车为空，再次尝试获取购物车数据
+					await this.getCartData();
+					
+					// 再次检查购物车是否为空
+					if (!this.cartData || this.cartData.length === 0) {
+						uni.showToast({
+							title: '购物车为空，请先添加商品',
+							icon: 'none'
+						});
 					return;
+					}
 				}
 				
 				if (this.loading) return;
 				this.loading = true;
 				
 				try {
-					// 准备订单数据
-					const orderData = {
-						addressBookId: this.address.id,
-						remark: this.note,
-						payMethod: 1, // 默认微信支付
-						expectedDeliveryTime: this.finishTime
+					// 获取token
+					const token = uni.getStorageSync('token');
+					if (!token) {
+						uni.showToast({
+							title: '请先登录',
+							icon: 'none'
+						});
+						this.loading = false;
+						return;
+					}
+					
+					// 计算总价
+					const totalPrice = this.cartData.reduce((sum, item) => {
+						return sum + (item.number * item.amount);
+					}, 0);
+					
+					// 准备订单信息（不提交订单，只传递信息）
+					const orderInfo = {
+						userId: 1,
+						total: totalPrice,
+						address: this.address,
+						cartData: this.cartData // 传递购物车数据
 					};
 					
-					// 提交订单数据，获取订单ID等信息
-					const res = await uni.$ajax.post({
-						url: 'v1/orders/submit',
-						data: orderData
-					});
-					
-					if (res) {
-						// 将订单ID传递给支付确认页面
+					console.log('准备跳转到支付确认页面，订单信息:', orderInfo);
+							
+					// 直接跳转到支付确认页面，不提交订单
 						uni.navigateTo({
-							url: '/pages/payConfirm/payConfirm?orderId=' + res.id
+						url: '/pages/payConfirm/payConfirm?orderInfo=' + encodeURIComponent(JSON.stringify(orderInfo))
 						});
-					}
+						
+						uni.showToast({
+						title: '正在跳转到支付页面',
+							icon: 'success'
+						});
+					
 				} catch (error) {
-					console.error('提交订单失败', error);
-					uni.$showMsg('提交订单失败，请重试');
+					console.error('跳转支付页面失败', error);
+					uni.showToast({
+						title: '跳转失败，请重试',
+						icon: 'none'
+					});
 				} finally {
 					this.loading = false;
+				}
+			},
+			// 清空服务器购物车
+			async clearCartInServer(token) {
+				try {
+					// 先获取购物车数据
+					const res = await uni.request({
+						url: 'http://localhost:8080/api/v1/cart',
+						method: 'GET',
+						header: {
+							'customerToken': token,
+							'userType': '3',
+							'Content-Type': 'application/json'
+						}
+					});
+					
+					// 如果有数据，循环删除每个商品
+					if (res && res[1].statusCode === 200 && res[1].data && res[1].data.data && res[1].data.data.items) {
+						const items = res[1].data.data.items;
+						for (const item of items) {
+							// 删除购物车中的商品
+							await uni.request({
+								url: 'http://localhost:8080/api/v1/cart/delete',
+								method: 'DELETE',
+								header: {
+									'customerToken': token,
+									'Accept': 'application/json',
+									'userType': '3',
+									'Content-Type': 'application/json'
+								},
+								data: {
+									itemId: item.itemId || item.id
+								}
+							});
+							console.log(`删除购物车商品: ${item.itemId || item.id}`);
+						}
+					}
+					
+					console.log('清空服务器购物车完成');
+				} catch (error) {
+					console.error('清空购物车失败:', error);
 				}
 			},
 		}
@@ -403,5 +616,17 @@
 <style>
 	page {
 		background-color: #f3f2f7;
+	}
+	
+	.address-scroll-view {
+		width: 100%;
+		white-space: nowrap;
+	}
+	
+	.address-content {
+		display: inline-block;
+		font-size: 28rpx;
+		color: #333;
+		padding: 10rpx 0;
 	}
 </style>

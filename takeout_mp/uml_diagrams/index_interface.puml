@@ -1,0 +1,44 @@
+@startuml
+title 首页菜品接口关系图
+
+' 前端组件
+component "Index" as Index
+component "DishDetail" as DishDetail
+component "Cart" as Cart
+
+' API接口
+interface "菜品接口" as DishAPI
+interface "购物车接口" as CartAPI
+interface "评价接口" as CommentAPI
+
+' 后端服务
+component "菜品服务" as DishService
+component "购物车服务" as CartService
+component "评价服务" as CommentService
+
+database "菜品数据库" as DishDB
+database "购物车数据库" as CartDB
+database "评价数据库" as CommentDB
+
+' 连接关系
+Index --> DishAPI : 获取菜品分类和列表
+DishDetail --> DishAPI : 获取菜品详情
+Index --> CartAPI : 添加购物车
+DishDetail --> CartAPI : 添加购物车
+DishDetail --> CommentAPI : 获取评价
+
+DishAPI --> DishService
+CartAPI --> CartService
+CommentAPI --> CommentService
+
+DishService --> DishDB
+CartService --> CartDB
+CommentService --> CommentDB
+
+' 组件间关系
+Index --> DishDetail : 查看详情
+Index --> Cart : 进入购物车
+DishDetail --> Cart : 进入购物车
+
+footer "美俊外卖系统 - 首页菜品接口关系图"
+@enduml 

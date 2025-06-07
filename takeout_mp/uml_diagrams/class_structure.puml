@@ -1,0 +1,180 @@
+@startuml 美俊外卖系统类结构图
+
+!theme plain
+skinparam backgroundColor white
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+skinparam packageStyle rectangle
+
+package "用户认证模块" {
+  class Login {
+    - phone: String
+    - password: String
+    - isLoading: Boolean
+    + onSubmit()
+    + toRegister()
+    + closeLogin()
+  }
+  
+  class Register {
+    - phone: String
+    - password: String
+    - confirmPassword: String
+    - isLoading: Boolean
+    + handleRegister()
+    + goToLogin()
+  }
+  
+  Login <--> Register
+}
+
+package "首页模块" {
+  class Index {
+    - tabIndex: Number
+    - tabs: Array
+    - categoryList: Array
+    - dishList: Array
+    - cartItems: Array
+    + loadData()
+    + categoryClick()
+    + addCart()
+    + dishDetails()
+  }
+  
+  class DishDetail {
+    - dish: Object
+    - count: Number
+    - selectedFlavor: String
+    + getDishDetail()
+    + addToCart()
+    + selectFlavor()
+  }
+  
+  Index --> DishDetail
+}
+
+package "用户模块" {
+  class My {
+    - user: Object
+    - userToken: String
+    - order: Array
+    + openLogin()
+    + onJump()
+    + logout()
+    + contactService()
+  }
+  
+  class UserInfo {
+    - user: Object
+    - isEditPopupVisible: Boolean
+    - editForm: Object
+    + getUserInfo()
+    + updateUserInfo()
+    + showEditPopup()
+  }
+  
+  class Setting {
+    - userInfo: Object
+    + getUserInfo()
+    + goToChangeName()
+    + goToChangePhone()
+  }
+  
+  My --> UserInfo
+  My --> Setting
+}
+
+package "购物车模块" {
+  class Cart {
+    - cartItems: Array
+    - totalPrice: Number
+    - loading: Boolean
+    + loadCartFromLocalStorage()
+    + calculateTotal()
+    + increaseQuantity()
+    + decreaseQuantity()
+    + handleCheckout()
+  }
+  
+  class AddOrder {
+    - address: Object
+    - cartItems: Array
+    - totalPrice: Number
+    - deliveryTime: String
+    - payMethod: String
+    + loadAddressInfo()
+    + loadCartItems()
+    + submitOrder()
+  }
+  
+  Cart --> AddOrder
+}
+
+package "订单模块" {
+  class OrderList {
+    - orderList: Array
+    - currentStatus: String
+    - page: Number
+    - pageSize: Number
+    + loadOrderList()
+    + viewOrderDetail()
+    + formatOrderStatus()
+  }
+  
+  class OrderDetail {
+    - orderId: String
+    - orderInfo: Object
+    - statusText: String
+    + getOrderDetail()
+    + payOrder()
+    + cancelOrder()
+    + rateOrder()
+  }
+  
+  class OrderEvaluate {
+    - orderId: String
+    - score: Number
+    - comment: String
+    + getOrderInfo()
+    + onScoreChange()
+    + submitReview()
+  }
+  
+  OrderList --> OrderDetail
+  OrderDetail --> OrderEvaluate
+}
+
+package "地址模块" {
+  class Address {
+    - addressList: Array
+    - isLoading: Boolean
+    - fromOrder: Boolean
+    + getAddressList()
+    + selectAddress()
+    + editAddress()
+    + deleteAddress()
+  }
+  
+  class AddressEdit {
+    - addressId: String
+    - addressInfo: Object
+    - isEdit: Boolean
+    - tagList: Array
+    + loadAddressInfo()
+    + saveAddress()
+    + updateAddress()
+    + validateForm()
+  }
+  
+  Address <--> AddressEdit
+}
+
+' 模块间关系
+Index --> Cart : 添加商品到购物车
+AddOrder --> Address : 选择收货地址
+OrderDetail --> AddOrder : 再次购买
+My --> OrderList : 查看订单列表
+
+footer "美俊外卖系统 - 类结构图"
+
+@enduml 

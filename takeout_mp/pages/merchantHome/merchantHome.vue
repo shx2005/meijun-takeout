@@ -87,18 +87,22 @@
 				<view class="data-cards">
 					<view class="data-card">
 						<view class="data-title">今日订单</view>
-						<view class="data-value">15</view>
-						<view class="data-change up">+20%</view>
+						<view class="data-value">{{ statistics.today.orderCount }}</view>
+						<view class="data-change" :class="statistics.today.compareYesterday >= 0 ? 'up' : 'down'">
+							{{ statistics.today.compareYesterday >= 0 ? '+' : '' }}{{ statistics.today.compareYesterday }}%
+						</view>
 					</view>
 					<view class="data-card">
 						<view class="data-title">今日销售额</view>
-						<view class="data-value">¥1,280</view>
-						<view class="data-change up">+15%</view>
+						<view class="data-value">¥{{ statistics.today.totalAmount }}</view>
+						<view class="data-change" :class="statistics.today.compareYesterday >= 0 ? 'up' : 'down'">
+							{{ statistics.today.compareYesterday >= 0 ? '+' : '' }}{{ statistics.today.compareYesterday }}%
+						</view>
 					</view>
 					<view class="data-card">
 						<view class="data-title">热销菜品</view>
-						<view class="data-value">宫保鸡丁</view>
-						<view class="data-sub">已售28份</view>
+						<view class="data-value">{{ statistics.topDish.name || '暂无数据' }}</view>
+						<view class="data-sub" v-if="statistics.topDish.name">已售{{ statistics.topDish.count }}份</view>
 					</view>
 				</view>
 				
@@ -223,7 +227,16 @@
 </template>
 
 <script>
-	import { orderPagingApi, cancelOrderApi } from '../../api/orderList.js';
+	import { 
+		getOrderListApi, 
+		getOrderDetailApi, 
+		acceptOrderApi, 
+		deliverOrderApi, 
+		completeOrderApi, 
+		cancelOrderApi,
+		getStatisticsApi,
+		getMerchantInfoApi
+	} from '../../api/merchant.js';
 	
 	export default {
 		data() {
@@ -250,17 +263,55 @@
 					size: 10,
 					total: 0
 				},
-				loading: false
+				loading: false,
+				merchantInfo: null,
+				// 统计数据
+				statistics: {
+					today: {
+						orderCount: 0,
+						totalAmount: 0,
+						compareYesterday: 0 // 环比增长率
+					},
+					topDish: {
+						name: '',
+						count: 0
+					}
+				}
 			}
 		},
 		onLoad() {
+			// 检查token
+			const token = uni.getStorageSync('merchantToken');
+			if (!token) {
+				uni.showToast({
+					title: '请先登录',
+					icon: 'none'
+				});
+				
+				setTimeout(() => {
+					uni.redirectTo({
+						url: '/pages/merchantLogin/merchantLogin'
+					});
+				}, 1500);
+				return;
+			}
+			
+			// 获取商家信息
+			this.getMerchantInfo();
+			
+			// 获取订单列表
 			this.getOrderList();
+			
+			// 获取统计数据
+			this.getStatisticsData();
 		},
 		methods: {
 			changeMainNav(index) {
 				this.activeMainNav = index;
 				if (index === 0) {
 					this.getOrderList();
+				} else if (index === 1) {
+					this.getStatisticsData();
 				}
 			},
 			
@@ -282,28 +333,149 @@
 			async getOrderList() {
 				this.loading = true;
 				try {
-					// 模拟订单数据，因为后端未完成
-					this.orderList = this.mockOrderData();
-					// 实际调用应该是这样：
-					// const params = {
-					//     page: this.pageInfo.page,
-					//     size: this.pageInfo.size,
-					//     status: this.tabs[this.activeTab].status
-					// };
-					// const res = await orderPagingApi(params);
-					// if (res.code === 0) {
-					//     this.orderList = res.data.records;
-					//     this.pageInfo.total = res.data.total;
-					// }
-				} catch (e) {
-					console.error(e);
-					uni.showToast({
-						title: '获取订单列表失败',
-						icon: 'none'
-					});
+					// 检查token
+					const token = uni.getStorageSync('merchantToken');
+					if (!token) {
+						uni.showToast({
+							title: '请先登录',
+							icon: 'none'
+						});
+						
+						setTimeout(() => {
+							uni.redirectTo({
+								url: '/pages/merchantLogin/merchantLogin'
+							});
+						}, 1500);
+						return;
+					}
+					
+					// 设置请求参数
+					const params = {
+						page: this.pageInfo.page,
+						pageNum: this.pageInfo.page, // 添加pageNum参数（有些API可能使用pageNum而不是page）
+						size: this.pageInfo.size,
+						pageSize: this.pageInfo.size // 添加pageSize参数
+					};
+					
+					// 添加状态过滤
+					const statusFilter = this.tabs[this.activeTab].status;
+					if (statusFilter !== null) {
+						params.status = statusFilter;
+					}
+					
+					// 调用API获取订单列表
+					try {
+						console.log('正在获取订单列表，参数:', params);
+						const res = await getOrderListApi(params);
+						console.log('订单列表响应:', res);
+						
+						if (res && (res.records || res.list)) {
+							// 处理成功的API响应
+							const orderList = res.records || res.list || [];
+							this.orderList = orderList.map(order => {
+								// 处理订单项数据结构以适配页面显示
+								return {
+									...order,
+									orderNumber: order.orderNumber || order.number,
+									orderTime: order.orderTime || order.createTime,
+									orderDetails: order.items || order.orderDetails || [],
+									amount: order.total || order.amount,
+									status: this.convertOrderStatus(order.status)
+								};
+							});
+							this.pageInfo.total = res.total || 0;
+						} else if (Array.isArray(res)) {
+							// 如果直接返回数组
+							this.orderList = res.map(order => {
+								return {
+									...order,
+									orderNumber: order.orderNumber || order.number,
+									orderTime: order.orderTime || order.createTime,
+									orderDetails: order.items || order.orderDetails || [],
+									amount: order.total || order.amount,
+									status: this.convertOrderStatus(order.status)
+								};
+							});
+							this.pageInfo.total = res.length;
+						} else {
+							// API调用成功但返回了意外格式
+							console.warn('获取订单列表返回格式异常', res);
+							uni.showToast({
+								title: '订单数据格式异常',
+								icon: 'none'
+							});
+							// 降级使用模拟数据
+							this.orderList = this.mockOrderData();
+						}
+					} catch (error) {
+						console.error('获取订单列表失败', error);
+						// 降级使用模拟数据
+						this.orderList = this.mockOrderData();
+						
+						uni.showToast({
+							title: '获取订单列表失败，使用本地数据',
+							icon: 'none'
+						});
+					}
 				} finally {
 					this.loading = false;
 				}
+			},
+			
+			// 获取统计数据
+			async getStatisticsData() {
+				try {
+					// 实际API调用
+					const params = {
+						type: 'day' // 获取今日数据
+					};
+					
+					try {
+						console.log('正在获取统计数据，参数:', params);
+						const res = await getStatisticsApi(params);
+						console.log('统计数据响应:', res);
+						
+						if (res) {
+							// 后端可能有不同的数据结构，尝试适配
+							// 今日订单总数
+							this.statistics.today.orderCount = res.orderCount || res.count || 0;
+							// 今日销售额
+							this.statistics.today.totalAmount = res.totalAmount || res.total || 0;
+							// 环比增长
+							this.statistics.today.compareYesterday = res.compareYesterday || 0;
+							
+							// 热销商品
+							if (res.topDish || (Array.isArray(res) && res.length > 0)) {
+								const topDish = res.topDish || res[0];
+								this.statistics.topDish.name = topDish.name || '';
+								this.statistics.topDish.count = topDish.count || topDish.sales || 0;
+							}
+						}
+					} catch (error) {
+						console.error('获取统计数据失败', error);
+						// 保持使用默认数据
+					}
+				} catch (e) {
+					console.error(e);
+				}
+			},
+			
+			// 转换订单状态
+			convertOrderStatus(status) {
+				// 将后端返回的状态转换为前端使用的状态码
+				if (typeof status === 'string') {
+					switch (status.toUpperCase()) {
+						case 'PENDING': return 1;
+						case 'UNCOMFIRMED': return 2;
+						case 'CONFIRMED': return 3;
+						case 'DELIVERING': return 4;
+						case 'COMPLETED': return 5;
+						case 'CANCELED': return 6;
+						default: return 0;
+					}
+				}
+				// 如果已经是数字，直接返回
+				return status;
 			},
 			
 			mockOrderData() {
@@ -371,85 +543,171 @@
 				}
 			},
 			
-			// 以下方法应该调用API，但当前只是模拟功能
-			acceptOrder(orderId) {
+			// 接单
+			async acceptOrder(orderId) {
 				uni.showModal({
 					title: '确认接单',
 					content: '确定要接受该订单吗？',
-					success: (res) => {
+					success: async (res) => {
 						if (res.confirm) {
-							// 模拟接单成功
-							this.updateOrderStatus(orderId, 3);
-							uni.showToast({
-								title: '接单成功',
-								icon: 'success'
-							});
+							try {
+								console.log('接单：', orderId);
+								const response = await acceptOrderApi(orderId);
+								if (response) {
+									// 更新成功
+									this.updateOrderStatus(orderId, 3);
+									uni.showToast({
+										title: '接单成功',
+										icon: 'success'
+									});
+								}
+							} catch (error) {
+								console.error('接单失败', error);
+								uni.showToast({
+									title: '接单失败，请重试',
+									icon: 'none'
+								});
+								
+								// 开发阶段，出错也能演示
+								this.updateOrderStatus(orderId, 3);
+							}
 						}
 					}
 				});
 			},
 			
-			deliverOrder(orderId) {
+			// 开始配送
+			async deliverOrder(orderId) {
 				uni.showModal({
 					title: '确认配送',
 					content: '确定该订单开始配送吗？',
-					success: (res) => {
+					success: async (res) => {
 						if (res.confirm) {
-							// 模拟开始配送
-							this.updateOrderStatus(orderId, 4);
-							uni.showToast({
-								title: '订单已开始配送',
-								icon: 'success'
-							});
+							try {
+								console.log('开始配送：', orderId);
+								const response = await deliverOrderApi(orderId);
+								if (response) {
+									// 更新成功
+									this.updateOrderStatus(orderId, 4);
+									uni.showToast({
+										title: '已开始配送',
+										icon: 'success'
+									});
+								}
+							} catch (error) {
+								console.error('开始配送失败', error);
+								uni.showToast({
+									title: '操作失败，请重试',
+									icon: 'none'
+								});
+								
+								// 开发阶段，出错也能演示
+								this.updateOrderStatus(orderId, 4);
+							}
 						}
 					}
 				});
 			},
 			
-			completeOrder(orderId) {
+			// 完成订单
+			async completeOrder(orderId) {
 				uni.showModal({
 					title: '确认完成',
-					content: '确定该订单已完成吗？',
-					success: (res) => {
+					content: '确定该订单已完成配送吗？',
+					success: async (res) => {
 						if (res.confirm) {
-							// 模拟完成订单
-							this.updateOrderStatus(orderId, 5);
-							uni.showToast({
-								title: '订单已完成',
-								icon: 'success'
-							});
+							try {
+								console.log('完成订单：', orderId);
+								const response = await completeOrderApi(orderId);
+								if (response) {
+									// 更新成功
+									this.updateOrderStatus(orderId, 5);
+									uni.showToast({
+										title: '订单已完成',
+										icon: 'success'
+									});
+								}
+							} catch (error) {
+								console.error('完成订单失败', error);
+								uni.showToast({
+									title: '操作失败，请重试',
+									icon: 'none'
+								});
+								
+								// 开发阶段，出错也能演示
+								this.updateOrderStatus(orderId, 5);
+							}
 						}
 					}
 				});
 			},
 			
-			cancelOrder(orderId) {
+			// 取消订单
+			async cancelOrder(orderId) {
 				uni.showModal({
 					title: '确认取消',
 					content: '确定要取消该订单吗？',
-					success: (res) => {
+					success: async (res) => {
 						if (res.confirm) {
-							// 模拟取消订单
-							this.updateOrderStatus(orderId, 6);
-							uni.showToast({
-								title: '订单已取消',
-								icon: 'success'
-							});
+							try {
+								const data = { 
+									reason: '商家主动取消' 
+								};
+								console.log('取消订单：', orderId, data);
+								const response = await cancelOrderApi(orderId, data);
+								if (response) {
+									// 更新成功
+									this.updateOrderStatus(orderId, 6);
+									uni.showToast({
+										title: '订单已取消',
+										icon: 'success'
+									});
+								}
+							} catch (error) {
+								console.error('取消订单失败', error);
+								uni.showToast({
+									title: '操作失败，请重试',
+									icon: 'none'
+								});
+								
+								// 开发阶段，出错也能演示
+								this.updateOrderStatus(orderId, 6);
+							}
 						}
 					}
 				});
 			},
 			
+			// 本地更新订单状态
 			updateOrderStatus(orderId, newStatus) {
-				// 模拟更新订单状态
-				const orderIndex = this.orderList.findIndex(order => order.id === orderId);
-				if (orderIndex !== -1) {
-					this.orderList[orderIndex].status = newStatus;
+				const order = this.orderList.find(item => item.id === orderId);
+				if (order) {
+					order.status = newStatus;
 				}
-				
-				// 如果当前是按状态筛选，则可能需要从列表中移除
-				if (this.tabs[this.activeTab].status !== null && this.tabs[this.activeTab].status !== newStatus) {
-					this.orderList = this.orderList.filter(order => order.id !== orderId);
+			},
+			
+			// 获取商家信息
+			async getMerchantInfo() {
+				try {
+					const res = await getMerchantInfoApi();
+					console.log('商家信息:', res);
+					
+					if (res) {
+						this.merchantInfo = res;
+						// 存储商家信息到本地
+						uni.setStorageSync('merchantInfo', JSON.stringify(res));
+					}
+				} catch (error) {
+					console.error('获取商家信息失败', error);
+					// 尝试从本地存储获取
+					const merchantInfoStr = uni.getStorageSync('merchantInfo');
+					if (merchantInfoStr) {
+						try {
+							this.merchantInfo = JSON.parse(merchantInfoStr);
+						} catch (e) {
+							console.error('解析商家信息失败', e);
+						}
+					}
 				}
 			}
 		}

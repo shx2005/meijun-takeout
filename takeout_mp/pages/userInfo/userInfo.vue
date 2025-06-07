@@ -36,16 +36,63 @@
                 <text class="value">{{ user.merchantId }}</text>
             </view>
         </view>
+        
+        <view class="action-buttons">
+            <button class="edit-btn" @click="showEditPopup">修改信息</button>
+        </view>
+        
+        <!-- 修改信息弹窗 -->
+        <u-popup :show="isEditPopupVisible" mode="center" :round="10" @close="hideEditPopup">
+            <view class="edit-popup">
+                <view class="edit-title">
+                    <text>修改个人信息</text>
+                    <text class="popup-close" @click="hideEditPopup">×</text>
+                </view>
+                <view class="edit-content">
+                    <view class="edit-item">
+                        <text class="edit-label">姓名：</text>
+                        <input class="edit-input" v-model="editForm.name" placeholder="请输入姓名" />
+                    </view>
+                    <view class="edit-item">
+                        <text class="edit-label">性别：</text>
+                        <radio-group class="radio-group" @change="onGenderChange">
+                            <label class="radio-label">
+                                <radio value="男" :checked="editForm.gender === '男'" />
+                                <text>男</text>
+                            </label>
+                            <label class="radio-label">
+                                <radio value="女" :checked="editForm.gender === '女'" />
+                                <text>女</text>
+                            </label>
+                        </radio-group>
+                    </view>
+                    <view class="edit-item">
+                        <text class="edit-label">地址：</text>
+                        <textarea class="edit-textarea" v-model="editForm.address" placeholder="请输入地址"></textarea>
+                    </view>
+                </view>
+                <view class="edit-footer">
+                    <button class="edit-btn cancel-btn" @click="hideEditPopup">取消</button>
+                    <button class="edit-btn submit-btn" @click="updateUserInfo">保存</button>
+                </view>
+            </view>
+        </u-popup>
     </view>
 </template>
 
 <script>
-import { getUserInfoApi } from '../../api/my.js'
+import { getUserInfoApi, updateUserInfoApi } from '../../api/my.js'
 
 export default {
     data() {
         return {
-            user: {}
+            user: {},
+            isEditPopupVisible: false,
+            editForm: {
+                name: '',
+                gender: '',
+                address: ''
+            }
         }
     },
     onShow() {
@@ -158,6 +205,9 @@ export default {
                         this.user = userData
                         // 缓存用户信息
                         uni.setStorageSync('userInfo', this.user)
+                        
+                        // 初始化编辑表单
+                        this.initEditForm()
                     } else {
                         console.error('API获取用户信息失败:', response)
                         // 如果API调用失败，尝试自动登录一次
@@ -174,12 +224,94 @@ export default {
             }
         },
         
+        // 初始化编辑表单数据
+        initEditForm() {
+            this.editForm = {
+                name: this.user.name || '',
+                gender: this.user.gender || '男',
+                address: this.user.address || ''
+            }
+        },
+        
+        // 显示编辑弹窗
+        showEditPopup() {
+            this.initEditForm()
+            this.isEditPopupVisible = true
+        },
+        
+        // 隐藏编辑弹窗
+        hideEditPopup() {
+            this.isEditPopupVisible = false
+        },
+        
+        // 性别选择变更处理
+        onGenderChange(e) {
+            this.editForm.gender = e.detail.value
+        },
+        
+        // 更新用户信息
+        async updateUserInfo() {
+            try {
+                uni.showLoading({
+                    title: '保存中...'
+                })
+                
+                // 准备更新数据
+                const userInfoData = {
+                        name: this.editForm.name,
+                        gender: this.editForm.gender,
+                        address: this.editForm.address
+                };
+                
+                // 使用API工具方法调用更新用户信息接口
+                const response = await updateUserInfoApi(userInfoData);
+                
+                uni.hideLoading()
+                
+                // 处理响应
+                if (response && (response.code === 0 || response.code === 200)) {
+                        uni.showToast({
+                            title: '保存成功',
+                            icon: 'success'
+                        })
+                        
+                        // 更新本地用户信息
+                        this.user.name = this.editForm.name
+                        this.user.gender = this.editForm.gender
+                        this.user.address = this.editForm.address
+                        
+                        // 更新缓存
+                        uni.setStorageSync('userInfo', this.user)
+                        
+                        // 关闭弹窗
+                        this.hideEditPopup()
+                    } else {
+                        uni.showToast({
+                        title: response?.msg || '保存失败',
+                        icon: 'none'
+                    })
+                    console.error('更新用户信息失败:', response)
+                }
+            } catch (error) {
+                uni.hideLoading()
+                uni.showToast({
+                    title: '保存失败，请重试',
+                    icon: 'none'
+                })
+                console.error('更新用户信息异常:', error)
+            }
+        },
+        
         getIdentityText(identity) {
             switch(identity) {
-                case 0: return '管理员'
-                case 1: return '商家'
-                case 2: return '员工'
-                case 3: return '顾客'
+                case 0:
+                case "ADMIN": return '管理员'
+                case 1:
+                case "MERCHANT": return '商家'
+                case 2:
+                case "EMPLOYEE": return '员工'
+                case 3:
+                case "CUSTOMER": return '顾客'
                 default: return '未知'
             }
         },
@@ -231,6 +363,7 @@ export default {
         background: #ffffff;
         border-radius: 12rpx;
         padding: 30rpx;
+        margin-bottom: 20rpx;
         
         .info-item {
             display: flex;
@@ -248,9 +381,110 @@ export default {
             }
             
             .value {
-                flex: 1;
                 color: #333;
                 font-size: 28rpx;
+                flex: 1;
+            }
+        }
+    }
+    
+    .action-buttons {
+        padding: 20rpx 0;
+        
+        .edit-btn {
+            background-color: #1296db;
+            color: #fff;
+            font-size: 28rpx;
+            padding: 20rpx 0;
+            border-radius: 10rpx;
+            width: 100%;
+        }
+    }
+    
+    .edit-popup {
+        width: 600rpx;
+        background-color: #fff;
+        border-radius: 12rpx;
+        overflow: hidden;
+        
+        .edit-title {
+            padding: 30rpx;
+            font-size: 32rpx;
+            color: #333;
+            text-align: center;
+            position: relative;
+            border-bottom: 1rpx solid #f5f5f5;
+            
+            .popup-close {
+                position: absolute;
+                right: 30rpx;
+                top: 30rpx;
+                font-size: 40rpx;
+                color: #999;
+            }
+        }
+        
+        .edit-content {
+            padding: 30rpx;
+            
+            .edit-item {
+                margin-bottom: 30rpx;
+                
+                .edit-label {
+                    display: block;
+                    font-size: 28rpx;
+                    color: #666;
+                    margin-bottom: 10rpx;
+                }
+                
+                .edit-input, .edit-textarea {
+                    width: 100%;
+                    border: 1rpx solid #eee;
+                    border-radius: 8rpx;
+                    padding: 20rpx;
+                    font-size: 28rpx;
+                    color: #333;
+                }
+                
+                .edit-textarea {
+                    height: 160rpx;
+                }
+                
+                .radio-group {
+                    display: flex;
+                    flex-direction: row;
+                    
+                    .radio-label {
+                        margin-right: 30rpx;
+                        font-size: 28rpx;
+                        display: flex;
+                        align-items: center;
+                    }
+                }
+            }
+        }
+        
+        .edit-footer {
+            display: flex;
+            border-top: 1rpx solid #f5f5f5;
+            
+            .edit-btn {
+                flex: 1;
+                border: none;
+                border-radius: 0;
+                font-size: 28rpx;
+                padding: 25rpx 0;
+                text-align: center;
+                
+                &.cancel-btn {
+                    background-color: #f5f5f5;
+                    color: #666;
+                }
+                
+                &.submit-btn {
+                    background-color: #1296db;
+                    color: #fff;
+                }
             }
         }
     }

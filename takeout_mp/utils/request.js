@@ -6,7 +6,7 @@ import ajax from '@/uni_modules/u-ajax'
 // 创建请求实例
 const instance = ajax.create({
   // 初始配置
-  baseURL: process.env.VUE_APP_BASE_URL || 'http://localhost:8080/api/' // 还原/api/前缀
+  baseURL: process.env.VUE_APP_BASE_URL || 'http://localhost:8080/' // 移除重复的/api/前缀
 })
 
 // 创建请求头的辅助函数

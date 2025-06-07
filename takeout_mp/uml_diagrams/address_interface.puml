@@ -1,0 +1,29 @@
+@startuml
+title 地址管理接口关系图
+
+' 前端组件
+component "Address" as Address
+component "AddressEdit" as AddressEdit
+component "AddOrder" as AddOrder
+
+' API接口
+interface "地址接口" as AddressAPI
+
+' 后端服务
+component "地址服务" as AddressService
+database "地址数据库" as AddressDB
+
+' 连接关系
+Address --> AddressAPI : 获取地址列表/删除/设置默认
+AddressEdit --> AddressAPI : 获取地址详情/保存/更新
+AddOrder --> AddressAPI : 获取默认地址
+
+AddressAPI --> AddressService
+AddressService --> AddressDB
+
+' 组件间关系
+Address --> AddressEdit : 添加/编辑地址
+AddOrder --> Address : 选择地址
+
+footer "美俊外卖系统 - 地址管理接口关系图"
+@enduml 

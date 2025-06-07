@@ -1,0 +1,38 @@
+@startuml
+title 支付相关接口关系图
+
+' 前端组件
+component "PayConfirm" as PayConfirm
+component "PaySuccess" as PaySuccess
+component "OrderDetail" as OrderDetail
+component "Index" as Index
+
+' API接口
+interface "支付接口" as PaymentAPI
+interface "订单接口" as OrderAPI
+
+' 后端服务
+component "支付服务" as PaymentService
+component "订单服务" as OrderService
+
+database "支付数据库" as PaymentDB
+database "订单数据库" as OrderDB
+
+' 连接关系
+PayConfirm --> PaymentAPI : 创建支付
+PaySuccess --> PaymentAPI : 获取支付状态
+OrderDetail --> PaymentAPI : 发起支付请求
+PaySuccess --> OrderAPI : 查询订单状态
+
+PaymentAPI --> PaymentService
+OrderAPI --> OrderService
+
+PaymentService --> PaymentDB
+OrderService --> OrderDB
+
+' 组件间关系
+OrderDetail --> PayConfirm : 支付订单
+PayConfirm --> PaySuccess : 支付成功
+
+footer "美俊外卖系统 - 支付相关接口关系图"
+@enduml 

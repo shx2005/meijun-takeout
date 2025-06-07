@@ -1,0 +1,58 @@
+@startuml 美俊外卖系统顶层包图
+
+!theme plain
+skinparam backgroundColor white
+skinparam packageStyle rectangle
+skinparam componentStyle uml2
+
+package "美俊外卖系统" {
+  package "前端包 (CSCI-2)" {
+    component "用户界面层" {
+      [页面组件]
+      [导航组件]
+      [表单组件]
+    }
+    component "业务逻辑层" {
+      [数据处理]
+      [业务规则]
+    }
+    component "API接口层" {
+      [HTTP请求封装]
+      [数据格式转换]
+    }
+  }
+  
+  package "后端包 (CSCI-1)" {
+    component "控制器层" {
+      [用户控制器]
+      [菜品控制器]
+      [订单控制器]
+    }
+    component "服务层" {
+      [用户服务]
+      [菜品服务]
+      [订单服务]
+      [支付服务]
+    }
+    component "数据访问层" {
+      [数据库访问]
+      [缓存访问]
+    }
+    component "数据库" {
+      [用户数据]
+      [菜品数据]
+      [订单数据]
+    }
+  }
+  
+  [用户界面层] --> [业务逻辑层]
+  [业务逻辑层] --> [API接口层]
+  [API接口层] --> [控制器层]
+  [控制器层] --> [服务层]
+  [服务层] --> [数据访问层]
+  [数据访问层] --> [数据库]
+}
+
+footer "美俊外卖系统 - 系统顶层包图"
+
+@enduml 

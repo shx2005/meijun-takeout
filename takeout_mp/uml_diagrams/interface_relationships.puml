@@ -1,0 +1,88 @@
+@startuml 美俊外卖系统接口关系图
+
+!theme plain
+skinparam backgroundColor white
+skinparam packageStyle rectangle
+skinparam componentStyle uml2
+skinparam interfaceBorderColor black
+skinparam componentBorderColor black
+skinparam arrowColor black
+
+' 前端UI组件
+package "前端UI组件" {
+  component [Login]
+  component [Register]
+  component [Index]
+  component [DishDetail]
+  component [My]
+  component [UserInfo]
+  component [Setting]
+  component [Cart]
+  component [AddOrder]
+  component [OrderList]
+  component [OrderDetail]
+  component [OrderEvaluate]
+  component [Address]
+  component [AddressEdit]
+}
+
+' API接口
+package "API接口" {
+  interface "认证接口" as AuthAPI
+  interface "菜品接口" as DishAPI
+  interface "购物车接口" as CartAPI
+  interface "订单接口" as OrderAPI
+  interface "地址接口" as AddressAPI
+}
+
+' 后端服务
+package "后端服务" {
+  component "用户认证处理" as AuthService
+  component "用户信息管理" as UserInfoService
+  component "菜品分类管理" as CategoryService
+  component "菜品信息管理" as DishService
+  component "购物车管理" as CartService
+  component "订单管理" as OrderService
+  component "订单状态处理" as OrderStatusService
+  component "地址管理" as AddressService
+}
+
+' 连接前端组件和API接口
+Login --> AuthAPI
+Register --> AuthAPI
+My --> AuthAPI
+UserInfo --> AuthAPI
+
+Index --> DishAPI
+DishDetail --> DishAPI
+
+Index --> CartAPI
+Cart --> CartAPI
+DishDetail --> CartAPI
+
+AddOrder --> OrderAPI
+OrderList --> OrderAPI
+OrderDetail --> OrderAPI
+OrderEvaluate --> OrderAPI
+
+Address --> AddressAPI
+AddressEdit --> AddressAPI
+AddOrder --> AddressAPI
+
+' 连接API接口和后端服务
+AuthAPI --> AuthService
+AuthAPI --> UserInfoService
+
+DishAPI --> CategoryService
+DishAPI --> DishService
+
+CartAPI --> CartService
+
+OrderAPI --> OrderService
+OrderAPI --> OrderStatusService
+
+AddressAPI --> AddressService
+
+footer "美俊外卖系统 - 接口关系图"
+
+@enduml 
