@@ -334,62 +334,59 @@
 					// 显示加载状态
 					uni.showLoading({ title: '加载中...' });
 					
-					// 优先从本地存储获取购物车数据
-					const cartItemsStr = uni.getStorageSync('cartItems');
-					if (cartItemsStr) {
-						const cartItems = JSON.parse(cartItemsStr);
-						console.log('从本地存储加载购物车数据:', cartItems);
-						
-						// 映射购物车数据到所需格式
-						this.cartData = cartItems.map(item => ({
-							id: item.id,
-							name: item.name || '菜品',
-							image: item.image || '/static/images/default-food.png',
-							number: item.number || item.quantity || 1,
-							amount: item.price || 0
-						}));
-						
+					// 检查登录状态
+					const token = uni.getStorageSync('token');
+					if (!token) {
 						uni.hideLoading();
+						uni.showToast({
+							title: '请先登录',
+							icon: 'none'
+						});
+						setTimeout(() => {
+							uni.navigateTo({
+								url: '/pages/my/my'
+							});
+						}, 1500);
 						return;
 					}
 					
-					// 如果本地没有数据，再尝试从服务器获取
-					const token = uni.getStorageSync('token');
-					if (token) {
-						try {
-							const res = await uni.request({
-								url: 'http://localhost:8080/api/v1/cart',
-								method: 'GET',
-								header: {
-									'customerToken': token,
-									'userType': '3',
-									'Content-Type': 'application/json'
-								}
-							});
-							
-							console.log('服务器购物车数据响应:', res);
-							
-							// 检查响应是否成功且有数据
-							if (res && res[1].statusCode === 200 && res[1].data && res[1].data.data) {
-								const cartData = res[1].data.data;
-								if (cartData.items && cartData.items.length > 0) {
-									// 使用服务器返回的购物车数据
-									this.cartData = cartData.items.map(item => ({
-										id: item.itemId || item.id,
-										name: item.name || '菜品',
-										image: item.image || '/static/images/default-food.png',
-										number: item.quantity || 1,
-										amount: item.unitPrice || 0
-									}));
-									
-									console.log('从服务器获取的购物车数据:', this.cartData);
-									uni.hideLoading();
-									return;
-								}
-							}
-						} catch (error) {
-							console.error('获取服务器购物车数据失败:', error);
+					// 从服务器获取购物车数据
+					const res = await uni.request({
+						url: 'http://localhost:8080/api/v1/cart',
+						method: 'GET',
+						header: {
+							'customerToken': token,
+							'userType': '3',
+							'Content-Type': 'application/json'
 						}
+					});
+					
+					console.log('服务器购物车数据响应:', res);
+					
+					// 检查响应是否成功且有数据
+					const response = res[1];
+					if (response && response.statusCode === 200 && response.data) {
+						const result = response.data;
+						
+						if (result.code === 200 && result.data && result.data.items && result.data.items.length > 0) {
+							// 使用服务器返回的购物车数据
+							this.cartData = result.data.items.map(item => ({
+								id: item.itemId || item.id,
+								name: item.name || '菜品',
+								image: item.image || '/static/images/default-food.png',
+								number: item.quantity || 1,
+								amount: item.price || 0
+							}));
+							
+							console.log('从服务器获取的购物车数据:', this.cartData);
+						} else {
+							// 购物车为空
+							this.cartData = [];
+						}
+					} else {
+						// 获取失败
+						console.error('获取购物车数据失败:', response);
+						this.cartData = [];
 					}
 					
 					// 隐藏加载状态
@@ -412,24 +409,33 @@
 				} catch (error) {
 					console.error('获取购物车数据失败:', error);
 					uni.hideLoading();
-					uni.$showMsg('获取购物车失败，请重试');
+					uni.showToast({
+						title: '获取购物车失败，请重试',
+						icon: 'none'
+					});
 					this.cartData = [];
 				}
 			},
 			async goToPaySuccess() {
 				if (!this.address) {
-					uni.$showMsg('请选择收货地址');
+					uni.showToast({
+						title: '请选择收货地址',
+						icon: 'none'
+					});
 					return;
 				}
 				
 				if (!this.cartData || this.cartData.length === 0) {
-					// 如果本地购物车为空，再次尝试获取购物车数据
+					// 如果购物车为空，再次尝试获取购物车数据
 					await this.getCartData();
 					
 					// 再次检查购物车是否为空
 					if (!this.cartData || this.cartData.length === 0) {
-					uni.$showMsg('购物车为空，请先添加商品');
-					return;
+						uni.showToast({
+							title: '购物车为空，请先添加商品',
+							icon: 'none'
+						});
+						return;
 					}
 				}
 				
@@ -440,52 +446,28 @@
 					// 获取token
 					const token = uni.getStorageSync('token');
 					if (!token) {
-						uni.$showMsg('请先登录');
+						uni.showToast({
+							title: '请先登录',
+							icon: 'none'
+						});
 						this.loading = false;
 						return;
 					}
 					
-					// 1. 首先提交购物车数据到后端
-					console.log('提交本地购物车数据到后端...');
+					// 计算总价
+					const totalPrice = this.cartData.reduce((sum, item) => {
+						return sum + (item.number * item.amount);
+					}, 0);
 					
-					// 将购物车数据转换为后端需要的格式并按照数量分别提交
-					for (const item of this.cartData) {
-						// 每个商品按其数量多次调用API，确保数量正确
-						for (let i = 0; i < item.number; i++) {
-							try {
-								await uni.request({
-									url: 'http://localhost:8080/api/v1/cart/add',
-									method: 'POST',
-									header: {
-										'customerToken': token,
-										'Accept': 'application/json',
-										'userType': '3',
-										'Content-Type': 'application/json'
-									},
-									data: {
-										itemId: item.id,
-										quantity: 1  // 每次只添加一份
-									}
-								});
-								console.log(`添加商品${item.name}到购物车，第${i+1}/${item.number}次`);
-							} catch (err) {
-								console.error('添加购物车项失败:', err);
-								// 继续处理下一个
-							}
-						}
-					}
-					
-					// 2. 准备订单数据
+					// 准备订单数据 - 使用用户指定的简化参数格式
 					const orderData = {
-						address: this.address.detail,
-						phone: this.address.phone,
-						customerName: this.address.consignee,
-						remark: this.note
+						userId: 1,
+						total: totalPrice
 					};
 					
 					console.log('准备提交订单:', orderData);
 					
-					// 3. 提交订单
+					// 提交订单
 					const response = await uni.request({
 						url: 'http://localhost:8080/api/v1/orders/submit',
 						method: 'POST',
@@ -501,33 +483,33 @@
 					console.log('订单提交响应:', response);
 					
 					// 检查响应状态
-					if (response && response[1].statusCode === 200) {
-						const res = response[1].data;
+					const res = response[1];
+					if (res && res.statusCode === 200) {
+						const result = res.data;
 					
-						if (res && (res.code === 0 || res.code === 1 || res.code === 200 || res.success)) {
-							// 4. 订单提交成功后，清空购物车
-						// 清空本地购物车
-						uni.removeStorageSync('cartItems');
-							this.cartData = [];
+						if (result && (result.code === 0 || result.code === 200 || result.success)) {
+							// 订单提交成功
+							const orderId = result.data?.id || result.id || '';
+							const orderNumber = result.data?.orderNumber || '';
 							
-							// 循环调用API删除购物车中的所有商品
-							await this.clearCartInServer(token);
+							// 跳转到支付确认页面，传递订单信息
+							const orderInfo = {
+								orderId: orderId,
+								orderNumber: orderNumber,
+								total: totalPrice
+							};
 							
-							// 获取订单ID
-							const orderId = res.id || res.data?.id || '';
-						
-						// 跳转到支付成功页面
-						uni.navigateTo({
-								url: '/pages/payConfirm/payConfirm?orderId=' + orderId
-						});
-						
-						uni.showToast({
-							title: '订单提交成功',
-							icon: 'success'
-						});
-					} else {
-						uni.showToast({
-							title: res?.msg || '订单提交失败',
+							uni.navigateTo({
+								url: '/pages/payConfirm/payConfirm?orderInfo=' + encodeURIComponent(JSON.stringify(orderInfo))
+							});
+							
+							uni.showToast({
+								title: '订单提交成功',
+								icon: 'success'
+							});
+						} else {
+							uni.showToast({
+								title: result?.msg || '订单提交失败',
 								icon: 'none'
 							});
 						}
@@ -539,7 +521,10 @@
 					}
 				} catch (error) {
 					console.error('提交订单失败', error);
-					uni.$showMsg('提交订单失败，请重试');
+					uni.showToast({
+						title: '提交订单失败，请重试',
+						icon: 'none'
+					});
 				} finally {
 					this.loading = false;
 				}
