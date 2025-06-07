@@ -19,4 +19,7 @@ public class MessageConstant {
     public static final String DISH_NOT_FOUND = "菜品不存在";
     public static final String CART_ITEM_NAME_NULL = "菜品名称为空";
     public static final String CART_ITEM_PRICE_NULL = "菜品价格为空";
+    public static final String LOGIN_FAILED = "登陆失败";
+    public static final String INSUFFICIENT_BALANCE = "余额不足";
+    public static final String UNKONWN_PAYMETHOD = "不支持的支付方式";
 }

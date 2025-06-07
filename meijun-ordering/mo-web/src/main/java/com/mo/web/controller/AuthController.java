@@ -1,9 +1,13 @@
 package com.mo.web.controller;
 
+import com.google.code.kaptcha.impl.DefaultKaptcha;
 import com.mo.api.dto.AuthLoginDTO;
 import com.mo.api.dto.AuthRegisterDTO;
+import com.mo.api.dto.MpLoginDTO;
 import com.mo.api.service.RedisService;
 import com.mo.api.vo.AuthLoginVo;
+import com.mo.api.vo.KaptchaVO;
+import com.mo.common.constant.CaptchaConstant;
 import com.mo.common.constant.JwtClaimsConstant;
 import com.mo.common.constant.MessageConstant;
 import com.mo.common.constant.RedisKeyConstant;
@@ -23,19 +27,24 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import com.mo.api.service.AuthService;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -49,6 +58,8 @@ public class AuthController {
     private JwtProperties jwtProperties;
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private DefaultKaptcha defaultKaptcha;
 
     @Operation(summary = "登录")
     @Parameters({
@@ -95,22 +106,10 @@ public class AuthController {
             @Parameter(name = "loginData", description = "登录参数", required = true, schema = @Schema(implementation = Map.class))
     })
     @PostMapping("/mp/login")
-    public Result<AuthLoginVo> mpLogin(@RequestBody Map<String, String> loginData) {
-        log.info("微信小程序登录: {}", loginData);
+    public Result<AuthLoginVo> mpLogin(@RequestBody MpLoginDTO dto) {
+        log.info("微信小程序登录: {}", dto);
         
-        // 获取微信小程序传来的code等信息
-        String code = loginData.get("code");
-        String encryptedData = loginData.get("encryptedData");
-        String getPhoneCode = loginData.get("getPhoneCode");
-        
-        // 这里应该调用微信API获取openid等信息
-        // 为了演示，我们直接构造一个模拟用户
-        User user = new User();
-        user.setId(1L); // 假设用户ID为1
-        user.setUsername("微信用户");
-        user.setName("微信用户");
-        user.setUuid(java.util.UUID.randomUUID().toString());
-        user.setIdentity(UserIdentity.CUSTOMER);
+        User user = authService.mpLogin(dto);
         
         Map<String, Object> claims = new HashMap<>();
         String id = JwtClaimsConstant.getId(user.getIdentity());
@@ -192,6 +191,53 @@ public class AuthController {
         redisService.setEntity(uuid, user);
 
         return Result.success(token);
+    }
+
+    @GetMapping("/base64-captcha")
+    public Result<KaptchaVO> getCaptcha() {
+        String text = defaultKaptcha.createText();
+        BufferedImage image = defaultKaptcha.createImage(text);
+
+        String base64;
+        try(ByteArrayOutputStream baos = new ByteArrayOutputStream()){
+            ImageIO.write(image, "jpg", baos);
+            base64 = Base64.getEncoder().encodeToString(baos.toByteArray());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        base64 = "data:image/jpeg;base64," + base64;
+
+        String uuid = UUID.randomUUID().toString();
+        redisService.hSet(RedisKeyConstant.KAPTCHA, uuid, base64, CaptchaConstant.CAPTCHA_EXPIRE_TIME);
+
+        KaptchaVO kaptchaVO = KaptchaVO.builder()
+                .uuid(uuid)
+                .code(base64)
+                .build();
+
+        return Result.success(kaptchaVO);
+    }
+
+    @GetMapping("/stream-captcha")
+    public void getCaptcha(HttpServletResponse response, HttpServletRequest request) {
+        String text = defaultKaptcha.createText();
+        BufferedImage image = defaultKaptcha.createImage(text);
+        String uuid = UUID.randomUUID().toString();
+        redisService.hSet(RedisKeyConstant.KAPTCHA, uuid, text, CaptchaConstant.CAPTCHA_EXPIRE_TIME);
+
+        try {
+            ServletOutputStream out = response.getOutputStream();
+            ImageIO.write(image, "jpg", out);
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        response.setHeader(CaptchaConstant.CAPTCHA_UUID, uuid);
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("Cache-Control", "no-store, no-cache");
+        response.setContentType("image/jpeg");
     }
 
     private String getKey(UserIdentity userIdentity){

@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Slf4j
@@ -32,7 +33,15 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public List<CartItem> getCart(Long userId){
-        return cartItemMapper.getItemsByUserId(userId);
+        List<CartItem> list = cartItemMapper.getItemsByUserId(userId);
+        list.forEach(item -> {
+            int quantity = item.getQuantity();
+            BigDecimal price = item.getPrice();
+            BigDecimal total = price.multiply(new BigDecimal(quantity));
+            item.setTotal(total);
+        });
+
+        return list;
     }
 
     @Override
@@ -66,7 +75,11 @@ public class CartServiceImpl implements CartService {
         CartItem cartItem1 = cartItemMapper.getItemByUserIdAndItemId(userId, itemId, itemType);
 
         if(cartItem1 != null){
-            cartItem1.setQuantity(cartItem1.getQuantity() + cartItem.getQuantity());
+            int quantity = cartItem1.getQuantity() + cartItem.getQuantity();
+            BigDecimal price = cartItem1.getPrice();
+            cartItem1.setQuantity(quantity);
+            BigDecimal total = price.multiply(new BigDecimal(quantity));
+            cartItem1.setTotal(total);
 
             cartItemMapper.updateCartItem(cartItem1);
         } else {

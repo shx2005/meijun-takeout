@@ -13,7 +13,7 @@
     </select>
 
     <insert id="saveCoupon" parameterType="com.mo.entity.Coupon" useGeneratedKeys="true" keyProperty="id">
-        insert into coupons(user_id,name,description,type,value,start_time,end_time,create_time,update_time)
+        insert into coupons(user_id,name,description,type,value,start_time,end_time,createTime,updateTime)
         values (#{userId}, #{name}, #{description}, #{type}, #{value}, #{startTime}, #{endTime}, #{createTime}, #{updateTime})
     </insert>
 
@@ -22,31 +22,34 @@
     </delete>
 
     <update id="updateCoupon" parameterType="com.mo.entity.Coupon">
-        update coupons set
-        <if test="coupon.userId != null">
-            user_id = #{userId}
-        </if>
-        <if test="coupon.name != null">
-            name = #{name}
-        </if>
-        <if test="coupon.description != null">
-            description = #{description}
-        </if>
-        <if test="coupon.type != null">
-            type = #{type}
-        </if>
-        <if test="coupon.value != null">
-            value = #{value}
-        </if>
-        <if test="coupon.startTime != null">
-            start_time = #{startTime}
-        </if>
-        <if test="coupon.endTime != null">
-            end_time = #{endTime}
-        </if>
-        <if test="coupon.updateTime != null">
-            update_time = #{updateTime}
-        </if>
+        update coupons
+        <set>
+            <if test="coupon.userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="coupon.name != null">
+                `name` = #{name},
+            </if>
+            <if test="coupon.description != null">
+                `description` = #{description},
+            </if>
+            <if test="coupon.type != null">
+                `type` = #{type},
+            </if>
+            <if test="coupon.value != null">
+                `value` = #{value},
+            </if>
+            <if test="coupon.startTime != null">
+                start_time = #{startTime},
+            </if>
+            <if test="coupon.endTime != null">
+                end_time = #{endTime},
+            </if>
+            <if test="coupon.updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+
         where id = #{id}
     </update>
 </mapper>

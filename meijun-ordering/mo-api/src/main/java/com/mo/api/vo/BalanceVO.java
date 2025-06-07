@@ -1,6 +1,6 @@
 package com.mo.api.vo;
 
-import com.mo.common.constant.PayMethod;
+import com.mo.common.enumeration.PayMethod;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;

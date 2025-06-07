@@ -8,15 +8,17 @@
 
     <update id="updateStore" parameterType="com.mo.entity.Store">
         update stores
-        <if test="store.name != null">
-            set name = #{store.name}
-        </if>
-        <if test="store.address != null">
-            set address = #{store.address}
-        </if>
-        <if test="store.info != null">
-            set info = #{store.info}
-        </if>
+        <set>
+            <if test="store.name != null">
+                name = #{store.name},
+            </if>
+            <if test="store.address != null">
+                address = #{store.address},
+            </if>
+            <if test="store.info != null">
+                info = #{store.info},
+            </if>
+        </set>
         where id = #{store.id}
     </update>
 </mapper>

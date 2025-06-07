@@ -14,6 +14,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,8 +64,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @AutoFillTime
-    public void updateOrderStatus(Long orderId, Integer status){
-        orderMapper.updateOrderStatus(orderId,status);
+    public void updateOrder(Order order){
+        orderMapper.updateOrder(order);
     }
 
     @Override
@@ -86,6 +87,17 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.pending);
         order.setPayStatus(OrderPayStaus.unpaid);
         order.setOrderNumber(String.valueOf(System.currentTimeMillis()));
+        BigDecimal total = cartItems.stream()
+                        .map(item -> {
+                            BigDecimal price = item.getPrice();
+                            int quantity = item.getQuantity();
+                            BigDecimal tot = price.multiply(new BigDecimal(quantity));
+                            item.setTotal(tot);
+                            return tot;
+                        })
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        order.setTotal(total);
 
         orderMapper.saveOrder(order);
 

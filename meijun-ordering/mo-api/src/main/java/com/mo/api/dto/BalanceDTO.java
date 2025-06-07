@@ -1,6 +1,6 @@
 package com.mo.api.dto;
 
-import com.mo.common.constant.PayMethod;
+import com.mo.common.enumeration.PayMethod;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +22,6 @@ public class BalanceDTO implements Serializable {
 
     private Long orderId;
     private Long customerId;
-    private Integer payMethod;
+    private PayMethod method;
     private BigDecimal amount;
 }

@@ -19,7 +19,6 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = MoWebApplication.class)
-@Sql({"/sql/insert-test-merchant.sql", "/sql/insert-test-dish.sql", "/sql/insert-test-customer.sql"})
 public class OrderControllerTest {
     @Autowired
     OrderController orderController;

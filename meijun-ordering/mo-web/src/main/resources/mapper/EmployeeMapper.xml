@@ -30,12 +30,12 @@
 
     <update id="updateEmployee" parameterType="com.mo.entity.Employee">
         update employees
-        set
+        <set>
             <if test="employee.username ！= null and employee.username != ''">
                 username = #{employee.username}
             </if>
             <if test="employee.password != null and employee.password != ''">
-                password = #{employee.password},
+                `password` = #{employee.password},
             </if>
             <if test="employee.updateTime != null">
                 updateTime = #{employee.updateTime},
@@ -43,6 +43,7 @@
             <if test="employee.merchant_id != null">
                 merchant_id = #{employee.merchant_id},
             </if>
+        </set>
         where id = #{employee.id}
     </update>
 
