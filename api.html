@@ -1,0 +1,3403 @@
+<!DOCTYPE html><html><head>
+      <title>api</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///d:\Zzzfan\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.18\crossnote\dependencies\katex\katex.min.css">
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script></head><body for="html-export">
+    
+    
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="注意">注意 </h1>
+<p>如果数据在body中，使用DTO进行封装, 使用@RequestBody<br>
+如果是PathVariable,  使用@PathVariable<br>
+controller层返回Result&lt;T&gt;(Result已经封装好了)</p>
+<hr>
+<p>前端请求头记得带上<code>userType</code>的header(方便起见用0-3，分别是admin,merchant,employee,customer).<br>
+还有<code>tokenName</code>的header，这是登录时返回的token，用于后续请求。(开发时如果嫌太麻烦的话，可以把注册的interceptor删掉)(tokenName根据用户类型获取，配置文件里有)<br>
+java数据类型和json有区别，这里用的java数据类型<br>
+很多情况下body并不需要携带userId，因为登陆后id会存在缓存里。(userId可以是admin,employee,customer,merchant，视情况而定)</p>
+<h3 id="余额支付接口">余额支付接口 </h3>
+<ol>
+<li><strong>确认支付</strong><br>
+接口<br>
+<strong>post</strong> /api/v1/payment/balance</li>
+</ol>
+<p>request</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"orderId"</span> <span class="token operator">:</span> <span class="token string">"orderId"</span><span class="token punctuation">,</span>
+  <span class="token property">"amount"</span> <span class="token operator">:</span> <span class="token string">"amount"</span><span class="token punctuation">,</span>
+  <span class="token property">"payType"</span> <span class="token operator">:</span> <span class="token string">"payType"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>orderId</td>
+<td>Long</td>
+<td>订单id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>BigDecimal</td>
+<td>订单金额</td>
+<td>否</td>
+</tr>
+<tr>
+<td>payType</td>
+<td>String</td>
+<td>支付方式（用enum也可以）</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span> <span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span> <span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span> <span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"balance"</span> <span class="token operator">:</span> <span class="token string">"balance"</span><span class="token punctuation">,</span>
+    <span class="token property">"orderId"</span> <span class="token operator">:</span> <span class="token string">"orderId"</span><span class="token punctuation">,</span>
+    <span class="token property">"payType"</span> <span class="token operator">:</span> <span class="token string">"payType"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>code</td>
+<td>Integer</td>
+<td>状态码</td>
+<td>否</td>
+</tr>
+<tr>
+<td>message</td>
+<td>String</td>
+<td>状态信息</td>
+<td>否</td>
+</tr>
+<tr>
+<td>orderId</td>
+<td>Long</td>
+<td>订单id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>balance</td>
+<td>String</td>
+<td>用户余额</td>
+<td>否</td>
+</tr>
+<tr>
+<td>payType</td>
+<td>String</td>
+<td>支付方式（用enum也可以）</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>code和message在Result中存在，这里就不再赘述，后续从略</p>
+<ol start="2">
+<li><strong>显示余额</strong><br>
+接口<br>
+<strong>get</strong> /api/v1/user/balance<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code></code></pre><p>注：默认已经登陆不需要额外信息,当然,可以带上userId<br>
+response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span> <span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span> <span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span> <span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"balance"</span> <span class="token operator">:</span> <span class="token string">"balance"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>balance</td>
+<td>BigDecimal</td>
+<td>用户余额</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="优惠券核销接口">优惠券核销接口 </h3>
+<ol>
+<li><strong>优惠券校验</strong><br>
+post /api/v1/coupons/validate<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"couponId"</span><span class="token operator">:</span> <span class="token string">"couponId"</span><span class="token punctuation">,</span>
+  <span class="token property">"orderId"</span><span class="token operator">:</span> <span class="token string">"orderId"</span><span class="token punctuation">,</span>
+  <span class="token property">"amount"</span><span class="token operator">:</span> <span class="token string">"amount"</span><span class="token punctuation">,</span>
+  <span class="token property">"payType"</span><span class="token operator">:</span> <span class="token string">"payType"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>couponId</td>
+<td>Long</td>
+<td>优惠券id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>orderId</td>
+<td>Long</td>
+<td>订单id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>BigDecimal</td>
+<td>订单金额</td>
+<td>否</td>
+</tr>
+<tr>
+<td>payType</td>
+<td>String</td>
+<td>支付方式（用enum也可以）</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span> <span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span> <span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span> <span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"amount"</span> <span class="token operator">:</span> <span class="token string">"amount"</span><span class="token punctuation">,</span>
+    <span class="token property">"orderId"</span> <span class="token operator">:</span> <span class="token string">"orderId"</span><span class="token punctuation">,</span>
+    <span class="token property">"payType"</span> <span class="token operator">:</span> <span class="token string">"payType"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>amount</td>
+<td>BigDecimal</td>
+<td>订单金额</td>
+<td>否</td>
+</tr>
+<tr>
+<td>orderId</td>
+<td>Long</td>
+<td>订单id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>payType</td>
+<td>String</td>
+<td>支付方式（用enum也可以）</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="2">
+<li><strong>满减计算接口</strong><br>
+post /api/v1/coupons/calculate<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"couponId"</span><span class="token operator">:</span> <span class="token string">"couponId"</span><span class="token punctuation">,</span>
+  <span class="token property">"orderId"</span><span class="token operator">:</span> <span class="token string">"orderId"</span><span class="token punctuation">,</span>
+  <span class="token property">"amount"</span><span class="token operator">:</span> <span class="token string">"amount"</span><span class="token punctuation">,</span>
+  <span class="token property">"payType"</span><span class="token operator">:</span> <span class="token string">"payType"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>couponId</td>
+<td>Long</td>
+<td>优惠券id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>orderId</td>
+<td>Long</td>
+<td>订单id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>BigDecimal</td>
+<td>订单金额</td>
+<td>否</td>
+</tr>
+<tr>
+<td>payType</td>
+<td>String</td>
+<td>支付方式（用enum也可以）</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span> <span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span> <span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span> <span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"amount"</span> <span class="token operator">:</span> <span class="token string">"amount"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>amount</td>
+<td>BigDecimal</td>
+<td>订单金额</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="支付异常处理接口">支付异常处理接口 </h3>
+<ol>
+<li><strong>支付异常处理</strong><br>
+post api/v1/payment/error<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"orderId"</span> <span class="token operator">:</span> <span class="token string">"orderId"</span><span class="token punctuation">,</span>
+  <span class="token property">"userId"</span> <span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"payType"</span> <span class="token operator">:</span> <span class="token string">"payType"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>orderId</td>
+<td>Long</td>
+<td>订单id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>payType</td>
+<td>String</td>
+<td>支付方式（用enum也可以）</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"retryToken"</span><span class="token operator">:</span> <span class="token string">"token"</span><span class="token punctuation">,</span>
+    <span class="token property">"redirectUrl"</span><span class="token operator">:</span> <span class="token string">"url"</span><span class="token punctuation">,</span>
+    <span class="token property">"orderId"</span><span class="token operator">:</span> <span class="token string">"orderId"</span><span class="token punctuation">,</span>
+    <span class="token property">"payType"</span><span class="token operator">:</span> <span class="token string">"payType"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>retryToken</td>
+<td>String</td>
+<td>重试token</td>
+<td>否</td>
+</tr>
+<tr>
+<td>redirectUrl</td>
+<td>String</td>
+<td>重试url</td>
+<td>否</td>
+</tr>
+<tr>
+<td>orderId</td>
+<td>Long</td>
+<td>订单id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>payType</td>
+<td>String</td>
+<td>支付方式（用enum也可以）</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="客服沟通接口用户端">客服沟通接口(用户端) </h3>
+<ol>
+<li><strong>发送信息</strong><br>
+post /api/v1/support/customer/messages<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"employeeId"</span><span class="token operator">:</span> <span class="token string">"employeeId"</span><span class="token punctuation">,</span>
+  <span class="token property">"content"</span><span class="token operator">:</span> <span class="token string">"content"</span><span class="token punctuation">,</span>
+  <span class="token property">"orderId"</span><span class="token operator">:</span> <span class="token string">"orderId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>employeeId</td>
+<td>Long</td>
+<td>员工id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>content</td>
+<td>String</td>
+<td>发送地信息</td>
+<td>否</td>
+</tr>
+<tr>
+<td>orderId</td>
+<td>Long</td>
+<td>订单id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"messageId"</span><span class="token operator">:</span> <span class="token string">"messageId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><ol start="2">
+<li><strong>获取客服信息</strong><br>
+get /api/v1/support/customer/info<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"employeeId"</span><span class="token operator">:</span> <span class="token string">"employeeId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>employeeId</td>
+<td>Long</td>
+<td>员工id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"employeeId"</span><span class="token operator">:</span> <span class="token string">"employeeId"</span><span class="token punctuation">,</span>
+    <span class="token property">"employeeName"</span><span class="token operator">:</span> <span class="token string">"employeeName"</span><span class="token punctuation">,</span>
+    <span class="token property">"employeeAvatar"</span><span class="token operator">:</span> <span class="token string">"employeeAvatar"</span><span class="token punctuation">,</span>
+    <span class="token property">"employeePhone"</span><span class="token operator">:</span> <span class="token string">"employeePhone"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>employeeId</td>
+<td>Long</td>
+<td>员工id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>employeeName</td>
+<td>String</td>
+<td>员工名称</td>
+<td>否</td>
+</tr>
+<tr>
+<td>employeeAvatar</td>
+<td>String</td>
+<td>员工头像</td>
+<td>否</td>
+</tr>
+<tr>
+<td>employeePhone</td>
+<td>String</td>
+<td>员工电话</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="3">
+<li><strong>撤回信息</strong><br>
+delete /api/v1/support/customer/messages/{messageId}<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>messageId</td>
+<td>Long</td>
+<td>信息id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"messageId"</span><span class="token operator">:</span> <span class="token string">"messageId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>messageId</td>
+<td>Long</td>
+<td>信息id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="操作售后请求">操作售后请求 </h3>
+<p>post /api/v1/after-sale/{requestId}/actions<br>
+request</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"action"</span><span class="token operator">:</span> <span class="token string">"action"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>action</td>
+<td>String</td>
+<td>操作</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"requestId"</span><span class="token operator">:</span> <span class="token string">"requestId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="凭证上传接口">凭证上传接口 </h3>
+<p>post /api/v1/after-sale/{requestId}/upload<br>
+request</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"content"</span><span class="token operator">:</span> <span class="token string">"content"</span><span class="token punctuation">,</span>
+  <span class="token property">"file"</span><span class="token operator">:</span> <span class="token string">"file"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>content</td>
+<td>String</td>
+<td>凭证描述</td>
+<td>否</td>
+</tr>
+<tr>
+<td>file</td>
+<td>MultipartFile</td>
+<td>文件</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"requestId"</span><span class="token operator">:</span> <span class="token string">"requestId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="获取售后进度">获取售后进度 </h3>
+<p>get /api/v1/after-sale/{requestId}/status<br>
+request</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"requestId"</span><span class="token operator">:</span> <span class="token string">"requestId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="获取售后反馈">获取售后反馈 </h3>
+<p>get /api/v1/after-sale/{requestId}/feedback<br>
+request</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>售后请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"requestId"</span><span class="token operator">:</span> <span class="token string">"requestId"</span><span class="token punctuation">,</span>
+    <span class="token property">"feedback"</span><span class="token operator">:</span> <span class="token string">"feedback"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>售后请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>feedback</td>
+<td>String</td>
+<td>反馈</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="客服沟通接口客服端">客服沟通接口(客服端) </h3>
+<ol>
+<li><strong>发送信息</strong><br>
+post /api/v1/support/employee/messages<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"employeeId"</span><span class="token operator">:</span> <span class="token string">"employeeId"</span><span class="token punctuation">,</span>
+  <span class="token property">"content"</span><span class="token operator">:</span> <span class="token string">"content"</span><span class="token punctuation">,</span>
+  <span class="token property">"orderId"</span><span class="token operator">:</span> <span class="token string">"orderId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>employeeId</td>
+<td>Long</td>
+<td>员工id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>content</td>
+<td>String</td>
+<td>发送地信息</td>
+<td>否</td>
+</tr>
+<tr>
+<td>orderId</td>
+<td>Long</td>
+<td>订单id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"messageId"</span><span class="token operator">:</span> <span class="token string">"messageId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>messageId</td>
+<td>Long</td>
+<td>信息id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="2">
+<li><strong>获取顾客信息</strong><br>
+get /api/v1/support/employee/info<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span><span class="token punctuation">,</span>
+    <span class="token property">"customerName"</span><span class="token operator">:</span> <span class="token string">"customerName"</span><span class="token punctuation">,</span>
+    <span class="token property">"customerAvatar"</span><span class="token operator">:</span> <span class="token string">"customerAvatar"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>customerName</td>
+<td>String</td>
+<td>客户名称</td>
+<td>否</td>
+</tr>
+<tr>
+<td>customerAvatar</td>
+<td>String</td>
+<td>客户头像</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="3">
+<li><strong>撤回信息</strong><br>
+delete /api/v1/support/employee/messages/{messageId}<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>messageId</td>
+<td>Long</td>
+<td>信息id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"messageId"</span><span class="token operator">:</span> <span class="token string">"messageId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>messageId</td>
+<td>Long</td>
+<td>信息id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="查看售后请求">查看售后请求 </h3>
+<ol>
+<li><strong>获取售后请求列表</strong><br>
+get api/v1/merchants/after-sale<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"afterSaleId"</span><span class="token operator">:</span> <span class="token string">"afterSaleId"</span><span class="token punctuation">,</span>
+      <span class="token property">"orderId"</span><span class="token operator">:</span> <span class="token string">"orderId"</span><span class="token punctuation">,</span>
+      <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"type"</span><span class="token punctuation">,</span>
+      <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span><span class="token punctuation">,</span>
+      <span class="token property">"content"</span><span class="token operator">:</span> <span class="token string">"content"</span><span class="token punctuation">,</span>
+      <span class="token property">"createTime"</span><span class="token operator">:</span> <span class="token string">"createTime"</span><span class="token punctuation">,</span>
+      <span class="token property">"updateTime"</span><span class="token operator">:</span> <span class="token string">"updateTime"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>afterSaleId</td>
+<td>Long</td>
+<td>售后id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>orderId</td>
+<td>Long</td>
+<td>订单id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>type</td>
+<td>String</td>
+<td>类型</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>状态</td>
+<td>否</td>
+</tr>
+<tr>
+<td>content</td>
+<td>String</td>
+<td>内容</td>
+<td>否</td>
+</tr>
+<tr>
+<td>createTime</td>
+<td>String</td>
+<td>创建时间</td>
+<td>否</td>
+</tr>
+<tr>
+<td>updateTime</td>
+<td>String</td>
+<td>更新时间</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="2">
+<li><strong>同意请求</strong><br>
+post api/v1/merchants/after-sale/{requestId}/approve<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>售后请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>商家id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"requestId"</span><span class="token operator">:</span> <span class="token string">"requestId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>售后请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="3">
+<li><strong>拒绝请求</strong><br>
+post api/v1/merchants/after-sale/{requestId}/reject<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"reason"</span><span class="token operator">:</span> <span class="token string">"reason"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>售后请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>商家id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>reason</td>
+<td>String</td>
+<td>拒绝理由</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"requestId"</span><span class="token operator">:</span> <span class="token string">"requestId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>售后请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="4">
+<li><strong>提供处理反馈信息</strong><br>
+post api/v1/merchants/after-sale/{requestId}/feedback<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"feedback"</span><span class="token operator">:</span> <span class="token string">"feedback"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>售后请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>商家id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>feedback</td>
+<td>String</td>
+<td>反馈信息</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"requestId"</span><span class="token operator">:</span> <span class="token string">"requestId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>requestId</td>
+<td>Long</td>
+<td>售后请求id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="优惠券接口商家端">优惠券接口(商家端) </h3>
+<ol>
+<li><strong>获取优惠券列表</strong><br>
+get api/v1/merchants/coupons<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span> 
+      <span class="token property">"couponId"</span><span class="token operator">:</span> <span class="token string">"couponId"</span><span class="token punctuation">,</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"type"</span><span class="token punctuation">,</span>
+      <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"description"</span><span class="token punctuation">,</span>
+      <span class="token property">"amount"</span><span class="token operator">:</span> <span class="token string">"amount"</span><span class="token punctuation">,</span>
+      <span class="token property">"startTime"</span><span class="token operator">:</span> <span class="token string">"startTime"</span><span class="token punctuation">,</span>
+      <span class="token property">"endTime"</span><span class="token operator">:</span> <span class="token string">"endTime"</span><span class="token punctuation">,</span>
+      <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span><span class="token punctuation">,</span>
+      <span class="token property">"createTime"</span><span class="token operator">:</span> <span class="token string">"createTime"</span><span class="token punctuation">,</span>
+      <span class="token property">"updateTime"</span><span class="token operator">:</span> <span class="token string">"updateTime"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>couponId</td>
+<td>Long</td>
+<td>优惠券id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>优惠券名称</td>
+<td>否</td>
+</tr>
+<tr>
+<td>type</td>
+<td>String</td>
+<td>优惠券类型</td>
+<td>否</td>
+</tr>
+<tr>
+<td>description</td>
+<td>String</td>
+<td>优惠券描述</td>
+<td>否</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>String</td>
+<td>优惠券面值</td>
+<td>否</td>
+</tr>
+<tr>
+<td>startTime</td>
+<td>String</td>
+<td>优惠券开始时间</td>
+<td>否</td>
+</tr>
+<tr>
+<td>endTime</td>
+<td>String</td>
+<td>优惠券结束时间</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>优惠券状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="2">
+<li><strong>增加优惠券</strong><br>
+post api/v1/merchants/coupons<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"couponName"</span><span class="token operator">:</span> <span class="token string">"couponName"</span><span class="token punctuation">,</span>
+  <span class="token property">"couponType"</span><span class="token operator">:</span> <span class="token string">"couponType"</span><span class="token punctuation">,</span>
+  <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"description"</span><span class="token punctuation">,</span>
+  <span class="token property">"amount"</span><span class="token operator">:</span> <span class="token string">"amount"</span><span class="token punctuation">,</span>
+  <span class="token property">"startTime"</span><span class="token operator">:</span> <span class="token string">"startTime"</span><span class="token punctuation">,</span>
+  <span class="token property">"endTime"</span><span class="token operator">:</span> <span class="token string">"endTime"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>couponName</td>
+<td>String</td>
+<td>优惠券名称</td>
+<td>否</td>
+</tr>
+<tr>
+<td>couponType</td>
+<td>String</td>
+<td>优惠券类型</td>
+<td>否</td>
+</tr>
+<tr>
+<td>description</td>
+<td>String</td>
+<td>优惠券描述</td>
+<td>否</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>String</td>
+<td>优惠券面值</td>
+<td>否</td>
+</tr>
+<tr>
+<td>startTime</td>
+<td>String</td>
+<td>优惠券开始时间</td>
+<td>否</td>
+</tr>
+<tr>
+<td>endTime</td>
+<td>String</td>
+<td>优惠券结束时间</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"couponId"</span><span class="token operator">:</span> <span class="token string">"couponId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>couponId</td>
+<td>Long</td>
+<td>优惠券id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="3">
+<li><strong>删除优惠券</strong><br>
+delete api/v1/merchants/coupons/{couponId}<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>couponId</td>
+<td>Long</td>
+<td>优惠券id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"couponId"</span><span class="token operator">:</span> <span class="token string">"couponId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>couponId</td>
+<td>Long</td>
+<td>优惠券id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="4">
+<li><strong>修改优惠券</strong><br>
+put api/v1/merchants/coupons/{couponId}<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"couponName"</span><span class="token operator">:</span> <span class="token string">"couponName"</span><span class="token punctuation">,</span>
+  <span class="token property">"couponType"</span><span class="token operator">:</span> <span class="token string">"couponType"</span><span class="token punctuation">,</span>
+  <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"description"</span><span class="token punctuation">,</span>
+  <span class="token property">"amount"</span><span class="token operator">:</span> <span class="token string">"amount"</span><span class="token punctuation">,</span>
+  <span class="token property">"startTime"</span><span class="token operator">:</span> <span class="token string">"startTime"</span><span class="token punctuation">,</span>
+  <span class="token property">"endTime"</span><span class="token operator">:</span> <span class="token string">"endTime"</span><span class="token punctuation">,</span>
+  <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>couponId</td>
+<td>Long</td>
+<td>优惠券id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>couponName</td>
+<td>String</td>
+<td>优惠券名称</td>
+<td>是</td>
+</tr>
+<tr>
+<td>couponType</td>
+<td>String</td>
+<td>优惠券类型</td>
+<td>是</td>
+</tr>
+<tr>
+<td>description</td>
+<td>String</td>
+<td>优惠券描述</td>
+<td>是</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>String</td>
+<td>优惠券金额</td>
+<td>是</td>
+</tr>
+<tr>
+<td>startTime</td>
+<td>String</td>
+<td>优惠券开始时间</td>
+<td>是</td>
+</tr>
+<tr>
+<td>endTime</td>
+<td>String</td>
+<td>优惠券结束时间</td>
+<td>是</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>优惠券状态</td>
+<td>是</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"couponId"</span><span class="token operator">:</span> <span class="token string">"couponId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>couponId</td>
+<td>Long</td>
+<td>优惠券id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="5">
+<li><strong>发放优惠券</strong><br>
+post  api/v1/merchants/coupons/distribute<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"couponId"</span><span class="token operator">:</span> <span class="token string">"couponId"</span><span class="token punctuation">,</span>
+  <span class="token property">"customerIds"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token string">"customerId"</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>couponId</td>
+<td>Long</td>
+<td>优惠券id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>customerIds</td>
+<td>List<long></long></td>
+<td>客户id列表</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="促销商品管理">促销商品管理 </h3>
+<ol>
+<li><strong>获取促销商品列表</strong><br>
+get api/v1/merchants/promotions<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"promotionId"</span><span class="token operator">:</span> <span class="token string">"promotionId"</span><span class="token punctuation">,</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"type"</span><span class="token punctuation">,</span>
+      <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"description"</span><span class="token punctuation">,</span>
+      <span class="token property">"startTime"</span><span class="token operator">:</span> <span class="token string">"startTime"</span><span class="token punctuation">,</span>
+      <span class="token property">"endTime"</span><span class="token operator">:</span> <span class="token string">"endTime"</span><span class="token punctuation">,</span>
+      <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span><span class="token punctuation">,</span>
+      <span class="token property">"createTime"</span><span class="token operator">:</span> <span class="token string">"createTime"</span><span class="token punctuation">,</span>
+      <span class="token property">"updateTime"</span><span class="token operator">:</span> <span class="token string">"updateTime"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>promotionId</td>
+<td>Long</td>
+<td>促销商品id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>促销商品名称</td>
+<td>否</td>
+</tr>
+<tr>
+<td>type</td>
+<td>String</td>
+<td>促销商品类型</td>
+<td>否</td>
+</tr>
+<tr>
+<td>description</td>
+<td>String</td>
+<td>促销商品描述</td>
+<td>否</td>
+</tr>
+<tr>
+<td>startTime</td>
+<td>String</td>
+<td>促销商品开始时间</td>
+<td>否</td>
+</tr>
+<tr>
+<td>endTime</td>
+<td>String</td>
+<td>促销商品结束时间</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>促销商品状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="2">
+<li><strong>增加促销商品</strong><br>
+post api/v1/merchants/promotions<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+  <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"type"</span><span class="token punctuation">,</span>
+  <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"description"</span><span class="token punctuation">,</span>
+  <span class="token property">"startTime"</span><span class="token operator">:</span> <span class="token string">"startTime"</span><span class="token punctuation">,</span>
+  <span class="token property">"endTime"</span><span class="token operator">:</span> <span class="token string">"endTime"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>促销商品名称</td>
+<td>否</td>
+</tr>
+<tr>
+<td>type</td>
+<td>String</td>
+<td>促销商品类型</td>
+<td>否</td>
+</tr>
+<tr>
+<td>description</td>
+<td>String</td>
+<td>促销商品描述</td>
+<td>否</td>
+</tr>
+<tr>
+<td>startTime</td>
+<td>String</td>
+<td>促销商品开始时间</td>
+<td>否</td>
+</tr>
+<tr>
+<td>endTime</td>
+<td>String</td>
+<td>促销商品结束时间</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"promotionId"</span><span class="token operator">:</span> <span class="token string">"promotionId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>promotionId</td>
+<td>Long</td>
+<td>促销商品id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="3">
+<li><strong>删除促销商品</strong><br>
+delete api/v1/merchants/promotions/{promotionId}<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>promotionId</td>
+<td>Long</td>
+<td>促销商品id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"promotionId"</span><span class="token operator">:</span> <span class="token string">"promotionId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>promotionId</td>
+<td>Long</td>
+<td>促销商品id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="4">
+<li><strong>修改促销商品</strong><br>
+put api/v1/merchants/promotions/{promotionId}<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+  <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"type"</span><span class="token punctuation">,</span>
+  <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"description"</span><span class="token punctuation">,</span>
+  <span class="token property">"startTime"</span><span class="token operator">:</span> <span class="token string">"startTime"</span><span class="token punctuation">,</span>
+  <span class="token property">"endTime"</span><span class="token operator">:</span> <span class="token string">"endTime"</span><span class="token punctuation">,</span>
+  <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>promotionId</td>
+<td>Long</td>
+<td>优惠券id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>优惠券名称</td>
+<td>是</td>
+</tr>
+<tr>
+<td>type</td>
+<td>String</td>
+<td>优惠券类型</td>
+<td>是</td>
+</tr>
+<tr>
+<td>description</td>
+<td>String</td>
+<td>优惠券描述</td>
+<td>是</td>
+</tr>
+<tr>
+<td>startTime</td>
+<td>String</td>
+<td>优惠券开始时间</td>
+<td>是</td>
+</tr>
+<tr>
+<td>endTime</td>
+<td>String</td>
+<td>优惠券结束时间</td>
+<td>是</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>优惠券状态</td>
+<td>是</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"promotionId"</span><span class="token operator">:</span> <span class="token string">"promotionId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>promotionId</td>
+<td>Long</td>
+<td>优惠券id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="客服接口商家端">客服接口(商家端) </h3>
+<ol>
+<li><strong>获取售后申请列表</strong><br>
+get api/v1/merchant/support/after-sales<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span> 
+      <span class="token property">"afterSaleId"</span><span class="token operator">:</span> <span class="token string">"afterSaleId"</span><span class="token punctuation">,</span>
+      <span class="token property">"orderId"</span><span class="token operator">:</span> <span class="token string">"orderId"</span><span class="token punctuation">,</span>
+      <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"type"</span><span class="token punctuation">,</span>
+      <span class="token property">"reason"</span><span class="token operator">:</span> <span class="token string">"reason"</span><span class="token punctuation">,</span>
+      <span class="token property">"content"</span><span class="token operator">:</span> <span class="token string">"content"</span><span class="token punctuation">,</span>
+      <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span><span class="token punctuation">,</span>
+      <span class="token property">"createTime"</span><span class="token operator">:</span> <span class="token string">"createTime"</span><span class="token punctuation">,</span>
+      <span class="token property">"updateTime"</span><span class="token operator">:</span> <span class="token string">"updateTime"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>afterSaleId</td>
+<td>Long</td>
+<td>售后id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>orderId</td>
+<td>Long</td>
+<td>订单id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>type</td>
+<td>String</td>
+<td>售后类型</td>
+<td>否</td>
+</tr>
+<tr>
+<td>reason</td>
+<td>String</td>
+<td>售后原因</td>
+<td>否</td>
+</tr>
+<tr>
+<td>content</td>
+<td>String</td>
+<td>售后内容</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>售后状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="2">
+<li><strong>获取私信客服消息列表</strong><br>
+get api/v1/merchant/support/messages<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"messageId"</span><span class="token operator">:</span> <span class="token string">"messageId"</span><span class="token punctuation">,</span>
+      <span class="token property">"employeeId"</span><span class="token operator">:</span> <span class="token string">"employeeId"</span><span class="token punctuation">,</span>
+      <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span><span class="token punctuation">,</span>
+      <span class="token property">"content"</span><span class="token operator">:</span> <span class="token string">"content"</span><span class="token punctuation">,</span>
+      <span class="token property">"createTime"</span><span class="token operator">:</span> <span class="token string">"createTime"</span><span class="token punctuation">,</span>
+      <span class="token property">"updateTime"</span><span class="token operator">:</span> <span class="token string">"updateTime"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>messageId</td>
+<td>Long</td>
+<td>私信id</td>
+<td></td>
+</tr>
+<tr>
+<td>employeeId</td>
+<td>Long</td>
+<td>员工id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>content</td>
+<td>String</td>
+<td>私信内容</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="3">
+<li><strong>发送给指定用户信息</strong><br>
+post api/v1/merchant/support/messages<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span><span class="token punctuation">,</span>
+  <span class="token property">"content"</span><span class="token operator">:</span> <span class="token string">"content"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>content</td>
+<td>String</td>
+<td>私信内容</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"messageId"</span><span class="token operator">:</span> <span class="token string">"messageId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>messageId</td>
+<td>Long</td>
+<td>私信id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="4">
+<li><strong>撤回消息</strong><br>
+delete api/v1/merchant/support/messages/{messageId}<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>messageId</td>
+<td>Long</td>
+<td>私信id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"messageId"</span><span class="token operator">:</span> <span class="token string">"messageId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>messageId</td>
+<td>Long</td>
+<td>私信id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="5">
+<li><strong>获取与客户会话信息</strong><br>
+get api/v1/support/info<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"messageId"</span><span class="token operator">:</span> <span class="token string">"messageId"</span><span class="token punctuation">,</span>
+      <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span><span class="token punctuation">,</span>
+      <span class="token property">"employeeId"</span><span class="token operator">:</span> <span class="token string">"employeeId"</span><span class="token punctuation">,</span>
+      <span class="token property">"content"</span><span class="token operator">:</span> <span class="token string">"content"</span><span class="token punctuation">,</span>
+      <span class="token property">"createTime"</span><span class="token operator">:</span> <span class="token string">"createTime"</span><span class="token punctuation">,</span>
+      <span class="token property">"updateTime"</span><span class="token operator">:</span> <span class="token string">"updateTime"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>messageId</td>
+<td>Long</td>
+<td>私信id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>employeeId</td>
+<td>Long</td>
+<td>员工id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>content</td>
+<td>String</td>
+<td>私信内容</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="用户信息接口商家端">用户信息接口(商家端) </h3>
+<ol>
+<li><strong>获取用户信息列表</strong><br>
+get  api/v1/merchant/users<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span><span class="token punctuation">,</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+      <span class="token property">"phone"</span><span class="token operator">:</span> <span class="token string">"phone"</span><span class="token punctuation">,</span>
+      <span class="token property">"avatar_url"</span><span class="token operator">:</span> <span class="token string">"avatar_url"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>客户姓名</td>
+<td>否</td>
+</tr>
+<tr>
+<td>phone</td>
+<td>String</td>
+<td>客户手机号</td>
+<td>否</td>
+</tr>
+<tr>
+<td>avatar_url</td>
+<td>String</td>
+<td>客户头像</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="2">
+<li><strong>查找指定用户</strong><br>
+get  api/v1/merchant/users/search<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+  <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>客户姓名</td>
+<td>是</td>
+</tr>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span><span class="token punctuation">,</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+      <span class="token property">"phone"</span><span class="token operator">:</span> <span class="token string">"phone"</span><span class="token punctuation">,</span>
+      <span class="token property">"avatar_url"</span><span class="token operator">:</span> <span class="token string">"avatar_url"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>客户姓名</td>
+<td>否</td>
+</tr>
+<tr>
+<td>phone</td>
+<td>String</td>
+<td>客户手机号</td>
+<td>否</td>
+</tr>
+<tr>
+<td>avatar_url</td>
+<td>String</td>
+<td>客户头像</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="3">
+<li><strong>获取用户支付流水</strong><br>
+get  api/v1/payments/history<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span> 
+      <span class="token property">"paymentId"</span><span class="token operator">:</span> <span class="token string">"paymentId"</span><span class="token punctuation">,</span>
+      <span class="token property">"customerId"</span><span class="token operator">:</span> <span class="token string">"customerId"</span><span class="token punctuation">,</span>
+      <span class="token property">"amount"</span><span class="token operator">:</span> <span class="token string">"amount"</span><span class="token punctuation">,</span>
+      <span class="token property">"createTime"</span><span class="token operator">:</span> <span class="token string">"createTime"</span><span class="token punctuation">,</span>
+      <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>paymentId</td>
+<td>Long</td>
+<td>支付id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>customerId</td>
+<td>Long</td>
+<td>客户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>String</td>
+<td>金额</td>
+<td>否</td>
+</tr>
+<tr>
+<td>createTime</td>
+<td>String</td>
+<td>创建时间</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="4">
+<li><strong>获取店员列表</strong><br>
+get api/v1/admin/staff<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"employeeId"</span><span class="token operator">:</span> <span class="token string">"employeeId"</span><span class="token punctuation">,</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+      <span class="token property">"phone"</span><span class="token operator">:</span> <span class="token string">"phone"</span><span class="token punctuation">,</span>
+      <span class="token property">"avatar_url"</span><span class="token operator">:</span> <span class="token string">"avatar_url"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><ol start="5">
+<li><strong>增加店员</strong><br>
+post api/v1/admin/staff<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+  <span class="token property">"phone"</span><span class="token operator">:</span> <span class="token string">"phone"</span><span class="token punctuation">,</span>
+  <span class="token property">"avatar_url"</span><span class="token operator">:</span> <span class="token string">"avatar_url"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>店员姓名</td>
+<td>否</td>
+</tr>
+<tr>
+<td>phone</td>
+<td>String</td>
+<td>店员手机号</td>
+<td>否</td>
+</tr>
+<tr>
+<td>avatar_url</td>
+<td>String</td>
+<td>店员头像</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="6">
+<li><strong>删除店员</strong><br>
+delete api/v1/admin/staff/{employeeId}<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>employeeId</td>
+<td>Long</td>
+<td>店员id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"employeeId"</span><span class="token operator">:</span> <span class="token string">"employeeId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>employeeId</td>
+<td>Long</td>
+<td>店员id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="7">
+<li><strong>修改店员</strong><br>
+put api/v1/admin/staff/{employeeId}<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+  <span class="token property">"phone"</span><span class="token operator">:</span> <span class="token string">"phone"</span><span class="token punctuation">,</span>
+  <span class="token property">"avatar_url"</span><span class="token operator">:</span> <span class="token string">"avatar_url"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>employeeId</td>
+<td>Long</td>
+<td>店员id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>店员姓名</td>
+<td>否</td>
+</tr>
+<tr>
+<td>phone</td>
+<td>String</td>
+<td>店员手机号</td>
+<td>否</td>
+</tr>
+<tr>
+<td>avatar_url</td>
+<td>String</td>
+<td>店员头像</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"employeeId"</span><span class="token operator">:</span> <span class="token string">"employeeId"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"status"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>employeeId</td>
+<td>Long</td>
+<td>店员id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>操作状态</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="8">
+<li><strong>查找店员信息</strong><br>
+get api/v1/admin/staff/search<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span><span class="token punctuation">,</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+  <span class="token property">"employeeId"</span><span class="token operator">:</span> <span class="token string">"employeeId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>店员姓名</td>
+<td>否</td>
+</tr>
+<tr>
+<td>employeeId</td>
+<td>Long</td>
+<td>店员id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"employeeId"</span><span class="token operator">:</span> <span class="token string">"employeeId"</span><span class="token punctuation">,</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+      <span class="token property">"phone"</span><span class="token operator">:</span> <span class="token string">"phone"</span><span class="token punctuation">,</span>
+      <span class="token property">"avatar_url"</span><span class="token operator">:</span> <span class="token string">"avatar_url"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="店面信息管理管理员端">店面信息管理(管理员端) </h3>
+<ol>
+<li><strong>获取店面信息列表</strong><br>
+get api/v1/admin/stores<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"storeId"</span><span class="token operator">:</span> <span class="token string">"storeId"</span><span class="token punctuation">,</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+      <span class="token property">"merchantId"</span><span class="token operator">:</span> <span class="token string">"merchantId"</span><span class="token punctuation">,</span>
+      <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"description"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>storeId</td>
+<td>Long</td>
+<td>店面id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>店面名称</td>
+<td>否</td>
+</tr>
+<tr>
+<td>merchantId</td>
+<td>Long</td>
+<td>商家id</td>
+<td>否</td>
+</tr>
+<tr>
+<td>description</td>
+<td>String</td>
+<td>店面描述</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="2">
+<li><strong>增加店面信息</strong></li>
+<li><strong>删除店面信息</strong></li>
+<li><strong>修改店面信息</strong></li>
+<li><strong>查找店面信息</strong><br>
+参考前面的怎删改查<br>
+这个其实没有必要，因为只有一家店</li>
+</ol>
+<h3 id="店员信息管理管理员端">店员信息管理(管理员端) </h3>
+<ol>
+<li><strong>获取店员信息列表</strong></li>
+<li><strong>增加店员信息</strong></li>
+<li><strong>删除店员信息</strong></li>
+<li><strong>修改店员信息</strong></li>
+<li><strong>查找店员信息</strong><br>
+参考商家端，只需要把路径改下就是了</li>
+</ol>
+<h3 id="数据汇总接口">数据汇总接口 </h3>
+<ol>
+<li><strong>获取总商品销售信息</strong><br>
+get api/v1/admin/sales<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"productId"</span><span class="token operator">:</span> <span class="token string">"productId"</span><span class="token punctuation">,</span>
+      <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span>
+      <span class="token property">"sales"</span><span class="token operator">:</span> <span class="token string">"sales"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre><ol start="2">
+<li><strong>获取总客流量</strong><br>
+get api/v1/admin/traffic<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"traffic"</span><span class="token operator">:</span> <span class="token string">"traffic"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>traffic</td>
+<td>Long</td>
+<td>客流量</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<ol start="3">
+<li><strong>获取总销售额</strong><br>
+get api/v1/admin/sales/total<br>
+request</li>
+</ol>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"userId"</span><span class="token operator">:</span> <span class="token string">"userId"</span>
+<span class="token punctuation">}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>名字</th>
+<th>类型</th>
+<th>描述</th>
+<th>可选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>Long</td>
+<td>用户id</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>response</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"code"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"total"</span><span class="token operator">:</span> <span class="token string">"total"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><ol start="4">
+<li><strong>查找指定店面数据报表</strong><br>
+不要了，因为只有一个店</li>
+</ol>
+<h3 id="管理员信息接口">管理员信息接口 </h3>
+<ol>
+<li><strong>获取管理员信息</strong></li>
+<li><strong>增加管理员信息</strong></li>
+<li><strong>删除管理员信息</strong></li>
+<li><strong>修改管理员信息</strong></li>
+<li><strong>查找管理员信息</strong><br>
+参照上面的增删改查，这个写不写问题不大</li>
+</ol>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>

@@ -1,0 +1,4 @@
+/node_modules/**
+/mp-takeout/**/node_modules/**
+/nginx-1.27.5/**
+/Redis-8.0.0-Windows-x64-msys2-with-Service/**

@@ -35,6 +35,10 @@ mybatis:
   mapper-locations: classpath:mapper/*.xml
   configuration:
     map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com.mo.service.mapper: debug
 # mo项目配置
 mo:
   jwt:
@@ -51,8 +55,8 @@ mo:
     employee-ttl: 3600000
     employee-token-name: employeeToken
   amap:
-    key: "YOUR_AMAP_KEY"
+    key: 99fae42717332a4360f78fd0b5d46148
 
   mp:
-    appid: "YOUR_MP_APPID"
-    secret: "YOUR_MP_SECRET"
+    appid: YOUR_MP_APPID
+    secret: YOUR_MP_SECRET

@@ -1,0 +1,27 @@
+{
+  "name": "vue-login-app",
+  "version": "1.0.0",
+  "description": "A simple Vue.js login application",
+  "main": "src/main.js",
+  "scripts": {
+    "serve": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.2.0",
+    "vue-router": "^4.0.0",
+    "vuex": "^4.0.0"
+  },
+  "devDependencies": {
+    "vite": "^2.0.0",
+    "@vitejs/plugin-vue": "^1.0.0"
+  },
+  "keywords": [
+    "vue",
+    "login",
+    "application"
+  ],
+  "author": "",
+  "license": "MIT"
+}
