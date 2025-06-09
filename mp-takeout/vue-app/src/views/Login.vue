@@ -29,8 +29,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { login, getCaptchaBase64, AuthLoginDTO } from '@/api/auth';
+import { login, getCaptchaBase64 } from '../api/auth';
 import { ElMessage } from 'element-plus';
+import type {AuthLoginDTO} from "../api/types.ts";
 
 const router = useRouter();
 const captchaUrl = ref('');
