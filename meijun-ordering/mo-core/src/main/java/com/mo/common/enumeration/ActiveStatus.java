@@ -1,7 +1,7 @@
 package com.mo.common.enumeration;
 
 public enum ActiveStatus {
-    root(0),
+    inactive(0),
     active(1);
 
     private final int value;
