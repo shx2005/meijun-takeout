@@ -9,6 +9,8 @@ import java.io.Serializable;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(name = "管理员保存参数")
 public class AdminSaveDTO implements Serializable {
     @Serial
