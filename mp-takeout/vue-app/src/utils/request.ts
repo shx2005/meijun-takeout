@@ -5,11 +5,19 @@ const service = axios.create({
   timeout: 5000,
 });
 
-// 请求拦截器（添加 token）
 service.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`;
+  // 根据当前页面或localStorage设置不同token
+  const path = window.location.pathname;
+  let token = '';
+  if (path.startsWith('/dashboard')) {
+    token = localStorage.getItem('adminToken') || '';
+    if (token) config.headers['adminToken'] = `Bearer ${token}`;
+  } else if (path.startsWith('/merchant')) {
+    token = localStorage.getItem('merchantToken') || '';
+    if (token) config.headers['merchantToken'] = `Bearer ${token}`;
+  } else if (path.startsWith('/employee')) {
+    token = localStorage.getItem('employeeToken') || '';
+    if (token) config.headers['employeeToken'] = `Bearer ${token}`;
   }
   return config;
 });

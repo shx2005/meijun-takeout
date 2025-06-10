@@ -2,6 +2,8 @@ export interface AuthLoginDTO {
   username: string;
   password: string;
   captcha: string;
+  role: string;
+  kaptchaUuid: string;
 }
 
 export interface AuthLoginVo {

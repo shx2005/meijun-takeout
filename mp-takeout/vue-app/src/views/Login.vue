@@ -1,26 +1,33 @@
 <template>
-  <el-container style="height: 100vh; align-items: center; justify-content: center">
-    <el-card style="width: 400px">
-      <h2 style="text-align: center">登录</h2>
-      <el-form @submit.prevent="handleLogin" :model="form" :rules="rules" ref="formRef">
+  <el-container class="login-bg">
+    <el-card class="login-card">
+      <h2 class="login-title">登录</h2>
+      <el-form @submit.prevent="handleLogin" :model="form" :rules="rules" ref="formRef" class="login-form">
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="form.username" />
+          <el-input v-model="form.username" size="large" clearable />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password" show-password />
+          <el-input v-model="form.password" type="password" show-password size="large" clearable />
         </el-form-item>
         <el-form-item label="验证码" prop="captcha">
-          <div style="display: flex; gap: 10px">
-            <el-input v-model="form.captcha" />
+          <div class="captcha-row">
+            <el-input v-model="form.captcha" size="large" clearable />
             <img
               :src="captchaUrl"
               alt="验证码"
-              style="cursor: pointer"
+              class="captcha-img"
               @click="fetchCaptcha"
             />
           </div>
         </el-form-item>
-        <el-button type="primary" native-type="submit" style="width: 100%">登录</el-button>
+        <el-form-item label="身份" prop="role">
+          <el-select v-model="form.role" placeholder="请选择身份" size="large">
+            <el-option label="管理员" value="admin" />
+            <el-option label="商户" value="merchant" />
+            <el-option label="员工" value="employee" />
+          </el-select>
+        </el-form-item>
+        <el-button type="primary" native-type="submit" class="login-btn" size="large" round>登录</el-button>
       </el-form>
     </el-card>
   </el-container>
@@ -35,23 +42,29 @@ import type {AuthLoginDTO} from "../api/types.ts";
 
 const router = useRouter();
 const captchaUrl = ref('');
+const kaptchaUuid = ref('');
 const form = ref<AuthLoginDTO>({
   username: '',
   password: '',
-  captcha: ''
+  captcha: '',
+  role: '',
+  kaptchaUuid: ''
 });
 const formRef = ref();
 
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
-  captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
+  captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
+  role: [{ required: true, message: '请选择身份', trigger: 'change' }]
 };
 
 const fetchCaptcha = async () => {
   try {
     const res = await getCaptchaBase64();
     captchaUrl.value = res.data.code;
+    kaptchaUuid.value = res.data.uuid;
+    form.value.kaptchaUuid = kaptchaUuid.value; // 更新表单中的kaptchaUuid
   } catch (error) {
     ElMessage.error('获取验证码失败');
   }
@@ -59,12 +72,20 @@ const fetchCaptcha = async () => {
 
 const handleLogin = async () => {
   try {
+    form.value.kaptchaUuid = kaptchaUuid.value; // 确保kaptchaUuid在登录时是最新的
     const res = await login(form.value);
     const { token, uuid } = res.data;
-    localStorage.setItem('token', token);
+    // 根据身份跳转到不同的页面
+    if (form.value.role === 'admin') {
+      router.push('/admin');
+    } else if (form.value.role === 'merchant') {
+      router.push('/merchant');
+    } else if (form.value.role === 'employee') {
+      router.push('/employee');
+    }
     localStorage.setItem('uuid', uuid);
+    localStorage.setItem('token', token);
     ElMessage.success('登录成功');
-    router.push('/dashboard');
   } catch (error) {
     ElMessage.error('登录失败，请检查用户名或密码');
   }
@@ -72,3 +93,58 @@ const handleLogin = async () => {
 
 fetchCaptcha();
 </script>
+
+<style scoped>
+.login-bg {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.login-card {
+  width: 400px;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+  padding: 32px 28px 24px 28px;
+  background: rgba(255,255,255,0.95);
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 28px;
+  font-weight: 600;
+  font-size: 26px;
+  color: #333;
+  letter-spacing: 2px;
+}
+
+.login-form .el-form-item {
+  margin-bottom: 22px;
+}
+
+.captcha-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.captcha-img {
+  height: 40px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.captcha-img:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+
+.login-btn {
+  width: 100%;
+  margin-top: 10px;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+</style>
