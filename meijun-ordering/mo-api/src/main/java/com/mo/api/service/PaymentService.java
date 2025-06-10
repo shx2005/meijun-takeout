@@ -8,4 +8,6 @@ public interface PaymentService {
     BalanceVO pay(BalanceDTO balanceDTO);
 
     String showBalance(Long UserId);
+
+    void refund(Long orderId);
 }

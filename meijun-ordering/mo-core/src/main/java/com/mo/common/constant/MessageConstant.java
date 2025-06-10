@@ -22,4 +22,7 @@ public class MessageConstant {
     public static final String LOGIN_FAILED = "登陆失败";
     public static final String INSUFFICIENT_BALANCE = "余额不足";
     public static final String UNKONWN_PAYMETHOD = "不支持的支付方式";
+    public static final String UNABLE_TO_CANCEL_ORDER_REASON1 = "派送中，无法取消";
+    public static final String UNABLE_TO_CANCEL_ORDER_REASON2 = "已完成，无法取消";
+    public static final String UNABLE_TO_CANCEL_ORDER_REASON3 = "已取消，无法重复取消";
 }

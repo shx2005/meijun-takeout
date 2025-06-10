@@ -1,6 +1,7 @@
 package com.mo.service.impl;
 
 import com.mo.api.dto.BalanceDTO;
+import com.mo.api.service.OrderService;
 import com.mo.api.service.PaymentService;
 import com.mo.api.service.RedisService;
 import com.mo.api.vo.BalanceVO;
@@ -26,6 +27,8 @@ public class PaymentServiceImpl implements PaymentService {
     private CustomerMapper customerMapper;
     @Autowired
     private OrderMapper orderMapper;
+    @Autowired
+    private OrderService orderService;
 
     @Override
     public BalanceVO pay(BalanceDTO dto) {
@@ -81,5 +84,17 @@ public class PaymentServiceImpl implements PaymentService {
         BigDecimal balance = customer.getBalance();
 
         return balance.toString();
+    }
+
+    @Override
+    public void refund(Long orderId){
+        Order order = orderService.getOrderById(orderId);
+        Long userId = order.getUserId();
+        BigDecimal total = order.getTotal();
+
+        Customer customer = Customer.builder()
+                .id(userId)
+                .balance(total)
+                .build();
     }
 }

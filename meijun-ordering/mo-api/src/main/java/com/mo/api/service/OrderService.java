@@ -11,6 +11,13 @@ public interface OrderService {
 
     List<Order> getAll();
 
+    /**
+     * 根据用户id获取分页订单
+     * @param offset 偏移量
+     * @param size 大小
+     * @param userId 用户id
+     * @return list
+     */
     List<Order> getPage(int offset, int size, Long userId);
 
     Order getOrderById(Long orderId);
@@ -22,4 +29,16 @@ public interface OrderService {
     void saveAfterSale(AfterSale afterSale);
 
     OrderSubmitVO saveOrder(Order order);
+
+    List<Order> getOrderByUserId(Long userId);
+
+    /**
+     * 获取分页订单
+     * @param offset 偏移量
+     * @param size 大小
+     * @return list
+     */
+    List<Order> getPage(int offset, int size);
+
+    void cancelOrder(Long orderId);
 }

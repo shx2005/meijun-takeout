@@ -11,4 +11,6 @@ public interface OrderDetailMapper {
     void saveOrderDetail(OrderDetail orderDetail);
 
     List<OrderDetail> getAllOrderDetail();
+
+    List<OrderDetail> getDetailsByOrderId(Long orderId);
 }

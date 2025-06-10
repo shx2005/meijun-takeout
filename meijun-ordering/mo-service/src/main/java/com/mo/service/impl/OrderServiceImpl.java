@@ -1,11 +1,13 @@
 package com.mo.service.impl;
 
 import com.mo.api.service.OrderService;
+import com.mo.api.service.PaymentService;
 import com.mo.api.vo.OrderSubmitVO;
 import com.mo.common.constant.MessageConstant;
 import com.mo.common.enumeration.OrderPayStaus;
 import com.mo.common.enumeration.OrderStatus;
 import com.mo.common.exception.CartBusinessException;
+import com.mo.common.exception.OrderBusinessException;
 import com.mo.entity.*;
 import com.mo.service.annotation.AutoFillTime;
 import com.mo.service.mapper.*;
@@ -34,6 +36,8 @@ public class OrderServiceImpl implements OrderService {
     private CartMapper cartMapper;
     @Autowired
     private CartItemMapper cartItemMapper;
+    @Autowired
+    private PaymentService paymentService;
 
     @Override
     public List<Order> getAll() {
@@ -41,8 +45,34 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getPage(int offset, int size, Long userid){
-        return orderMapper.getPage(offset,size,userid);
+    public List<Order> getPage(int offset, int size) {
+        List<Order> orders = orderMapper.getPage(offset,size);
+
+        for(var order: orders){
+            Long id = order.getId();
+            List<OrderDetail> details = orderDetailMapper.getDetailsByOrderId(id);
+            order.setItems(details);
+        }
+
+        return orders;
+    }
+
+    @Override
+    public List<Order> getPage(int offset, int size, Long userId){
+        List<Order> orders = orderMapper.getPage(offset,size,userId);
+
+        for(var order: orders){
+            Long id = order.getId();
+            List<OrderDetail> details = orderDetailMapper.getDetailsByOrderId(id);
+            order.setItems(details);
+        }
+
+        return orders;
+    }
+
+    @Override
+    public List<Order> getOrderByUserId(Long userId) {
+        return orderMapper.getOrderByUserId(userId);
     }
 
     @Override
@@ -120,5 +150,32 @@ public class OrderServiceImpl implements OrderService {
                 .orderAmount(order.getTotal())
                 .orderTime(order.getOrderTime())
                 .build();
+    }
+
+    @Override
+    public void cancelOrder(Long orderId){
+        Order order = orderMapper.getOrderById(orderId);
+
+        if(order == null)
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+
+        if(order.getStatus().equals(OrderStatus.delivering))
+            throw new OrderBusinessException(MessageConstant.UNABLE_TO_CANCEL_ORDER_REASON1);
+        if(order.getStatus().equals(OrderStatus.completed))
+            throw new OrderBusinessException(MessageConstant.UNABLE_TO_CANCEL_ORDER_REASON2);
+        if(order.getStatus().equals(OrderStatus.cancelled))
+            throw new OrderBusinessException(MessageConstant.UNABLE_TO_CANCEL_ORDER_REASON3);
+
+        Order newOrder = Order.builder()
+                .id(orderId)
+                .status(OrderStatus.cancelled)
+                .build();
+
+        if(order.getStatus().equals(OrderStatus.unconfirmed) || order.getStatus().equals(OrderStatus.pending)){
+            paymentService.refund(orderId);
+            newOrder.setPayStatus(OrderPayStaus.refund);
+        }
+
+        orderMapper.updateOrder(newOrder);
     }
 }

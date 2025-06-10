@@ -8,6 +8,11 @@
     </select>
     <select id="getPage" resultType="com.mo.entity.Order">
         select * ,customer_id as userId
+        from orders
+        limit #{offset},#{size}
+    </select>
+    <select id="getPageByUserId" resultType="com.mo.entity.Order">
+        select * ,customer_id as userId
         from orders where customer_id = #{userId}
         limit #{offset},#{size}
     </select>
@@ -15,9 +20,20 @@
         select * ,customer_id as userId
         from orders where id = #{orderId}
     </select>
-    <select id="getOrderByPeriod" resultType="com.mo.entity.Order">
+    <select id="getOrderByUserId" resultType="com.mo.entity.Order">
         select * ,customer_id as userId
-        from orders where createTime between #{startDate} AND #{endDate}
+        from orders where customer_id = #{userId}
+    </select>
+    <select id="getOrderByPeriod" resultType="com.mo.entity.Order">
+        select * ,customer_id as userId from orders
+        <where>
+            <if test="startDate != null">
+                and orderTime &gt; #{startDate}
+            </if>
+            <if test="endDate != null">
+                and orderTime &lt; #{endDate}
+            </if>
+        </where>
     </select>
 
     <update id="updateOrder">
