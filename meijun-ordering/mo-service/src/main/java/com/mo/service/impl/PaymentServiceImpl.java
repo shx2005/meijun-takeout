@@ -92,9 +92,8 @@ public class PaymentServiceImpl implements PaymentService {
         Long userId = order.getUserId();
         BigDecimal total = order.getTotal();
 
-        Customer customer = Customer.builder()
-                .id(userId)
-                .balance(total)
-                .build();
+        Customer customer = customerMapper.getCustomerById(userId);
+        customer.setBalance(customer.getBalance().add(total));
+        customerMapper.updateCustomer(customer);
     }
 }

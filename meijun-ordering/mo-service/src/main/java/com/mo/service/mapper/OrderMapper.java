@@ -12,7 +12,7 @@ public interface OrderMapper {
 
     List<Order> getAll();
 
-    List<Order> getPageByUserId(@Param("offset") int offset, @Param("size") int size, @Param("userId") Long userId);
+    List<Order> getPage(@Param("offset") int offset, @Param("size") int size, @Param("userId") Long userId);
 
     Order getOrderById(@Param("orderId") Long orderId);
 
