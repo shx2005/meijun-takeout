@@ -27,11 +27,21 @@
 			};
 		},
 		onLoad(options) {
+			console.log('=== paySuccess页面onLoad调试信息 ===');
+			console.log('接收到的options:', options);
+			console.log('options.orderId:', options.orderId);
+			console.log('options.amount:', options.amount);
+			
 			// 获取订单ID
 			if (options.orderId) {
 				this.orderId = options.orderId;
+				console.log('设置orderId为:', this.orderId);
 				this.getOrderDetail();
+			} else {
+				console.warn('警告：未接收到订单ID参数');
 			}
+			
+			console.log('=== paySuccess页面onLoad调试结束 ===');
 			
 			this.getFinishTime();
 		},
@@ -41,11 +51,25 @@
 		methods: {
 			// 查看订单详情页
 			toOrderPage() {
+				console.log('点击查看订单，orderId:', this.orderId);
 				if (this.orderId) {
+					// 有订单ID，跳转到订单详情页
 					uni.navigateTo({
-						url: '/pages/orderDetail/orderDetail?orderId=' + this.orderId
+						url: '/pages/orderDetail/orderDetail?orderId=' + this.orderId,
+						success: () => {
+							console.log('成功跳转到订单详情页，订单ID:', this.orderId);
+						},
+						fail: (err) => {
+							console.error('跳转到订单详情页失败:', err);
+							// 如果跳转失败，则跳转到订单列表页
+							uni.switchTab({
+								url: '/pages/orderList/orderList'
+							});
+						}
 					});
 				} else {
+					// 没有订单ID，跳转到订单列表页
+					console.log('没有订单ID，跳转到订单列表页');
 					uni.switchTab({
 						url: '/pages/orderList/orderList'
 					});

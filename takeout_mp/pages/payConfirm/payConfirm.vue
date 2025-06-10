@@ -479,6 +479,19 @@ export default {
             if (orderResult && (orderResult.code === 200 || orderResult.success === true)) {
               // 订单提交成功，获取订单ID
               currentOrderId = orderResult.data?.id || orderResult.id;
+              console.log('=== 订单ID获取调试信息 ===');
+              console.log('orderResult:', orderResult);
+              console.log('orderResult.data:', orderResult.data);
+              console.log('orderResult.data?.id:', orderResult.data?.id);
+              console.log('orderResult.id:', orderResult.id);
+              console.log('最终获取的currentOrderId:', currentOrderId);
+              console.log('=== 订单ID获取调试结束 ===');
+              
+              if (!currentOrderId) {
+                console.error('警告：无法从订单响应中获取订单ID');
+                throw new Error('订单提交成功但无法获取订单ID');
+              }
+              
               console.log('订单提交成功，订单ID:', currentOrderId);
         
               // 订单创建成功后，调用支付API
@@ -531,6 +544,11 @@ export default {
             
             // 支付成功后跳转到支付成功页面
           setTimeout(() => {
+              console.log('=== 跳转到支付成功页面 ===');
+              console.log('跳转时使用的订单ID:', currentOrderId);
+              console.log('跳转URL:', `/pages/paySuccess/paySuccess?orderId=${currentOrderId}&amount=${this.finalAmount}`);
+              console.log('=== 跳转调试结束 ===');
+              
               uni.redirectTo({
                       url: `/pages/paySuccess/paySuccess?orderId=${currentOrderId}&amount=${this.finalAmount}`
             });

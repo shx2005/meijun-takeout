@@ -122,7 +122,9 @@ export const phoneLoginApi = (data) => {
 				
 				// 检查状态码
 				if (res.statusCode === 200) {
-					// 检查响应数据中的code字段来判断登录是否成功
+					// 无论登录成功还是失败，都返回完整的响应数据
+					// 让调用方根据 res.data.code 和 res.data.success 来判断是否成功
+					
 					if (res.data && res.data.code === 200 && res.data.success === true) {
 						// 登录成功，处理响应数据
 						let token = null;
@@ -140,77 +142,38 @@ export const phoneLoginApi = (data) => {
 							// 将原始token直接存储，不再进行Base64编码和结构化处理
 							console.log('后端返回的原始token:', token);
 							uni.setStorageSync('originalToken', token);
-							uni.setStorageSync('token', token);
+							uni.setStorageSync('userId', userId);
+							uni.setStorageSync('username', username);
 							
-							// 保存用户ID，确保为数字类型
-							if (userId) {
-								// 确保ID是数字类型
-								if (typeof userId === 'string') {
-									try {
-										userId = parseInt(userId);
-									} catch (e) {
-										console.error('解析用户ID失败:', e);
-									}
-								}
-								uni.setStorageSync('userId', userId);
-							}
+							// 构造返回数据
+							resolve({
+								statusCode: res.statusCode,
+								data: res.data,
+								success: true
+							});
+						} else {
+							// 登录成功但没有token
+							resolve({
+								statusCode: res.statusCode,
+								data: res.data,
+								success: false
+							});
 						}
-						
-						// 返回成功响应
-						resolve({ 
-							statusCode: res.statusCode, 
-							data: res.data 
-						});
 					} else {
-						// 登录失败，从data.msg获取错误信息
-						console.log('登录失败，错误信息:', res.data.msg);
-						resolve({ 
-							statusCode: res.statusCode, 
+						// 登录失败，直接返回响应数据
+						resolve({
+							statusCode: res.statusCode,
 							data: res.data,
 							success: false
 						});
 					}
-				} else if (typeof res.data === 'string' && res.data.includes('<r>')) {
-					try {
-						// 简单解析XML获取token
-						const tokenMatch = res.data.match(/<token>(.*?)<\/token>/);
-						const idMatch = res.data.match(/<id>(.*?)<\/id>/);
-						const uuidMatch = res.data.match(/<uuid>(.*?)<\/uuid>/);
-						const usernameMatch = res.data.match(/<username>(.*?)<\/username>/);
-						const nameMatch = res.data.match(/<n>(.*?)<\/name>/);
-						
-						if (tokenMatch && tokenMatch[1]) {
-							const result = {
-								statusCode: res.statusCode,
-								data: {
-									token: tokenMatch[1],
-									id: idMatch && idMatch[1] ? parseInt(idMatch[1]) : null,
-									uuid: uuidMatch && uuidMatch[1] ? uuidMatch[1] : null,
-									username: usernameMatch && usernameMatch[1] ? usernameMatch[1] : null,
-									name: nameMatch && nameMatch[1] ? nameMatch[1] : null
-								}
-							};
-							console.log('从XML中提取的数据封装后:', result);
-							resolve(result);
-						} else {
-							resolve(res);
-						}
-					} catch (e) {
-						console.error('解析XML失败:', e);
-						resolve(res);
-					}
 				} else {
-					// 输出更详细的错误信息以便调试
-					if (res.data && typeof res.data === 'string' && res.data.includes('Internal Server Error')) {
-						console.error('服务器内部错误，请检查后端日志');
-					}
-					
-					// 500错误可能是后端问题，建议检查服务器日志
-					if (res.statusCode === 500) {
-						console.error('服务器内部错误(500)，详情:', res.data);
-					}
-					
-					resolve(res);
+					// HTTP状态码不是200
+					resolve({
+						statusCode: res.statusCode,
+						data: res.data || { msg: '请求失败' },
+						success: false
+					});
 				}
 			},
 			fail: (err) => {

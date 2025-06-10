@@ -10,7 +10,7 @@
 	export default {
 
 		globalData: {
-			
+			shouldRefreshIndex: false
 		},
 		data() {
 			return {

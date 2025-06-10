@@ -126,14 +126,20 @@
 					</view>
 					<!-- 验证码登录 -->
 					<view class="loginPhone" v-if="isPhoneLogin">
+						
+						<!-- 错误提示区域 -->
+						<view class="error-tip" v-if="showLoginError">
+							<view class="error-icon">⚠️</view>
+							<view class="error-text">{{ loginErrorMsg }}</view>
+						</view>
 
 						<view class="form-row">
 							<input class="input" type="number" v-model="phone" placeholder="请输入手机号码"
-								placeholder-style="font-weight:normal;color:#bbbbbb;"></input>
+								placeholder-style="font-weight:normal;color:#bbbbbb;" @input="clearLoginError"></input>
 						</view>
 						<view class="form-row">
 							<input class="input" type="password" v-model="password" placeholder="请输入密码"
-								placeholder-style="font-weight:normal;color:#bbbbbb;"></input>
+								placeholder-style="font-weight:normal;color:#bbbbbb;" @input="clearLoginError"></input>
 						</view>
 						<button  class="submit" size="default" @click="onSubmit"
 							:style="{background:PrimaryColor}">确定</button>
@@ -296,6 +302,8 @@
 				password: '', //密码
 				code: '', //验证码
 				loginPopupShow: false, //登录框显示
+				loginErrorMsg: '', // 登录错误信息
+				showLoginError: false, // 是否显示登录错误
 				encryptedData: '',
 				iv: '',
 				sessionKey: '',
@@ -445,21 +453,23 @@
 			// 手机号登录
 			async onSubmit() {
 				if (!this.phone) {
-					uni.$showMsg('请输入手机号');
+					this.showLoginErrorMsg('请输入手机号');
 					return;
 				}
 				
 				const trimmedPhone = this.phone.trim();
 				if (!/^1\d{10}$/.test(trimmedPhone)) {
-					uni.$showMsg('手机号格式不正确');
+					this.showLoginErrorMsg('手机号格式不正确');
 					return;
 				}
 				
 				if (!this.password) {
-					uni.$showMsg('请输入密码');
+					this.showLoginErrorMsg('请输入密码');
 					return;
 				}
 				
+				// 清除之前的错误信息
+				this.clearLoginError();
 				this.isLoading = true;
 				
 				try {
@@ -520,10 +530,13 @@
 						}
 						
 						uni.$showMsg(errorMsg, 'none');
+						// 同时在界面上显示错误信息
+						this.showLoginErrorMsg(errorMsg);
 					}
 				} catch (error) {
 					console.error('登录请求出错:', error);
 					uni.$showMsg('登录失败，请检查网络连接', 'none');
+					this.showLoginErrorMsg('登录失败，请检查网络连接');
 				} finally {
 					this.isLoading = false;
 				}
@@ -1204,6 +1217,13 @@
 				this.complaintText = '';
 				this.showComplaintPopup = false;
 			},
+			clearLoginError() {
+				this.showLoginError = false;
+			},
+			showLoginErrorMsg(msg) {
+				this.showLoginError = true;
+				this.loginErrorMsg = msg;
+			},
 		},
 
 	}
@@ -1691,5 +1711,23 @@
 		border: none;
 		padding: 16rpx 30rpx;
 		border-radius: 40rpx;
+	}
+
+	.error-tip {
+		display: flex;
+		align-items: center;
+		margin-bottom: 20rpx;
+		padding: 10rpx;
+		background-color: #fff;
+		border-radius: 8rpx;
+
+		.error-icon {
+			margin-right: 10rpx;
+			font-size: 28rpx;
+		}
+
+		.error-text {
+			font-size: 28rpx;
+		}
 	}
 </style>
