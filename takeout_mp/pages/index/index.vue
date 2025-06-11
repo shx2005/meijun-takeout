@@ -656,7 +656,10 @@
 					// 如果没有预加载数据或数据已过期，则继续请求API
 					console.log('尝试从API获取菜品数据');
 					// 尝试从服务器获取菜品数据
-					const res = await dishListApi({});
+					const res = await dishListApi({
+						pageNum: 1,      // 显式指定页码
+						pageSize: 20     // 显式指定每页20条数据
+					});
 					console.log('菜品数据API响应:', res);
 					
 					// 检查API响应结构

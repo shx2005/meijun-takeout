@@ -699,6 +699,10 @@ function preloadDishData(token) {
 			'userType': '3',
 			'Content-Type': 'application/json'
 		},
+		data: {
+			pageNum: 1,      // 显式指定页码
+			pageSize: 20     // 显式指定每页20条数据
+		},
 		success: (res) => {
 			console.log('预加载菜品列表响应状态码:', res.statusCode);
 			

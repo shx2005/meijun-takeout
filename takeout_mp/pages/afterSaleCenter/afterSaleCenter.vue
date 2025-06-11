@@ -212,39 +212,11 @@
 					
 					console.log('本地存储的售后申请列表:', localAfterSaleList);
 					
-					// 并发查询所有订单的最新售后状态
-					const statusPromises = localAfterSaleList.map(localItem => 
-						this.updateAfterSaleStatus(localItem)
-					);
+					// 直接使用本地数据，不再调用有问题的API
+					// 按创建时间倒序排列
+					this.afterSaleList = localAfterSaleList.sort((a, b) => new Date(b.createTime) - new Date(a.createTime));
 					
-					try {
-						const statusResults = await Promise.allSettled(statusPromises);
-						const afterSaleList = [];
-						
-						statusResults.forEach((result, index) => {
-							if (result.status === 'fulfilled' && result.value) {
-								afterSaleList.push(result.value);
-							} else {
-								// 如果API调用失败，使用本地数据
-								console.warn(`订单 ${localAfterSaleList[index].orderId} 的售后状态查询失败，使用本地数据`);
-								afterSaleList.push(localAfterSaleList[index]);
-							}
-						});
-						
-						// 按创建时间倒序排列
-						afterSaleList.sort((a, b) => new Date(b.createTime) - new Date(a.createTime));
-						
-						this.afterSaleList = afterSaleList;
-						console.log('最终的售后列表:', this.afterSaleList);
-						
-						// 更新本地存储中的状态信息
-						uni.setStorageSync(storageKey, afterSaleList);
-						
-					} catch (error) {
-						console.error('批量查询售后状态失败:', error);
-						// 如果批量查询失败，直接使用本地数据
-						this.afterSaleList = localAfterSaleList.sort((a, b) => new Date(b.createTime) - new Date(a.createTime));
-					}
+					console.log('最终的售后列表:', this.afterSaleList);
 					
 					this.loading = false;
 					uni.hideLoading();
@@ -270,51 +242,6 @@
 						title: '加载失败，请稍后再试',
 						icon: 'none'
 					});
-				}
-			},
-			
-			// 更新售后状态（结合本地数据和API响应）
-			async updateAfterSaleStatus(localItem) {
-				try {
-					// 调用API查询最新状态
-					const response = await getAfterSaleStatusApi(localItem.orderId);
-					
-					console.log(`订单 ${localItem.orderId} 的API响应:`, response);
-					
-					// 如果API返回成功但data为null，说明后端没有这个售后记录的详细信息
-					// 我们使用本地存储的信息，但可以尝试从API响应中获取状态更新
-					if (response && response.success) {
-						if (response.data && response.data !== null) {
-							// 如果API返回了具体数据，使用API数据
-							return {
-								id: response.data.id || localItem.id,
-								orderId: localItem.orderId,
-								userId: localItem.userId,
-								type: response.data.type || localItem.type,
-								reason: response.data.reason || localItem.reason,
-								content: response.data.content || localItem.content,
-								status: response.data.status || localItem.status,
-								createTime: response.data.createTime || localItem.createTime,
-								updateTime: response.data.updateTime || new Date().toISOString(),
-								orderAmount: localItem.orderAmount
-							};
-						} else {
-							// 如果API返回成功但data为null，使用本地数据但更新查询时间
-							return {
-								...localItem,
-								updateTime: new Date().toISOString(),
-								// 可以根据API的其他信息推断状态，这里暂时保持原状态
-								status: localItem.status
-							};
-						}
-					}
-					
-					// 如果API调用失败，返回本地数据
-					return localItem;
-				} catch (error) {
-					console.error(`更新订单 ${localItem.orderId} 售后状态失败:`, error);
-					// 返回本地数据
-					return localItem;
 				}
 			},
 			

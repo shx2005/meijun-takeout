@@ -161,14 +161,34 @@ export const getAfterSaleStatusApi = (requestId) => {
                 'userType': '3',
                 'Content-Type': 'application/json'
             },
+            timeout: 5000, // 设置5秒超时，避免长时间等待
             success: (res) => {
                 console.log('获取售后请求状态响应:', res);
+                
                 if (res.statusCode === 200) {
-                    // 直接返回API响应，让调用方处理data为null的情况
+                    // 成功响应，直接返回API响应
                     resolve(res.data);
+                } else if (res.statusCode === 500) {
+                    // 服务器内部错误（包括空指针异常）
+                    console.warn('服务器内部错误，可能是后端空指针异常:', res.statusCode, res.data);
+                    resolve({
+                        code: 500,
+                        msg: "服务器内部错误",
+                        data: null,
+                        success: false
+                    });
+                } else if (res.statusCode === 404) {
+                    // 资源不存在
+                    console.warn('售后记录不存在:', res.statusCode, res.data);
+                    resolve({
+                        code: 404,
+                        msg: "售后记录不存在",
+                        data: null,
+                        success: false
+                    });
                 } else {
+                    // 其他错误状态码
                     console.error('获取售后请求状态失败:', res.statusCode, res.data);
-                    // 返回失败响应
                     resolve({
                         code: res.statusCode,
                         msg: res.data?.msg || "查询失败",
@@ -178,8 +198,8 @@ export const getAfterSaleStatusApi = (requestId) => {
                 }
             },
             fail: (err) => {
-                console.error('获取售后请求状态失败:', err);
-                // 返回失败响应
+                console.error('获取售后请求状态网络请求失败:', err);
+                // 网络请求失败，返回失败响应
                 resolve({
                     code: 500,
                     msg: "网络请求失败",
