@@ -4,14 +4,12 @@ import com.mo.api.dto.AfterSaleDTO;
 import com.mo.api.dto.OrderPageQueryDTO;
 import com.mo.api.dto.OrderCommentDTO;
 import com.mo.api.dto.OrderSubmitDTO;
-import com.mo.api.service.CartService;
 import com.mo.api.service.OrderService;
-import com.mo.api.service.RedisService;
 import com.mo.api.vo.OrderSubmitVO;
-import com.mo.common.context.BaseContext;
 import com.mo.common.result.PageResult;
 import com.mo.common.result.Result;
 import com.mo.entity.*;
+import com.mo.service.mapper.OrderDetailMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -22,7 +20,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +31,8 @@ import java.util.List;
 public class OrderController {
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private OrderDetailMapper orderDetailMapper;
 
     @Operation(summary = "获取订单列表")
     @ApiResponse(responseCode = "200", description = "成功", content = @Content(schema = @Schema(implementation = Order.class)))
@@ -52,12 +51,11 @@ public class OrderController {
     public PageResult getPage(@RequestBody OrderPageQueryDTO orderPageQueryDTO){
         int pageNum = orderPageQueryDTO.getPage();
         int pageSize = orderPageQueryDTO.getSize();
-        Long userId = orderPageQueryDTO.getId();
 
         int offset = (pageNum - 1) * pageSize;
         int size = pageSize;
 
-        List<Order> orders = orderService.getPage(offset, size, userId);
+        List<Order> orders = orderService.getPage(offset, size);
 
         return PageResult.success(orders.size(), orders, pageNum, pageSize);
     }
@@ -70,6 +68,8 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public Result<Order> getOrderById( @PathVariable Long orderId){
         Order order = orderService.getOrderById(orderId);
+        List<OrderDetail> list = orderDetailMapper.getDetailsByOrderId(orderId);
+        order.setItems(list);
 
         return Result.success(order);
     }
@@ -113,5 +113,12 @@ public class OrderController {
         OrderSubmitVO vo = orderService.saveOrder(order);
 
         return Result.success(vo);
+    }
+
+    @PostMapping("/cancel/{orderId}")
+    public Result<String> cancelOrder(@PathVariable Long orderId){
+        orderService.cancelOrder(orderId);
+
+        return Result.success();
     }
 }

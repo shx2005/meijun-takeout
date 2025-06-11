@@ -108,6 +108,25 @@ public class AuthServiceImpl implements AuthService {
     public void saveUser(User user) {
         UserIdentity identity = user.getIdentity();
         String username = user.getUsername();
+        String password = user.getPassword();
+
+        // 密码合法性校验
+        if (password == null || password.isEmpty()) {
+            throw new RegisterFailedException("密码不能为空");
+        }
+        if (password.length() < 8) {
+            throw new RegisterFailedException("密码长度不能小于8位");
+        }
+        if (!password.matches(".*[A-Z].*")) {
+            throw new RegisterFailedException("密码必须包含至少一个大写字母");
+        }
+        if (!password.matches(".*\\d.*")) {
+            throw new RegisterFailedException("密码必须包含至少一个数字");
+        }
+        // 可选：添加特殊字符判断
+        if (!password.matches(".*[!@#$%^&*()].*")) {
+            throw new RegisterFailedException("密码必须包含至少一个特殊字符");
+        }
 
         //todo 密码加密
         switch (identity){

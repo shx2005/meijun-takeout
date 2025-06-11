@@ -8,6 +8,11 @@
     </select>
     <select id="getPage" resultType="com.mo.entity.Order">
         select * ,customer_id as userId
+        from orders
+        limit #{offset},#{size}
+    </select>
+    <select id="getPageByUserId" resultType="com.mo.entity.Order">
+        select * ,customer_id as userId
         from orders where customer_id = #{userId}
         limit #{offset},#{size}
     </select>
@@ -15,9 +20,20 @@
         select * ,customer_id as userId
         from orders where id = #{orderId}
     </select>
-    <select id="getOrderByPeriod" resultType="com.mo.entity.Order">
+    <select id="getOrderByUserId" resultType="com.mo.entity.Order">
         select * ,customer_id as userId
-        from orders where createTime between #{startDate} AND #{endDate}
+        from orders where customer_id = #{userId}
+    </select>
+    <select id="getOrderByPeriod" resultType="com.mo.entity.Order">
+        select * ,customer_id as userId from orders
+        <where>
+            <if test="startDate != null">
+                and orderTime &gt; #{startDate}
+            </if>
+            <if test="endDate != null">
+                and orderTime &lt; #{endDate}
+            </if>
+        </where>
     </select>
 
     <update id="updateOrder">
@@ -52,7 +68,7 @@
             parameterType="com.mo.entity.Order"
             useGeneratedKeys="true"
             keyProperty="id">
-        insert into orders(customer_id, merchant_id, orderTime, status, total, createTime, updateTime)
-        values(#{userId}, #{merchantId}, #{orderTime}, #{status}, #{total}, #{createTime}, #{updateTime})
+        insert into orders(customer_id, merchant_id, orderTime, status, pay_status, total, createTime, updateTime)
+        values(#{userId}, #{merchantId}, #{orderTime}, #{status}, #{payStatus}, #{total}, #{createTime}, #{updateTime})
     </insert>
 </mapper>

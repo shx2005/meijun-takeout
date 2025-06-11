@@ -13,10 +13,13 @@ public class WebSocketManager {
 
     private final static ConcurrentHashMap<String, WebSocketServer> webSocketServerMap = new ConcurrentHashMap<>();
 
+    private final static ConcurrentHashMap<String, String> uuidMap = new ConcurrentHashMap<>();
+
     public static void addWebSocketServer(WebSocketServer webSocketServer){
         if(webSocketServer != null){
             webSocketServerSet.add(webSocketServer);
             webSocketServerMap.put(webSocketServer.getSessionId(), webSocketServer);
+            uuidMap.put(webSocketServer.getUuid(), webSocketServer.getSessionId());
         }
     }
 
@@ -24,6 +27,7 @@ public class WebSocketManager {
         if(webSocketServer != null){
             webSocketServerSet.remove(webSocketServer);
             webSocketServerMap.remove(webSocketServer.getSessionId());
+            uuidMap.remove(webSocketServer.getUuid());
         }
     }
 
@@ -40,6 +44,15 @@ public class WebSocketManager {
             webSocketServer.getSession().getAsyncRemote().sendText(message);
         }else{
             log.error("sessionId is null");
+        }
+    }
+
+    public static void sendToUserByUuid(String uuid, String message){
+        String sessionId = uuidMap.get(uuid);
+        if(sessionId != null){
+            sendToUser(sessionId, message);
+        }else{
+            log.error("uuid is null");
         }
     }
 

@@ -64,9 +64,8 @@
             <version>1.4.11</version>
         </dependency>
         <dependency>
-            <groupId>io.pebbletemplates</groupId>
-            <artifactId>pebble-spring-boot-starter</artifactId>
-            <version>3.2.0</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

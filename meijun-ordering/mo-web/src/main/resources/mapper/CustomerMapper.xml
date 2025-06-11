@@ -20,7 +20,7 @@
     <select id="searchForCustomer" resultType="com.mo.entity.Customer">
         select * from customers where
             <if test="name != null and name != ''">
-                name like concat('%',#{name},'%')
+                username like concat('%',#{name},'%')
             </if>
         or
             <if test="id != null">

@@ -1,7 +1,6 @@
 package com.mo.entity;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.mo.common.enumeration.ActiveStatus;
 import com.mo.common.enumeration.UserIdentity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -37,7 +36,7 @@ public class User implements Serializable {
     @Schema(description = "用户身份")
     protected UserIdentity identity;
     @Schema(description = "状态 0 禁用 1 启用")
-    protected Integer status;
+    protected ActiveStatus status;
     @Schema(description = "手机号")
     protected String phoneNum;
     @Schema(description = "性别")

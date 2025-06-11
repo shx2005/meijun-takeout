@@ -21,4 +21,8 @@ public interface OrderMapper {
     void saveOrder(Order order);
 
     List<Order> getOrderByPeriod(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    List<Order> getOrderByUserId(Long userId);
+
+    List<Order> getPage(int offset, int size);
 }
