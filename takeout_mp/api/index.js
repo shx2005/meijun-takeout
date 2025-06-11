@@ -1106,3 +1106,44 @@ export const getOrderOverviewApi = () => {
 		});
 	});
 }
+
+// 获取菜品详情
+export const getDishDetailApi = (dishId) => {
+	// 从本地存储获取token
+	const token = uni.getStorageSync('token');
+	
+	// 用于请求的headers
+	const headers = {
+		'customerToken': token,
+		'Accept': 'application/json',
+		'userType': '3',
+		'Content-Type': 'application/json'
+	};
+	
+	// 使用uni.request直接发送请求
+	return new Promise((resolve, reject) => {
+		uni.request({
+			url: `http://localhost:8080/api/v1/dishes/${dishId}`,
+			method: 'GET',
+			header: headers,
+			success: (res) => {
+				console.log('菜品详情响应状态码:', res.statusCode);
+				
+				if (res.statusCode === 200) {
+					console.log('成功获取菜品详情数据');
+					resolve(res.data);
+				} else if (res.statusCode === 401) {
+					console.error('认证失败，检查token是否有效');
+					reject(res);
+				} else {
+					console.error('获取菜品详情失败:', res.statusCode, res.data);
+					reject(res);
+				}
+			},
+			fail: (err) => {
+				console.error('请求菜品详情接口失败:', err);
+				reject(err);
+			}
+		});
+	});
+}
