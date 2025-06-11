@@ -19,7 +19,7 @@ public class DishPageQueryDTO implements Serializable {
     @Schema(description = "页码")
     private int pageNum = 1;
     @Schema(description = "每页数据量")
-    private int pageSize = 20;
+    private int pageSize = 10;
     @Schema(description = "菜品名称")
     private String name;
     //分类id
