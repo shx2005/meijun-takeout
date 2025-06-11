@@ -206,7 +206,7 @@ export const getDishesApi = (params) => {
  */
 export const addDishApi = (data) => {
   return merchantRequest.post({
-    url: '/api/v1/dishes',
+    url: '/api/v1/dishes/save',
     data: data
   });
 };

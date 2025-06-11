@@ -214,25 +214,22 @@
 								
 								const response = await completeOrderApi(this.orderId);
 								console.log('完成订单响应:', response);
-								console.log('响应详情:', {
-									success: response?.success,
-									code: response?.code,
-									msg: response?.msg,
-									data: response?.data
-								});
+								console.log('响应类型:', typeof response);
+								console.log('响应是否为对象:', response && typeof response === 'object');
 								
 								uni.hideLoading();
 								
-								// 修正成功判断逻辑：后端返回code=200表示成功
-								if (response && (response.success === true || response.code === 200 || response.code === 0)) {
-									this.orderDetail.status = 'completed';
+								// 修正成功判断逻辑：响应拦截器返回的是订单对象，如果有订单数据就表示成功
+								if (response && typeof response === 'object' && response.id) {
+									// 更新本地订单状态
+									this.orderDetail.status = response.status || 'completed';
 									uni.showToast({
 										title: '订单已完成',
 										icon: 'success'
 									});
 								} else {
-									console.error('完成订单失败，响应不符合成功条件:', response);
-									throw new Error(response?.msg || '完成订单失败');
+									console.error('完成订单失败，响应格式不正确:', response);
+									throw new Error('完成订单失败');
 								}
 							} catch (error) {
 								uni.hideLoading();

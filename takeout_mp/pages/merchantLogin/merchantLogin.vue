@@ -32,18 +32,6 @@
 			<button class="login-btn" @click="handleLogin" :disabled="loading">
 				{{ loading ? '登录中...' : '确认登录' }}
 			</button>
-			
-			<view class="debug-section">
-				<view class="debug-toggle" @click="isDebugMode = !isDebugMode">
-					{{ isDebugMode ? '关闭调试' : '开启调试' }}
-				</view>
-				
-				<view class="debug-notice" v-if="isDebugMode">
-					<text>调试模式已开启，点击下面按钮快速登录</text>
-					<!-- 快捷登录 -->
-					<!-- 已取消快捷登录功能 -->
-				</view>
-			</view>
 		</view>
 	</view>
 </template>
@@ -57,8 +45,7 @@
 				username: '',
 				password: '',
 				userType: '1', // 1: 商家, 2: 员工
-				loading: false,
-				isDebugMode: true // 默认启用调试模式
+				loading: false
 			}
 		},
 		methods: {
@@ -205,39 +192,6 @@
 				} finally {
 					this.loading = false;
 				}
-			},
-			
-			// 调试模式：快速登录
-			quickLogin() {
-				// 模拟商家信息
-				const mockMerchantInfo = {
-					id: 1,
-					name: '测试商家',
-					username: this.username || '测试商家',
-					address: '上海市浦东新区张江高科技园区',
-					phone: '17344402976',
-					identity: this.userType === '1' ? 'MERCHANT' : 'EMPLOYEE'
-				};
-				
-				// 模拟token
-				const mockToken = 'mock_token_' + Date.now();
-				
-				// 保存到本地存储
-				uni.setStorageSync('merchantToken', mockToken);
-				uni.setStorageSync('merchantUserType', this.userType);
-				uni.setStorageSync('merchantInfo', JSON.stringify(mockMerchantInfo));
-				
-				uni.showToast({
-					title: '测试登录成功',
-					icon: 'success'
-				});
-				
-				// 跳转到商家主页
-				setTimeout(() => {
-					uni.navigateTo({
-						url: '/pages/merchantHome/merchantHome'
-					});
-				}, 1000);
 			}
 		}
 	}
@@ -356,42 +310,6 @@
 			
 			&:disabled {
 				opacity: 0.6;
-			}
-		}
-		
-		.debug-section {
-			margin-top: 30rpx;
-			
-			.debug-toggle {
-				text-align: center;
-				font-size: 24rpx;
-				color: #999;
-				padding: 10rpx;
-			}
-			
-			.debug-notice {
-				margin-top: 20rpx;
-				text-align: center;
-				
-				text {
-					display: block;
-					font-size: 24rpx;
-					color: #999;
-					margin-bottom: 15rpx;
-				}
-				
-				.debug-btn {
-					width: 80%;
-					height: 70rpx;
-					background-color: #ddd;
-					color: #666;
-					font-size: 26rpx;
-					border-radius: 35rpx;
-					margin: 0 auto;
-					display: flex;
-					align-items: center;
-					justify-content: center;
-				}
 			}
 		}
 	}

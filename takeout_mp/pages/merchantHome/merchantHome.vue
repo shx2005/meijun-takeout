@@ -348,15 +348,13 @@
 			navigateToSubPage(type) {
 				switch (type) {
 					case 'staff':
-						uni.showToast({
-							title: '员工管理功能开发中',
-							icon: 'none'
+						uni.navigateTo({
+							url: '/pages/staffManagement/staffManagement'
 						});
 						break;
 					case 'dish':
-						uni.showToast({
-							title: '菜品管理功能开发中',
-							icon: 'none'
+						uni.navigateTo({
+							url: '/pages/dishManagement/dishManagement'
 						});
 						break;
 					case 'afterSale':
@@ -438,16 +436,43 @@
 			handleAfterSaleItem(item) {
 				if (item.status === 'pending') {
 					// 待处理的售后申请，显示审批选项
+					// 先显示详情，然后提供操作选择
 					uni.showModal({
-						title: '售后审批',
-						content: `订单${item.orderId}申请${this.getAfterSaleTypeText(item.type)}\n原因：${item.reason}\n描述：${item.content || '无'}`,
-						confirmText: '同意',
-						cancelText: '拒绝',
+						title: '售后申请详情',
+						content: `订单${item.orderId}申请${this.getAfterSaleTypeText(item.type)}\n原因：${item.reason}\n描述：${item.content || '无'}\n\n请选择处理方式`,
+						showCancel: false,
+						confirmText: '选择操作',
 						success: (res) => {
 							if (res.confirm) {
-								this.approveAfterSale(item);
-							} else if (res.cancel) {
-								this.rejectAfterSale(item);
+								// 显示操作选择
+								uni.showActionSheet({
+									itemList: ['同意申请', '拒绝申请', '暂不处理'],
+									success: (actionRes) => {
+										switch (actionRes.tapIndex) {
+											case 0: // 同意申请
+												this.approveAfterSale(item);
+												break;
+											case 1: // 拒绝申请
+												this.rejectAfterSale(item);
+												break;
+											case 2: // 暂不处理
+												uni.showToast({
+													title: '已取消操作',
+													icon: 'none',
+													duration: 1500
+												});
+												break;
+										}
+									},
+									fail: () => {
+										// 用户取消选择，相当于暂不处理
+										uni.showToast({
+											title: '已取消操作',
+											icon: 'none',
+											duration: 1500
+										});
+									}
+								});
 							}
 						}
 					});
@@ -702,6 +727,7 @@
 						}
 						
 						console.log('订单缓存更新成功:', orderId);
+						console.log('更新后的订单状态:', processedOrder.status, processedOrder.statusText);
 						return processedOrder;
 					}
 				} catch (error) {
@@ -919,7 +945,10 @@
 					success: async (res) => {
 						if (res.confirm) {
 							try {
+								console.log('=== 开始配送流程 ===');
 								uni.showLoading({ title: '处理中...' });
+								console.log('显示loading');
+								
 								console.log('开始配送：', orderId, '类型:', typeof orderId);
 								
 								// 确保orderId是数字类型
@@ -929,20 +958,35 @@
 								// 调用配送API，只传递订单ID
 								const response = await deliverOrderApi(orderIdNum);
 								console.log('配送响应:', response);
+								console.log('响应类型:', typeof response);
+								console.log('响应是否为对象:', response && typeof response === 'object');
 								
+								console.log('隐藏loading - 成功路径');
 								uni.hideLoading();
 								
-								if (response && (response.success || response.code === 200 || response.code === 0)) {
+								// 修正成功判断逻辑：响应拦截器返回的是订单对象，如果有订单数据就表示成功
+								if (response && typeof response === 'object' && response.id) {
+									console.log('配送成功，开始更新缓存');
 									// 更新成功，重新获取订单详情并更新缓存
 									await this.updateOrderCache(orderIdNum);
+									console.log('缓存更新完成，显示成功提示');
+									
+									// 确保loading已隐藏
+									uni.hideLoading();
+									
 									uni.showToast({
 										title: '已开始配送',
 										icon: 'success'
 									});
+									console.log('=== 配送流程完成 ===');
 								} else {
-									throw new Error(response?.msg || '配送失败');
+									console.error('配送失败，响应格式不正确:', response);
+									// 确保loading已隐藏
+									uni.hideLoading();
+									throw new Error('配送失败');
 								}
 							} catch (error) {
+								console.log('隐藏loading - 错误路径');
 								uni.hideLoading();
 								console.error('开始配送失败', error);
 								console.error('错误详情:', {
@@ -959,6 +1003,7 @@
 								// 开发阶段，出错也能演示，但仍需更新缓存
 								this.updateOrderStatus(orderId, 3);
 								await this.updateOrderCache(orderId);
+								console.log('=== 配送流程结束（错误） ===');
 							}
 						}
 					}
@@ -983,10 +1028,13 @@
 								// 调用完成订单API，只传递订单ID
 								const response = await completeOrderApi(orderIdNum);
 								console.log('完成订单响应:', response);
+								console.log('响应类型:', typeof response);
+								console.log('响应是否为对象:', response && typeof response === 'object');
 								
 								uni.hideLoading();
 								
-								if (response && (response.success || response.code === 200 || response.code === 0)) {
+								// 修正成功判断逻辑：响应拦截器返回的是订单对象，如果有订单数据就表示成功
+								if (response && typeof response === 'object' && response.id) {
 									// 更新成功，重新获取订单详情并更新缓存
 									await this.updateOrderCache(orderIdNum);
 									uni.showToast({
@@ -994,7 +1042,8 @@
 										icon: 'success'
 									});
 								} else {
-									throw new Error(response?.msg || '完成订单失败');
+									console.error('完成订单失败，响应格式不正确:', response);
+									throw new Error('完成订单失败');
 								}
 							} catch (error) {
 								uni.hideLoading();
@@ -1173,6 +1222,23 @@
 					return `${Math.floor(cacheAge / 3600)}小时前`;
 				} else {
 					return `${Math.floor(cacheAge / 86400)}天前`;
+				}
+			},
+			
+			// 强制隐藏所有loading状态
+			forceHideLoading() {
+				try {
+					uni.hideLoading();
+					// 多次调用确保隐藏
+					setTimeout(() => {
+						uni.hideLoading();
+					}, 100);
+					setTimeout(() => {
+						uni.hideLoading();
+					}, 200);
+					console.log('强制隐藏loading完成');
+				} catch (error) {
+					console.error('强制隐藏loading失败:', error);
 				}
 			}
 		}
