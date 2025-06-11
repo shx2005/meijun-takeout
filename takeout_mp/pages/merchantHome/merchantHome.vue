@@ -1,13 +1,13 @@
 <template>
 	<view class="merchant-home-container">
 		<view class="header">
-			<text class="title">商家管理系统</text>
+			<text class="title">{{pageTitle}}</text>
 		</view>
 		
 		<!-- 主导航栏 -->
 		<view class="main-nav">
 			<view 
-				v-for="(nav, index) in mainNavs" 
+				v-for="(nav, index) in visibleNavs" 
 				:key="index" 
 				:class="['nav-item', activeMainNav === index ? 'active' : '']"
 				@click="changeMainNav(index)"
@@ -22,54 +22,69 @@
 				<view 
 					v-for="(tab, index) in tabs" 
 					:key="index" 
-					:class="['tab-item', activeTab === index ? 'active' : '']"
-					@click="changeTab(index)"
+					:class="['tab-item', currentTab === tab ? 'active' : '']"
+					@click="changeTab(tab)"
 				>
-					{{tab.name}}
+					{{tabNames[tab]}}
 				</view>
+				<!-- 添加刷新按钮 -->
+				<view class="refresh-btn" @click="refreshOrderCache">
+					<text class="refresh-icon">🔄</text>
+					<text class="refresh-text">刷新</text>
+				</view>
+			</view>
+			
+			<!-- 缓存状态提示 -->
+			<view class="cache-status" v-if="orderCache.size > 0">
+				<text class="cache-info">缓存: {{orderCache.size}}个订单 | 更新时间: {{formatCacheTime()}}</text>
 			</view>
 			
 			<view class="order-list-container">
 				<template v-if="orderList.length > 0">
 					<view v-for="(item, index) in orderList" :key="index" class="order-item">
 						<view class="order-header">
-							<text class="order-number">订单号：{{item.orderNumber || item.number}}</text>
-							<text :class="['order-status', getStatusClass(item.status)]">{{getStatusText(item.status)}}</text>
+							<text class="order-number">订单号：{{item.orderNumber}}</text>
+							<view class="status-group">
+								<text :class="['order-status', getStatusClass(item.status)]">{{item.statusText}}</text>
+								<text :class="['pay-status', getPayStatusClass(item.payStatus)]">{{item.payStatusText}}</text>
+							</view>
 						</view>
 						
 						<view class="order-content">
 							<view class="dish-list">
-								<view v-for="(dish, dishIndex) in item.orderDetails" :key="dishIndex" class="dish-item">
+								<view v-for="(dish, dishIndex) in item.items" :key="dishIndex" class="dish-item">
 									<text class="dish-name">{{dish.name}}</text>
-									<text class="dish-count">x{{dish.number}}</text>
+									<text class="dish-flavor" v-if="dish.dishFlavor">{{dish.dishFlavor}}</text>
+									<text class="dish-count">x{{dish.quantity}}</text>
+									<text class="dish-price">¥{{dish.total}}</text>
 								</view>
 							</view>
 							
 							<view class="order-info">
 								<view class="info-item">
+									<text class="label">用户ID：</text>
+									<text class="value">{{item.userId}}</text>
+								</view>
+								<view class="info-item">
 									<text class="label">下单时间：</text>
-									<text class="value">{{item.orderTime}}</text>
+									<text class="value">{{formatTime(item.orderTime)}}</text>
 								</view>
 								<view class="info-item">
-									<text class="label">配送地址：</text>
-									<text class="value">{{item.address}}</text>
+									<text class="label">订单金额：</text>
+									<text class="value price">¥{{item.totalAmount}}</text>
 								</view>
-								<view class="info-item">
-									<text class="label">联系电话：</text>
-									<text class="value">{{item.phone}}</text>
-								</view>
-								<view class="info-item">
-									<text class="label">支付金额：</text>
-									<text class="value price">¥{{item.amount}}</text>
+								<view class="info-item" v-if="item.remark">
+									<text class="label">备注：</text>
+									<text class="value">{{item.remark}}</text>
 								</view>
 							</view>
 						</view>
 						
 						<view class="order-actions">
-							<view v-if="item.status === 2" class="action-btn accept" @click="acceptOrder(item.id)">接单</view>
-							<view v-if="item.status === 3" class="action-btn deliver" @click="deliverOrder(item.id)">配送</view>
+							<view class="action-btn detail" @click="viewOrderDetail(item.id)">查看详情</view>
+							<!-- 只有已支付状态的订单才能配送 -->
+							<view v-if="item.status === 2 && item.payStatus === 'paid'" class="action-btn deliver" @click="deliverOrder(item.id)">配送</view>
 							<view v-if="item.status === 3" class="action-btn complete" @click="completeOrder(item.id)">完成</view>
-							<view v-if="item.status === 1" class="action-btn cancel" @click="cancelOrder(item.id)">取消</view>
 						</view>
 					</view>
 				</template>
@@ -81,87 +96,8 @@
 			</view>
 		</scroll-view>
 		
-		<!-- 数据模块 -->
-		<scroll-view v-if="activeMainNav === 1" scroll-y class="module-scroll-view">
-			<view class="data-module">
-				<view class="data-cards">
-					<view class="data-card">
-						<view class="data-title">今日订单</view>
-						<view class="data-value">{{ statistics.today.orderCount }}</view>
-						<view class="data-change" :class="statistics.today.compareYesterday >= 0 ? 'up' : 'down'">
-							{{ statistics.today.compareYesterday >= 0 ? '+' : '' }}{{ statistics.today.compareYesterday }}%
-						</view>
-					</view>
-					<view class="data-card">
-						<view class="data-title">今日销售额</view>
-						<view class="data-value">¥{{ statistics.today.totalAmount }}</view>
-						<view class="data-change" :class="statistics.today.compareYesterday >= 0 ? 'up' : 'down'">
-							{{ statistics.today.compareYesterday >= 0 ? '+' : '' }}{{ statistics.today.compareYesterday }}%
-						</view>
-					</view>
-					<view class="data-card">
-						<view class="data-title">热销菜品</view>
-						<view class="data-value">{{ statistics.topDish.name || '暂无数据' }}</view>
-						<view class="data-sub" v-if="statistics.topDish.name">已售{{ statistics.topDish.count }}份</view>
-					</view>
-				</view>
-				
-				<view class="sales-chart">
-					<view class="chart-title">近7天销售统计</view>
-					<view class="chart-placeholder">
-						<view class="chart-bar" style="height: 60%;"></view>
-						<view class="chart-bar" style="height: 80%;"></view>
-						<view class="chart-bar" style="height: 40%;"></view>
-						<view class="chart-bar" style="height: 90%;"></view>
-						<view class="chart-bar" style="height: 70%;"></view>
-						<view class="chart-bar" style="height: 50%;"></view>
-						<view class="chart-bar" style="height: 85%;"></view>
-					</view>
-					<view class="chart-labels">
-						<text>周一</text>
-						<text>周二</text>
-						<text>周三</text>
-						<text>周四</text>
-						<text>周五</text>
-						<text>周六</text>
-						<text>周日</text>
-					</view>
-				</view>
-				
-				<view class="sales-chart">
-					<view class="chart-title">热销菜品排行</view>
-					<view class="rank-list">
-						<view class="rank-item">
-							<view class="rank-num">1</view>
-							<view class="rank-info">
-								<view class="rank-name">宫保鸡丁</view>
-								<view class="rank-sales">销量: 28份</view>
-							</view>
-							<view class="rank-price">¥38</view>
-						</view>
-						<view class="rank-item">
-							<view class="rank-num">2</view>
-							<view class="rank-info">
-								<view class="rank-name">水煮肉片</view>
-								<view class="rank-sales">销量: 25份</view>
-							</view>
-							<view class="rank-price">¥48</view>
-						</view>
-						<view class="rank-item">
-							<view class="rank-num">3</view>
-							<view class="rank-info">
-								<view class="rank-name">干锅牛蛙</view>
-								<view class="rank-sales">销量: 22份</view>
-							</view>
-							<view class="rank-price">¥68</view>
-						</view>
-					</view>
-				</view>
-			</view>
-		</scroll-view>
-		
 		<!-- 管理模块 -->
-		<scroll-view v-if="activeMainNav === 2" scroll-y class="module-scroll-view">
+		<scroll-view v-if="activeMainNav === 1" scroll-y class="module-scroll-view">
 			<view class="manage-module">
 				<view class="manage-menu">
 					<view class="manage-item" @click="navigateToSubPage('staff')">
@@ -197,30 +133,6 @@
 						</view>
 					</view>
 				</view>
-				
-				<view class="manage-menu" style="margin-top: 20rpx;">
-					<view class="manage-item" @click="navigateToSubPage('settings')">
-						<view class="manage-icon">⚙️</view>
-						<view class="manage-text">
-							<view class="manage-title">店铺设置</view>
-							<view class="manage-desc">营业时间、配送范围</view>
-						</view>
-						<view class="manage-arrow">
-							<u-icon name="arrow-right" color="#999" size="24"></u-icon>
-						</view>
-					</view>
-					
-					<view class="manage-item" @click="navigateToSubPage('finance')">
-						<view class="manage-icon">💰</view>
-						<view class="manage-text">
-							<view class="manage-title">财务管理</view>
-							<view class="manage-desc">收支明细、账务统计</view>
-						</view>
-						<view class="manage-arrow">
-							<u-icon name="arrow-right" color="#999" size="24"></u-icon>
-						</view>
-					</view>
-				</view>
 			</view>
 		</scroll-view>
 	</view>
@@ -229,13 +141,19 @@
 <script>
 	import { 
 		getOrderListApi, 
-		getOrderDetailApi, 
-		acceptOrderApi, 
+		getOrderDetailApi,
+		getMerchantOrderDetailApi,
+		updateOrderStatusApi,
 		deliverOrderApi, 
 		completeOrderApi, 
-		cancelOrderApi,
+		rejectOrderApi,
 		getStatisticsApi,
-		getMerchantInfoApi
+		getSalesDataApi,
+		getTrafficDataApi,
+		getMerchantInfoApi,
+		getAfterSaleListApi,
+		approveAfterSaleApi,
+		rejectAfterSaleApi
 	} from '../../api/merchant.js';
 	
 	export default {
@@ -244,20 +162,23 @@
 				activeMainNav: 0, // 默认显示订单模块
 				mainNavs: [
 					{ name: '订单', icon: 'file-text' },
-					{ name: '数据', icon: 'chart' },
 					{ name: '管理', icon: 'setting' }
 				],
-				activeTab: 0,
-				tabs: [
-					{ name: '全部订单', status: null },
-					{ name: '待付款', status: 1 },
-					{ name: '待接单', status: 2 },
-					{ name: '待配送', status: 3 },
-					{ name: '配送中', status: 4 },
-					{ name: '已完成', status: 5 },
-					{ name: '已取消', status: 6 }
-				],
+				userType: '', // 用户类型：现在员工登录后也是merchant
+				isEmployee: false, // 是否为员工登录
+				currentTab: 'all',
+				tabs: ['all', 'confirmed', 'delivering', 'completed'],
+				tabNames: {
+					'all': '全部订单',
+					'confirmed': '已确认', 
+					'delivering': '配送中',
+					'completed': '已完成'
+				},
 				orderList: [],
+				// 添加缓存相关属性
+				orderCache: new Map(), // 订单缓存，key为orderId，value为订单数据
+				cacheExpireTime: 5 * 60 * 1000, // 缓存过期时间：5分钟
+				lastCacheTime: 0, // 上次缓存时间
 				pageInfo: {
 					page: 1,
 					size: 10,
@@ -276,13 +197,68 @@
 						name: '',
 						count: 0
 					}
+				},
+				// 售后数据
+				afterSaleList: [],
+				// 其他数据
+				trafficData: {},
+				employeeList: [],
+				storeList: [],
+				couponList: [],
+				promotionList: [],
+				userList: []
+			}
+		},
+		computed: {
+			// 根据是否为员工显示可见的导航项
+			visibleNavs() {
+				if (this.isEmployee) {
+					// 员工只能看到订单模块
+					return [{ name: '订单', icon: 'file-text' }];
 				}
+				// 商家可以看到所有模块
+				return this.mainNavs;
+			},
+			
+			// 根据是否为员工显示页面标题
+			pageTitle() {
+				if (this.isEmployee) {
+					return '员工工作台';
+				}
+				return '商家管理系统';
 			}
 		},
 		onLoad() {
-			// 检查token
+			console.log('商家端页面加载开始');
+			
+			// 检查token和用户类型
+			// 注意：员工登录后也使用merchantToken和merchant身份
 			const token = uni.getStorageSync('merchantToken');
+			const userType = uni.getStorageSync('merchantUserType');
+			const merchantInfoStr = uni.getStorageSync('merchantInfo');
+			
+			// 解析商家信息，判断是否为员工登录
+			let merchantInfo = null;
+			try {
+				merchantInfo = merchantInfoStr ? JSON.parse(merchantInfoStr) : null;
+			} catch (e) {
+				console.error('解析merchantInfo失败:', e);
+			}
+			
+			// 设置用户类型和员工标识
+			this.userType = userType || 'merchant';
+			this.isEmployee = merchantInfo?.isEmployee || false;
+			
+			console.log('商家登录状态检查:', {
+				token: token ? '已存在' : '不存在',
+				userType: this.userType,
+				isEmployee: this.isEmployee,
+				employeeName: merchantInfo?.employeeName || '',
+				note: this.isEmployee ? '员工使用merchant身份和权限' : '商家直接登录'
+			});
+			
 			if (!token) {
+				console.log('未找到商家token，跳转到登录页');
 				uni.showToast({
 					title: '请先登录',
 					icon: 'none'
@@ -296,6 +272,9 @@
 				return;
 			}
 			
+			console.log('商家登录状态正常，开始加载数据');
+			console.log('当前身份:', this.isEmployee ? `员工(${merchantInfo?.employeeName})使用merchant权限` : '商家');
+			
 			// 获取商家信息
 			this.getMerchantInfo();
 			
@@ -305,177 +284,581 @@
 			// 获取统计数据
 			this.getStatisticsData();
 		},
+		onShow() {
+			console.log('商家端页面显示');
+			// 如果缓存过期，重新获取数据
+			const now = Date.now();
+			const cacheExpired = (now - this.lastCacheTime) >= this.cacheExpireTime;
+			
+			if (cacheExpired && this.activeMainNav === 0) {
+				console.log('缓存已过期，重新获取订单数据');
+				this.getOrderList();
+			}
+		},
+		onHide() {
+			console.log('商家端页面隐藏');
+			// 这里可以选择是否清理缓存，目前选择保留以提高用户体验
+		},
+		onUnload() {
+			console.log('商家端页面卸载，清理缓存');
+			this.clearOrderCache();
+		},
 		methods: {
 			changeMainNav(index) {
 				this.activeMainNav = index;
 				if (index === 0) {
 					this.getOrderList();
-				} else if (index === 1) {
-					this.getStatisticsData();
 				}
 			},
 			
-			changeTab(index) {
-				this.activeTab = index;
-				this.pageInfo.page = 1;
-				this.orderList = [];
-				this.getOrderList();
+			changeTab(tab) {
+				this.currentTab = tab;
+				// 切换标签时使用缓存数据进行过滤，不需要重新请求
+				this.filterOrdersByTab();
+			},
+			
+			// 根据标签过滤订单
+			filterOrdersByTab() {
+				if (this.orderCache.size === 0) {
+					// 如果缓存为空，重新获取数据
+					this.getOrderList();
+					return;
+				}
+
+				const allOrders = Array.from(this.orderCache.values());
+				
+				if (this.currentTab === 'all') {
+					this.orderList = allOrders;
+				} else {
+					const statusMap = {
+						'confirmed': [2], // 已确认
+						'delivering': [3], // 配送中
+						'completed': [4] // 已完成
+					};
+					
+					const targetStatuses = statusMap[this.currentTab] || [];
+					this.orderList = allOrders.filter(order => 
+						targetStatuses.includes(order.status)
+					);
+				}
+
+				console.log(`标签切换到 ${this.currentTab}，显示 ${this.orderList.length} 个订单`);
 			},
 			
 			navigateToSubPage(type) {
-				// 目前只是提示，后续可以实现对应页面跳转
-				uni.showToast({
-					title: `即将开发${type === 'staff' ? '员工管理' : type === 'dish' ? '菜品管理' : '售后管理'}功能`,
-					icon: 'none'
-				});
+				switch (type) {
+					case 'staff':
+						uni.showToast({
+							title: '员工管理功能开发中',
+							icon: 'none'
+						});
+						break;
+					case 'dish':
+						uni.showToast({
+							title: '菜品管理功能开发中',
+							icon: 'none'
+						});
+						break;
+					case 'afterSale':
+						// 跳转到售后管理页面
+						this.showAfterSaleManagement();
+						break;
+					case 'settings':
+						uni.showToast({
+							title: '店铺设置功能开发中',
+							icon: 'none'
+						});
+						break;
+					case 'finance':
+						uni.showToast({
+							title: '财务管理功能开发中',
+							icon: 'none'
+						});
+						break;
+					default:
+						uni.showToast({
+							title: '功能开发中',
+							icon: 'none'
+						});
+				}
 			},
 			
-			async getOrderList() {
-				this.loading = true;
+			// 显示售后管理
+			async showAfterSaleManagement() {
 				try {
-					// 检查token
-					const token = uni.getStorageSync('merchantToken');
-					if (!token) {
-						uni.showToast({
-							title: '请先登录',
-							icon: 'none'
+					uni.showLoading({ title: '加载售后列表...' });
+					
+					// 获取售后列表
+					const afterSaleList = await this.getAfterSaleList();
+					
+					uni.hideLoading();
+					
+					if (afterSaleList && afterSaleList.length > 0) {
+						// 显示售后列表选择框
+						const itemList = afterSaleList.map(item => 
+							`订单${item.orderId} - ${this.getAfterSaleTypeText(item.type)} - ${this.getAfterSaleStatusText(item.status)}`
+						);
+						
+						uni.showActionSheet({
+							itemList: itemList,
+							success: (res) => {
+								const selectedItem = afterSaleList[res.tapIndex];
+								this.handleAfterSaleItem(selectedItem);
+							}
 						});
-						
-						setTimeout(() => {
-							uni.redirectTo({
-								url: '/pages/merchantLogin/merchantLogin'
-							});
-						}, 1500);
-						return;
-					}
-					
-					// 设置请求参数
-					const params = {
-						page: this.pageInfo.page,
-						pageNum: this.pageInfo.page, // 添加pageNum参数（有些API可能使用pageNum而不是page）
-						size: this.pageInfo.size,
-						pageSize: this.pageInfo.size // 添加pageSize参数
-					};
-					
-					// 添加状态过滤
-					const statusFilter = this.tabs[this.activeTab].status;
-					if (statusFilter !== null) {
-						params.status = statusFilter;
-					}
-					
-					// 调用API获取订单列表
-					try {
-						console.log('正在获取订单列表，参数:', params);
-						const res = await getOrderListApi(params);
-						console.log('订单列表响应:', res);
-						
-						if (res && (res.records || res.list)) {
-							// 处理成功的API响应
-							const orderList = res.records || res.list || [];
-							this.orderList = orderList.map(order => {
-								// 处理订单项数据结构以适配页面显示
-								return {
-									...order,
-									orderNumber: order.orderNumber || order.number,
-									orderTime: order.orderTime || order.createTime,
-									orderDetails: order.items || order.orderDetails || [],
-									amount: order.total || order.amount,
-									status: this.convertOrderStatus(order.status)
-								};
-							});
-							this.pageInfo.total = res.total || 0;
-						} else if (Array.isArray(res)) {
-							// 如果直接返回数组
-							this.orderList = res.map(order => {
-								return {
-									...order,
-									orderNumber: order.orderNumber || order.number,
-									orderTime: order.orderTime || order.createTime,
-									orderDetails: order.items || order.orderDetails || [],
-									amount: order.total || order.amount,
-									status: this.convertOrderStatus(order.status)
-								};
-							});
-							this.pageInfo.total = res.length;
-						} else {
-							// API调用成功但返回了意外格式
-							console.warn('获取订单列表返回格式异常', res);
-							uni.showToast({
-								title: '订单数据格式异常',
-								icon: 'none'
-							});
-							// 降级使用模拟数据
-							this.orderList = this.mockOrderData();
-						}
-					} catch (error) {
-						console.error('获取订单列表失败', error);
-						// 降级使用模拟数据
-						this.orderList = this.mockOrderData();
-						
+					} else {
 						uni.showToast({
-							title: '获取订单列表失败，使用本地数据',
+							title: '暂无售后申请',
 							icon: 'none'
 						});
 					}
-				} finally {
-					this.loading = false;
+				} catch (error) {
+					uni.hideLoading();
+					console.error('获取售后列表失败:', error);
+					uni.showToast({
+						title: '获取售后列表失败',
+						icon: 'none'
+					});
 				}
+			},
+			
+			// 获取售后列表
+			async getAfterSaleList() {
+				try {
+					const res = await getAfterSaleListApi();
+					console.log('售后列表响应:', res);
+					return res || [];
+				} catch (error) {
+					console.error('获取售后列表失败:', error);
+					return [];
+				}
+			},
+			
+			// 处理售后项目
+			handleAfterSaleItem(item) {
+				if (item.status === 'pending') {
+					// 待处理的售后申请，显示审批选项
+					uni.showModal({
+						title: '售后审批',
+						content: `订单${item.orderId}申请${this.getAfterSaleTypeText(item.type)}\n原因：${item.reason}\n描述：${item.content || '无'}`,
+						confirmText: '同意',
+						cancelText: '拒绝',
+						success: (res) => {
+							if (res.confirm) {
+								this.approveAfterSale(item);
+							} else if (res.cancel) {
+								this.rejectAfterSale(item);
+							}
+						}
+					});
+				} else {
+					// 已处理的售后申请，显示详情
+					uni.showModal({
+						title: '售后详情',
+						content: `订单${item.orderId}\n类型：${this.getAfterSaleTypeText(item.type)}\n状态：${this.getAfterSaleStatusText(item.status)}\n原因：${item.reason}\n描述：${item.content || '无'}`,
+						showCancel: false,
+						confirmText: '知道了'
+					});
+				}
+			},
+			
+			// 同意售后申请
+			async approveAfterSale(item) {
+				try {
+					uni.showLoading({ title: '处理中...' });
+					
+					const res = await approveAfterSaleApi({
+						requestId: item.id,
+						userId: item.userId
+					});
+					
+					uni.hideLoading();
+					
+					if (res) {
+						uni.showToast({
+							title: '已同意售后申请',
+							icon: 'success'
+						});
+					} else {
+						uni.showToast({
+							title: '处理失败，请重试',
+							icon: 'none'
+						});
+					}
+				} catch (error) {
+					uni.hideLoading();
+					console.error('同意售后申请失败:', error);
+					uni.showToast({
+						title: '处理失败，请重试',
+						icon: 'none'
+					});
+				}
+			},
+			
+			// 拒绝售后申请
+			async rejectAfterSale(item) {
+				try {
+					uni.showLoading({ title: '处理中...' });
+					
+					const res = await rejectAfterSaleApi({
+						requestId: item.id,
+						userId: item.userId
+					});
+					
+					uni.hideLoading();
+					
+					if (res) {
+						uni.showToast({
+							title: '已拒绝售后申请',
+							icon: 'success'
+						});
+					} else {
+						uni.showToast({
+							title: '处理失败，请重试',
+							icon: 'none'
+						});
+					}
+				} catch (error) {
+					uni.hideLoading();
+					console.error('拒绝售后申请失败:', error);
+					uni.showToast({
+						title: '处理失败，请重试',
+						icon: 'none'
+					});
+				}
+			},
+			
+			// 获取售后类型文本
+			getAfterSaleTypeText(type) {
+				switch (type) {
+					case 'refund': return '退款';
+					case 'replace': return '换货';
+					case 'other': return '其他';
+					default: return '未知';
+				}
+			},
+			
+			// 获取售后状态文本
+			getAfterSaleStatusText(status) {
+				switch (status) {
+					case 'pending': return '待处理';
+					case 'approved': return '已同意';
+					case 'rejected': return '已拒绝';
+					case 'completed': return '已完成';
+					default: return '未知状态';
+				}
+			},
+			
+			// 获取订单列表
+			async getOrderList() {
+				try {
+					uni.showLoading({
+						title: '加载订单中...'
+					});
+
+					// 检查缓存是否存在且未过期
+					const now = Date.now();
+					const cacheValid = this.orderCache.size > 0 && 
+						(now - this.lastCacheTime) < this.cacheExpireTime;
+
+					let allOrders = [];
+
+					if (cacheValid) {
+						console.log('使用缓存数据，缓存订单数量:', this.orderCache.size);
+						// 使用缓存数据
+						allOrders = Array.from(this.orderCache.values());
+					} else {
+						console.log('缓存无效或不存在，重新获取订单数据');
+						// 缓存无效或不存在，重新获取1-60号订单
+						allOrders = await this.fetchAndCacheOrders();
+					}
+
+					// 根据当前选中的状态过滤订单
+					if (this.currentTab === 'all') {
+						this.orderList = allOrders;
+					} else {
+						const statusMap = {
+							'confirmed': [2], // 已确认
+							'delivering': [3], // 配送中
+							'completed': [4] // 已完成
+						};
+						
+						const targetStatuses = statusMap[this.currentTab] || [];
+						this.orderList = allOrders.filter(order => 
+							targetStatuses.includes(order.status)
+						);
+					}
+
+					console.log(`当前显示 ${this.orderList.length} 个订单，缓存中共有 ${this.orderCache.size} 个订单`);
+
+				} catch (error) {
+					console.error('获取订单列表失败:', error);
+					uni.showToast({
+						title: '获取订单失败',
+						icon: 'error'
+					});
+					this.orderList = [];
+				} finally {
+					uni.hideLoading();
+				}
+			},
+			
+			// 获取并缓存1-60号订单
+			async fetchAndCacheOrders() {
+				console.log('开始获取1-60号订单并缓存');
+				
+				// 通过遍历订单ID 1-60来获取订单详情
+				const orderPromises = [];
+				for (let orderId = 1; orderId <= 60; orderId++) {
+					orderPromises.push(
+						getOrderDetailApi(orderId).then(order => ({
+							success: true,
+							data: order
+						})).catch(error => ({
+							success: false,
+							orderId: orderId,
+							error: error
+						}))
+					);
+				}
+
+				// 并发执行所有请求
+				const results = await Promise.allSettled(orderPromises);
+				
+				// 清空旧缓存
+				this.orderCache.clear();
+				
+				// 过滤出成功的订单并缓存
+				const successfulOrders = [];
+				results.forEach((result, index) => {
+					if (result.status === 'fulfilled' && result.value.success) {
+						const order = result.value.data;
+						// 确保订单有必要的字段
+						if (order && order.id) {
+							const processedOrder = {
+								id: order.id,
+								orderNumber: order.orderNumber || `ORDER-${order.id}`,
+								customerName: order.customerName || order.customer?.name || `用户${order.userId || '未知'}`,
+								totalAmount: order.total || 0,
+								status: this.mapOrderStatus(order.status),
+								statusText: this.getStatusText(order.status),
+								payStatus: order.payStatus || 'unpaid',
+								payStatusText: this.getPayStatusText(order.payStatus),
+								createTime: order.createTime || order.orderTime || new Date().toISOString(),
+								orderTime: order.orderTime || order.createTime || new Date().toISOString(),
+								items: order.items || [],
+								remark: order.remark || '',
+								userId: order.userId || 0,
+								merchantId: order.merchantId || 0
+							};
+							
+							// 缓存订单
+							this.orderCache.set(order.id, processedOrder);
+							successfulOrders.push(processedOrder);
+						}
+					}
+				});
+
+				// 更新缓存时间
+				this.lastCacheTime = Date.now();
+				
+				console.log(`成功缓存 ${successfulOrders.length} 个订单`);
+				return successfulOrders;
+			},
+
+			// 更新单个订单缓存
+			async updateOrderCache(orderId) {
+				try {
+					console.log('更新订单缓存:', orderId);
+					
+					// 重新获取订单详情
+					const order = await getOrderDetailApi(orderId);
+					
+					if (order && order.id) {
+						const processedOrder = {
+							id: order.id,
+							orderNumber: order.orderNumber || `ORDER-${order.id}`,
+							customerName: order.customerName || order.customer?.name || `用户${order.userId || '未知'}`,
+							totalAmount: order.total || 0,
+							status: this.mapOrderStatus(order.status),
+							statusText: this.getStatusText(order.status),
+							payStatus: order.payStatus || 'unpaid',
+							payStatusText: this.getPayStatusText(order.payStatus),
+							createTime: order.createTime || order.orderTime || new Date().toISOString(),
+							orderTime: order.orderTime || order.createTime || new Date().toISOString(),
+							items: order.items || [],
+							remark: order.remark || '',
+							userId: order.userId || 0,
+							merchantId: order.merchantId || 0
+						};
+						
+						// 更新缓存
+						this.orderCache.set(orderId, processedOrder);
+						
+						// 更新当前显示的订单列表
+						const index = this.orderList.findIndex(item => item.id === orderId);
+						if (index !== -1) {
+							this.orderList.splice(index, 1, processedOrder);
+						}
+						
+						console.log('订单缓存更新成功:', orderId);
+						return processedOrder;
+					}
+				} catch (error) {
+					console.error('更新订单缓存失败:', orderId, error);
+					return null;
+				}
+			},
+
+			// 清空订单缓存
+			clearOrderCache() {
+				this.orderCache.clear();
+				this.lastCacheTime = 0;
+				console.log('订单缓存已清空');
 			},
 			
 			// 获取统计数据
 			async getStatisticsData() {
 				try {
-					// 实际API调用
-					const params = {
-						type: 'day' // 获取今日数据
-					};
+					console.log('正在获取统计数据...');
+					
+					// 并发调用多个API获取统计数据
+					const promises = [
+						this.getSalesTotal(),
+						this.getSalesData(),
+						this.getTrafficData()
+					];
 					
 					try {
-						console.log('正在获取统计数据，参数:', params);
-						const res = await getStatisticsApi(params);
-						console.log('统计数据响应:', res);
+						const [salesTotal, salesData, trafficData] = await Promise.allSettled(promises);
 						
-						if (res) {
-							// 后端可能有不同的数据结构，尝试适配
-							// 今日订单总数
-							this.statistics.today.orderCount = res.orderCount || res.count || 0;
-							// 今日销售额
-							this.statistics.today.totalAmount = res.totalAmount || res.total || 0;
-							// 环比增长
-							this.statistics.today.compareYesterday = res.compareYesterday || 0;
-							
-							// 热销商品
-							if (res.topDish || (Array.isArray(res) && res.length > 0)) {
-								const topDish = res.topDish || res[0];
-								this.statistics.topDish.name = topDish.name || '';
-								this.statistics.topDish.count = topDish.count || topDish.sales || 0;
+						// 处理销售总额数据
+						if (salesTotal.status === 'fulfilled' && salesTotal.value) {
+							this.statistics.today.totalAmount = salesTotal.value || 0;
+						}
+						
+						// 处理销售数据
+						if (salesData.status === 'fulfilled' && salesData.value) {
+							const sales = salesData.value;
+							if (Array.isArray(sales) && sales.length > 0) {
+								// 计算今日订单数量
+								this.statistics.today.orderCount = sales.reduce((total, item) => total + (item.sales || 0), 0);
+								
+								// 获取热销商品
+								const topDish = sales.sort((a, b) => (b.sales || 0) - (a.sales || 0))[0];
+								if (topDish) {
+									this.statistics.topDish.name = topDish.name || '';
+									this.statistics.topDish.count = topDish.sales || 0;
+								}
 							}
 						}
+						
+						// 处理流量数据
+						if (trafficData.status === 'fulfilled' && trafficData.value) {
+							// 可以用流量数据计算环比增长等
+							this.statistics.today.compareYesterday = Math.floor(Math.random() * 20) - 10; // 临时模拟数据
+						}
+						
+						console.log('统计数据获取完成:', this.statistics);
 					} catch (error) {
-						console.error('获取统计数据失败', error);
-						// 保持使用默认数据
+						console.error('获取统计数据失败:', error);
+						// 使用默认数据
+						this.setDefaultStatistics();
 					}
 				} catch (e) {
-					console.error(e);
+					console.error('统计数据获取异常:', e);
+					this.setDefaultStatistics();
 				}
 			},
 			
-			// 转换订单状态
-			convertOrderStatus(status) {
-				// 将后端返回的状态转换为前端使用的状态码
-				if (typeof status === 'string') {
-					switch (status.toUpperCase()) {
-						case 'PENDING': return 1;
-						case 'UNCOMFIRMED': return 2;
-						case 'CONFIRMED': return 3;
-						case 'DELIVERING': return 4;
-						case 'COMPLETED': return 5;
-						case 'CANCELED': return 6;
-						default: return 0;
-					}
+			// 获取销售总额
+			async getSalesTotal() {
+				try {
+					const res = await getStatisticsApi({ type: 'today' });
+					console.log('销售总额响应:', res);
+					return res || 0;
+				} catch (error) {
+					console.error('获取销售总额失败:', error);
+					return 0;
 				}
-				// 如果已经是数字，直接返回
-				return status;
+			},
+			
+			// 获取销售数据
+			async getSalesData() {
+				try {
+					const res = await getSalesDataApi();
+					console.log('销售数据响应:', res);
+					return res || [];
+				} catch (error) {
+					console.error('获取销售数据失败:', error);
+					return [];
+				}
+			},
+			
+			// 获取流量数据
+			async getTrafficData() {
+				try {
+					const res = await getTrafficDataApi();
+					console.log('流量数据响应:', res);
+					return res || 0;
+				} catch (error) {
+					console.error('获取流量数据失败:', error);
+					return 0;
+				}
+			},
+			
+			// 设置默认统计数据
+			setDefaultStatistics() {
+				this.statistics = {
+					today: {
+						orderCount: 28,
+						totalAmount: 1580.50,
+						compareYesterday: 12.5
+					},
+					topDish: {
+						name: '宫保鸡丁',
+						count: 15
+					}
+				};
+			},
+			
+			// 映射订单状态
+			mapOrderStatus(status) {
+				// 将后端状态映射为数字状态，匹配后端OrderStatus枚举
+				const statusMap = {
+					'pending': 2, // pending映射为已确认
+					'confirmed': 2, // 已确认
+					'delivering': 3, // 配送中
+					'completed': 4 // 已完成
+				};
+				
+				if (typeof status === 'string') {
+					return statusMap[status.toLowerCase()] || 2;
+				}
+				
+				return status || 2;
+			},
+			
+			// 获取状态文本
+			getStatusText(status) {
+				const mappedStatus = this.mapOrderStatus(status);
+				const statusTexts = {
+					2: '已确认',
+					3: '配送中',
+					4: '已完成'
+				};
+				
+				return statusTexts[mappedStatus] || '已确认';
+			},
+			
+			// 将前端状态码转换为后端状态字符串
+			convertStatusToBackend(statusCode) {
+				switch (statusCode) {
+					case 3: return 'confirmed';
+					case 4: return 'delivering';
+					case 5: return 'completed';
+					default: return 'confirmed';
+				}
 			},
 			
 			mockOrderData() {
@@ -519,61 +902,13 @@
 				}
 			},
 			
-			getStatusText(status) {
-				switch (status) {
-					case 1: return '待付款';
-					case 2: return '待接单';
-					case 3: return '待配送';
-					case 4: return '配送中';
-					case 5: return '已完成';
-					case 6: return '已取消';
-					default: return '未知状态';
-				}
-			},
-			
 			getStatusClass(status) {
 				switch (status) {
-					case 1: return 'waiting-payment';
-					case 2: return 'waiting-accept';
-					case 3: return 'waiting-delivery';
-					case 4: return 'delivering';
-					case 5: return 'completed';
-					case 6: return 'cancelled';
+					case 2: return 'waiting-delivery';
+					case 3: return 'delivering';
+					case 4: return 'completed';
 					default: return '';
 				}
-			},
-			
-			// 接单
-			async acceptOrder(orderId) {
-				uni.showModal({
-					title: '确认接单',
-					content: '确定要接受该订单吗？',
-					success: async (res) => {
-						if (res.confirm) {
-							try {
-								console.log('接单：', orderId);
-								const response = await acceptOrderApi(orderId);
-								if (response) {
-									// 更新成功
-									this.updateOrderStatus(orderId, 3);
-									uni.showToast({
-										title: '接单成功',
-										icon: 'success'
-									});
-								}
-							} catch (error) {
-								console.error('接单失败', error);
-								uni.showToast({
-									title: '接单失败，请重试',
-									icon: 'none'
-								});
-								
-								// 开发阶段，出错也能演示
-								this.updateOrderStatus(orderId, 3);
-							}
-						}
-					}
-				});
 			},
 			
 			// 开始配送
@@ -584,25 +919,46 @@
 					success: async (res) => {
 						if (res.confirm) {
 							try {
-								console.log('开始配送：', orderId);
-								const response = await deliverOrderApi(orderId);
-								if (response) {
-									// 更新成功
-									this.updateOrderStatus(orderId, 4);
+								uni.showLoading({ title: '处理中...' });
+								console.log('开始配送：', orderId, '类型:', typeof orderId);
+								
+								// 确保orderId是数字类型
+								const orderIdNum = parseInt(orderId);
+								console.log('转换后的订单ID:', orderIdNum);
+								
+								// 调用配送API，只传递订单ID
+								const response = await deliverOrderApi(orderIdNum);
+								console.log('配送响应:', response);
+								
+								uni.hideLoading();
+								
+								if (response && (response.success || response.code === 200 || response.code === 0)) {
+									// 更新成功，重新获取订单详情并更新缓存
+									await this.updateOrderCache(orderIdNum);
 									uni.showToast({
 										title: '已开始配送',
 										icon: 'success'
 									});
+								} else {
+									throw new Error(response?.msg || '配送失败');
 								}
 							} catch (error) {
+								uni.hideLoading();
 								console.error('开始配送失败', error);
+								console.error('错误详情:', {
+									message: error.message,
+									response: error.response,
+									config: error.config
+								});
+								
 								uni.showToast({
-									title: '操作失败，请重试',
+									title: error.message || '操作失败，请重试',
 									icon: 'none'
 								});
 								
-								// 开发阶段，出错也能演示
-								this.updateOrderStatus(orderId, 4);
+								// 开发阶段，出错也能演示，但仍需更新缓存
+								this.updateOrderStatus(orderId, 3);
+								await this.updateOrderCache(orderId);
 							}
 						}
 					}
@@ -613,65 +969,50 @@
 			async completeOrder(orderId) {
 				uni.showModal({
 					title: '确认完成',
-					content: '确定该订单已完成配送吗？',
+					content: '确定该订单已完成吗？',
 					success: async (res) => {
 						if (res.confirm) {
 							try {
-								console.log('完成订单：', orderId);
-								const response = await completeOrderApi(orderId);
-								if (response) {
-									// 更新成功
-									this.updateOrderStatus(orderId, 5);
+								uni.showLoading({ title: '处理中...' });
+								console.log('完成订单：', orderId, '类型:', typeof orderId);
+								
+								// 确保orderId是数字类型
+								const orderIdNum = parseInt(orderId);
+								console.log('转换后的订单ID:', orderIdNum);
+								
+								// 调用完成订单API，只传递订单ID
+								const response = await completeOrderApi(orderIdNum);
+								console.log('完成订单响应:', response);
+								
+								uni.hideLoading();
+								
+								if (response && (response.success || response.code === 200 || response.code === 0)) {
+									// 更新成功，重新获取订单详情并更新缓存
+									await this.updateOrderCache(orderIdNum);
 									uni.showToast({
 										title: '订单已完成',
 										icon: 'success'
 									});
+								} else {
+									throw new Error(response?.msg || '完成订单失败');
 								}
 							} catch (error) {
+								uni.hideLoading();
 								console.error('完成订单失败', error);
+								console.error('错误详情:', {
+									message: error.message,
+									response: error.response,
+									config: error.config
+								});
+								
 								uni.showToast({
-									title: '操作失败，请重试',
+									title: error.message || '操作失败，请重试',
 									icon: 'none'
 								});
 								
-								// 开发阶段，出错也能演示
-								this.updateOrderStatus(orderId, 5);
-							}
-						}
-					}
-				});
-			},
-			
-			// 取消订单
-			async cancelOrder(orderId) {
-				uni.showModal({
-					title: '确认取消',
-					content: '确定要取消该订单吗？',
-					success: async (res) => {
-						if (res.confirm) {
-							try {
-								const data = { 
-									reason: '商家主动取消' 
-								};
-								console.log('取消订单：', orderId, data);
-								const response = await cancelOrderApi(orderId, data);
-								if (response) {
-									// 更新成功
-									this.updateOrderStatus(orderId, 6);
-									uni.showToast({
-										title: '订单已取消',
-										icon: 'success'
-									});
-								}
-							} catch (error) {
-								console.error('取消订单失败', error);
-								uni.showToast({
-									title: '操作失败，请重试',
-									icon: 'none'
-								});
-								
-								// 开发阶段，出错也能演示
-								this.updateOrderStatus(orderId, 6);
+								// 开发阶段，出错也能演示，但仍需更新缓存
+								this.updateOrderStatus(orderId, 4);
+								await this.updateOrderCache(orderId);
 							}
 						}
 					}
@@ -689,25 +1030,149 @@
 			// 获取商家信息
 			async getMerchantInfo() {
 				try {
+					console.log('正在获取商家信息...');
 					const res = await getMerchantInfoApi();
-					console.log('商家信息:', res);
+					console.log('商家信息响应:', res);
 					
 					if (res) {
 						this.merchantInfo = res;
-						// 存储商家信息到本地
-						uni.setStorageSync('merchantInfo', JSON.stringify(res));
+						// 更新本地存储
+						uni.setStorageSync('merchantInfo', res);
+						console.log('商家信息获取成功:', res);
 					}
 				} catch (error) {
-					console.error('获取商家信息失败', error);
-					// 尝试从本地存储获取
-					const merchantInfoStr = uni.getStorageSync('merchantInfo');
-					if (merchantInfoStr) {
-						try {
-							this.merchantInfo = JSON.parse(merchantInfoStr);
-						} catch (e) {
-							console.error('解析商家信息失败', e);
+					console.error('获取商家信息失败:', error);
+					// 不影响其他功能的使用
+				}
+			},
+			
+			// 格式化时间
+			formatTime(timeStr) {
+				if (!timeStr) return '未知时间';
+				
+				try {
+					let date;
+					
+					// 处理不同的时间格式
+					if (Array.isArray(timeStr)) {
+						// 如果是数组格式 [2025, 6, 7, 17, 56, 26]
+						// 注意：月份需要减1，因为JavaScript的月份是从0开始的
+						const [year, month, day, hour, minute, second] = timeStr;
+						date = new Date(year, month - 1, day, hour, minute, second || 0);
+					} else if (typeof timeStr === 'string') {
+						// 如果是ISO格式或标准格式
+						if (timeStr.includes('T') || timeStr.includes('-')) {
+							date = new Date(timeStr);
+						} else {
+							// 如果是时间戳字符串
+							date = new Date(parseInt(timeStr));
 						}
+					} else if (typeof timeStr === 'number') {
+						// 如果是时间戳数字
+						date = new Date(timeStr);
+					} else {
+						return '时间格式错误';
 					}
+					
+					// 检查日期是否有效
+					if (isNaN(date.getTime())) {
+						return '无效时间';
+					}
+					
+					const year = date.getFullYear();
+					const month = String(date.getMonth() + 1).padStart(2, '0');
+					const day = String(date.getDate()).padStart(2, '0');
+					const hours = String(date.getHours()).padStart(2, '0');
+					const minutes = String(date.getMinutes()).padStart(2, '0');
+					
+					return `${year}-${month}-${day} ${hours}:${minutes}`;
+				} catch (error) {
+					console.error('时间格式化失败:', error, '原始时间:', timeStr);
+					return String(timeStr);
+				}
+			},
+			
+			// 查看订单详情
+			async viewOrderDetail(orderId) {
+				console.log('查看订单详情:', orderId);
+				
+				// 点击查看详情时，先更新该订单的缓存
+				await this.updateOrderCache(orderId);
+				
+				uni.navigateTo({
+					url: `/pages/merchantOrderDetail/merchantOrderDetail?orderId=${orderId}`
+				});
+			},
+			
+			// 获取支付状态文本
+			getPayStatusText(payStatus) {
+				const statusTexts = {
+					'unpaid': '未支付',
+					'paid': '已支付',
+					'refunded': '已退款',
+					'refunding': '退款中'
+				};
+				
+				return statusTexts[payStatus] || '未知支付状态';
+			},
+			
+			// 获取支付状态样式类
+			getPayStatusClass(payStatus) {
+				switch (payStatus) {
+					case 'unpaid': return 'pay-unpaid';
+					case 'paid': return 'pay-paid';
+					case 'refunded': return 'pay-refunded';
+					case 'refunding': return 'pay-refunding';
+					default: return '';
+				}
+			},
+			
+			// 刷新订单缓存
+			async refreshOrderCache() {
+				console.log('手动刷新订单缓存');
+				
+				// 显示刷新提示
+				uni.showLoading({
+					title: '刷新中...'
+				});
+				
+				try {
+					// 清空缓存，强制重新获取
+					this.clearOrderCache();
+					await this.getOrderList();
+					
+					uni.showToast({
+						title: '刷新成功',
+						icon: 'success',
+						duration: 1500
+					});
+				} catch (error) {
+					console.error('刷新失败:', error);
+					uni.showToast({
+						title: '刷新失败',
+						icon: 'none',
+						duration: 1500
+					});
+				} finally {
+					uni.hideLoading();
+				}
+			},
+			
+			// 格式化缓存时间
+			formatCacheTime() {
+				if (this.lastCacheTime === 0) return '未更新';
+				
+				const now = Date.now();
+				const cacheAge = Math.floor((now - this.lastCacheTime) / 1000);
+				
+				if (cacheAge < 60) {
+					return `${cacheAge}秒前`;
+				} else if (cacheAge < 3600) {
+					return `${Math.floor(cacheAge / 60)}分钟前`;
+				} else if (cacheAge < 86400) {
+					return `${Math.floor(cacheAge / 3600)}小时前`;
+				} else {
+					return `${Math.floor(cacheAge / 86400)}天前`;
 				}
 			}
 		}
@@ -827,31 +1292,51 @@
 				color: #333;
 			}
 			
-			.order-status {
-				font-size: 26rpx;
+			.status-group {
+				display: flex;
+				align-items: center;
 				
-				&.waiting-payment {
-					color: #FF9800;
+				.order-status {
+					font-size: 26rpx;
+					
+					&.waiting-delivery {
+						color: #2196F3;
+					}
+					
+					&.delivering {
+						color: #FF5722;
+					}
+					
+					&.completed {
+						color: #4CAF50;
+					}
 				}
 				
-				&.waiting-accept {
-					color: #2196F3;
-				}
-				
-				&.waiting-delivery {
-					color: #2196F3;
-				}
-				
-				&.delivering {
-					color: #FF5722;
-				}
-				
-				&.completed {
-					color: #4CAF50;
-				}
-				
-				&.cancelled {
-					color: #9E9E9E;
+				.pay-status {
+					font-size: 24rpx;
+					padding: 4rpx 12rpx;
+					border-radius: 12rpx;
+					margin-left: 20rpx;
+					
+					&.pay-unpaid {
+						background-color: #FFF3E0;
+						color: #FF9800;
+					}
+					
+					&.pay-paid {
+						background-color: #E8F5E8;
+						color: #4CAF50;
+					}
+					
+					&.pay-refunded {
+						background-color: #FFEBEE;
+						color: #F44336;
+					}
+					
+					&.pay-refunding {
+						background-color: #F3E5F5;
+						color: #9C27B0;
+					}
 				}
 			}
 		}
@@ -865,16 +1350,40 @@
 				.dish-item {
 					display: flex;
 					justify-content: space-between;
+					align-items: center;
 					font-size: 28rpx;
-					margin-bottom: 10rpx;
-					color: #333;
+					margin-bottom: 15rpx;
+					padding: 10rpx 0;
+					border-bottom: 1rpx solid #f0f0f0;
+					
+					&:last-child {
+						border-bottom: none;
+					}
 					
 					.dish-name {
+						flex: 2;
+						color: #333;
+						font-weight: 500;
+					}
+					
+					.dish-flavor {
 						flex: 1;
+						color: #666;
+						font-size: 24rpx;
+						text-align: center;
 					}
 					
 					.dish-count {
 						color: #666;
+						min-width: 60rpx;
+						text-align: center;
+					}
+					
+					.dish-price {
+						color: #FF5722;
+						font-weight: bold;
+						min-width: 80rpx;
+						text-align: right;
 					}
 				}
 			}
@@ -915,6 +1424,12 @@
 				border-radius: 30rpx;
 				font-size: 26rpx;
 				margin-left: 20rpx;
+				
+				&.detail {
+					border: 2rpx solid #FF8C00;
+					color: #FF8C00;
+					background-color: #fff;
+				}
 				
 				&.accept {
 					background-color: #2196F3;
@@ -1140,6 +1655,52 @@
 				font-size: 24rpx;
 				color: #999;
 			}
+		}
+	}
+	
+	/* 添加刷新按钮样式 */
+	.refresh-btn {
+		padding: 15rpx 25rpx;
+		border-radius: 30rpx;
+		font-size: 24rpx;
+		margin-left: auto;
+		border: 2rpx solid #FF8C00;
+		color: #FF8C00;
+		background-color: #fff;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 120rpx;
+		transition: all 0.3s ease;
+		
+		&:active {
+			background-color: #FF8C00;
+			color: #fff;
+			transform: scale(0.95);
+		}
+		
+		.refresh-icon {
+			margin-right: 8rpx;
+			font-size: 28rpx;
+		}
+		
+		.refresh-text {
+			font-size: 24rpx;
+		}
+	}
+	
+	/* 添加缓存状态提示样式 */
+	.cache-status {
+		padding: 15rpx 20rpx;
+		background-color: #f8f9fa;
+		border-left: 4rpx solid #FF8C00;
+		margin: 0 20rpx 20rpx 20rpx;
+		border-radius: 8rpx;
+		
+		.cache-info {
+			font-size: 24rpx;
+			color: #666;
+			line-height: 1.4;
 		}
 	}
 </style> 

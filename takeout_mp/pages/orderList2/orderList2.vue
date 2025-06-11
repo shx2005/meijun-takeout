@@ -2,7 +2,7 @@
 	<view class="order-list-container">
 		<scroll-view scroll-y="true" class="order-list-scroll" :style="{height: scrollHeight + 'px'}" @scrolltolower="onScrollToLower" refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
 	<view class="order-list">
-				<u-empty v-if="orders.length === 0" mode="order" icon="http://cdn.uviewui.com/uview/empty/order.png" text="暂无订单"></u-empty>
+				<u-empty v-if="orders.length === 0" mode="order" text="暂无订单"></u-empty>
 		<view v-for="order in orders" :key="order.id" class="order-card">
 			<view class="order-header">
 				<text class="order-id">订单号：{{ order.id }}</text>
@@ -242,7 +242,10 @@
 							let orderTime = '';
 							if (order.createTime && Array.isArray(order.createTime)) {
 								const [year, month, day, hour, minute, second] = order.createTime;
-								orderTime = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}`;
+								// 添加安全检查，确保所有值都存在
+								if (year && month && day && hour !== undefined && minute !== undefined) {
+									orderTime = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second || 0).padStart(2, '0')}`;
+								}
 							}
 							
 							// 格式化状态
@@ -260,7 +263,7 @@
 								id: order.id,
 								orderTime: orderTime || order.orderTime || '',
 								status: status,
-								totalAmount: order.total * 100 || 0, // 转换为分
+								totalAmount: (order.total || 0) * 100, // 转换为分，添加默认值
 								items: order.items || [] // 可能需要根据实际数据结构调整
 							};
 						});
@@ -316,7 +319,7 @@
 			getStatusClass(status) {
 				switch (status) {
 					case 1: return 'status-pending';
-					case 2: return 'status-shipping';
+					case 2: return 'status-delivering';
 					case 3: return 'status-delivered';
 					case 4: return 'status-completed';
 					case 5: return 'status-cancelled';
@@ -426,7 +429,7 @@
 		color: #ff9900;
 	}
 	
-	.status-shipping {
+	.status-delivering {
 		color: #007aff;
 	}
 	

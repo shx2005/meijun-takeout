@@ -202,6 +202,20 @@
 			}
 		},
 		{
+			"path": "pages/merchantOrderDetail/merchantOrderDetail",
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/merchantOrderOverview/merchantOrderOverview",
+			"style": {
+				"navigationBarTitleText": "订单概览",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
 			"path": "pages/couponSelect/couponSelect",
 			"style": {
 				"navigationBarTitleText": "选择优惠券",

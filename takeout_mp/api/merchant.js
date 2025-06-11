@@ -67,9 +67,27 @@ export const updateMerchantInfoApi = (data) => {
  * @returns {Promise}
  */
 export const getOrderListApi = (params) => {
+  // 使用商家专用的订单查询接口
   return merchantRequest.get({
     url: '/api/v1/orders/page',
-    data: params
+    data: {
+      pageNum: params.page || params.pageNum || 1,
+      pageSize: params.size || params.pageSize || 10,
+      status: params.status,
+      beginTime: params.beginTime,
+      endTime: params.endTime
+    }
+  });
+};
+
+/**
+ * 获取商家特定订单详情
+ * @param {string} orderId - 订单ID
+ * @returns {Promise}
+ */
+export const getMerchantOrderDetailApi = (orderId) => {
+  return merchantRequest.get({
+    url: `/api/v1/merchants/${orderId}`
   });
 };
 
@@ -85,15 +103,25 @@ export const getOrderDetailApi = (orderId) => {
 };
 
 /**
+ * 修改订单状态（通用方法）
+ * @param {string} orderId - 订单ID
+ * @param {number} status - 新状态
+ * @returns {Promise}
+ */
+export const updateOrderStatusApi = (orderId, status) => {
+  return merchantRequest.put({
+    url: `/api/v1/merchants/orders/${orderId}/status`,
+    data: { status: status }
+  });
+};
+
+/**
  * 接受订单
  * @param {string} orderId - 订单ID
  * @returns {Promise}
  */
 export const acceptOrderApi = (orderId) => {
-  return merchantRequest.put({
-    url: `/api/v1/merchants/orders/${orderId}/status`,
-    data: { status: 3 }
-  });
+  return updateOrderStatusApi(orderId, 3); // 状态3表示已确认
 };
 
 /**
@@ -105,31 +133,31 @@ export const acceptOrderApi = (orderId) => {
 export const rejectOrderApi = (orderId, data) => {
   return merchantRequest.put({
     url: `/api/v1/merchants/orders/${orderId}/status`,
-    data: { status: 6, ...data }
+    data: { status: 6, reason: data.reason || '商家拒绝' }
   });
 };
 
 /**
  * 开始配送订单
- * @param {string} orderId - 订单ID
+ * @param {string|number} orderId - 订单ID
  * @returns {Promise}
  */
 export const deliverOrderApi = (orderId) => {
+  console.log('调用配送API，订单ID:', orderId, '状态: 3');
   return merchantRequest.put({
-    url: `/api/v1/merchants/orders/${orderId}/status`,
-    data: { status: 4 }
+    url: `/api/v1/merchants/orders/${orderId}/status?status=3`
   });
 };
 
 /**
  * 完成订单
- * @param {string} orderId - 订单ID
+ * @param {string|number} orderId - 订单ID
  * @returns {Promise}
  */
 export const completeOrderApi = (orderId) => {
+  console.log('调用完成订单API，订单ID:', orderId, '状态: 4');
   return merchantRequest.put({
-    url: `/api/v1/merchants/orders/${orderId}/status`,
-    data: { status: 5 }
+    url: `/api/v1/merchants/orders/${orderId}/status?status=4`
   });
 };
 
@@ -142,7 +170,7 @@ export const completeOrderApi = (orderId) => {
 export const cancelOrderApi = (orderId, data) => {
   return merchantRequest.put({
     url: `/api/v1/merchants/orders/${orderId}/status`,
-    data: { status: 6, ...data }
+    data: { status: 6, reason: data.reason || '商家取消' }
   });
 };
 
@@ -275,13 +303,236 @@ export const deleteEmployeeApi = (employeeId) => {
  * @returns {Promise}
  */
 export const getStatisticsApi = (params) => {
-  if (params.type === 'day') {
+  if (params && params.type === 'day') {
     return merchantRequest.get({
-      url: '/api/v1/admin/sales/total'
+      url: '/api/v1/merchants/sales/total',
+      data: params
     });
   } else {
     return merchantRequest.get({
-      url: '/api/v1/admin/sales'
+      url: '/api/v1/merchants/sales',
+      data: params
     });
   }
+};
+
+/**
+ * 获取销售数据
+ * @returns {Promise}
+ */
+export const getSalesDataApi = () => {
+  return merchantRequest.get({
+    url: '/api/v1/merchants/sales'
+  });
+};
+
+/**
+ * 获取流量数据
+ * @returns {Promise}
+ */
+export const getTrafficDataApi = () => {
+  return merchantRequest.get({
+    url: '/api/v1/merchants/traffic'
+  });
+};
+
+/**
+ * 获取售后列表
+ * @returns {Promise}
+ */
+export const getAfterSaleListApi = () => {
+  return merchantRequest.get({
+    url: '/api/v1/merchants/after-sale'
+  });
+};
+
+/**
+ * 审批售后申请
+ * @param {Object} data - 审批数据
+ * @param {number} data.requestId - 售后请求ID
+ * @param {number} data.userId - 用户ID
+ * @returns {Promise}
+ */
+export const approveAfterSaleApi = (data) => {
+  return merchantRequest.post({
+    url: '/api/v1/merchants/after-sale/approve',
+    data: data
+  });
+};
+
+/**
+ * 拒绝售后申请
+ * @param {Object} data - 拒绝数据
+ * @param {number} data.requestId - 售后请求ID
+ * @param {number} data.userId - 用户ID
+ * @returns {Promise}
+ */
+export const rejectAfterSaleApi = (data) => {
+  return merchantRequest.post({
+    url: '/api/v1/merchants/after-sale/reject',
+    data: data
+  });
+};
+
+/**
+ * 获取所有用户
+ * @returns {Promise}
+ */
+export const getAllUsersApi = () => {
+  return merchantRequest.get({
+    url: '/api/v1/merchants/users'
+  });
+};
+
+/**
+ * 搜索用户
+ * @param {Object} params - 搜索参数
+ * @param {string} params.name - 用户名
+ * @param {number} params.id - 用户ID
+ * @returns {Promise}
+ */
+export const searchUsersApi = (params) => {
+  return merchantRequest.get({
+    url: '/api/v1/merchants/users/search',
+    data: params
+  });
+};
+
+/**
+ * 获取门店列表
+ * @returns {Promise}
+ */
+export const getStoresApi = () => {
+  return merchantRequest.get({
+    url: '/api/v1/merchants/stores'
+  });
+};
+
+/**
+ * 修改门店信息
+ * @param {string} storeId - 门店ID
+ * @param {Object} data - 门店数据
+ * @returns {Promise}
+ */
+export const updateStoreApi = (storeId, data) => {
+  return merchantRequest.put({
+    url: `/api/v1/merchants/stores/${storeId}`,
+    data: data
+  });
+};
+
+/**
+ * 获取优惠券列表
+ * @returns {Promise}
+ */
+export const getCouponsApi = () => {
+  return merchantRequest.get({
+    url: '/api/v1/merchants/coupons'
+  });
+};
+
+/**
+ * 添加优惠券
+ * @param {Object} data - 优惠券数据
+ * @returns {Promise}
+ */
+export const addCouponApi = (data) => {
+  return merchantRequest.post({
+    url: '/api/v1/merchants/coupons',
+    data: data
+  });
+};
+
+/**
+ * 修改优惠券
+ * @param {string} couponId - 优惠券ID
+ * @param {Object} data - 优惠券数据
+ * @returns {Promise}
+ */
+export const updateCouponApi = (couponId, data) => {
+  return merchantRequest.put({
+    url: `/api/v1/merchants/coupons/${couponId}`,
+    data: data
+  });
+};
+
+/**
+ * 删除优惠券
+ * @param {string} couponId - 优惠券ID
+ * @returns {Promise}
+ */
+export const deleteCouponApi = (couponId) => {
+  return merchantRequest.delete({
+    url: `/api/v1/merchants/coupons/${couponId}`
+  });
+};
+
+/**
+ * 发放优惠券
+ * @param {Object} data - 发放数据
+ * @returns {Promise}
+ */
+export const distributeCouponApi = (data) => {
+  return merchantRequest.post({
+    url: '/api/v1/merchants/coupons/distribute',
+    data: data
+  });
+};
+
+/**
+ * 获取促销活动列表
+ * @returns {Promise}
+ */
+export const getPromotionsApi = () => {
+  return merchantRequest.get({
+    url: '/api/v1/merchants/promotions'
+  });
+};
+
+/**
+ * 添加促销活动
+ * @param {Object} data - 促销活动数据
+ * @returns {Promise}
+ */
+export const addPromotionApi = (data) => {
+  return merchantRequest.post({
+    url: '/api/v1/merchants/promotions',
+    data: data
+  });
+};
+
+/**
+ * 修改促销活动
+ * @param {string} promotionId - 促销活动ID
+ * @param {Object} data - 促销活动数据
+ * @returns {Promise}
+ */
+export const updatePromotionApi = (promotionId, data) => {
+  return merchantRequest.put({
+    url: `/api/v1/merchants/promotions/${promotionId}`,
+    data: data
+  });
+};
+
+/**
+ * 删除促销活动
+ * @param {string} promotionId - 促销活动ID
+ * @returns {Promise}
+ */
+export const deletePromotionApi = (promotionId) => {
+  return merchantRequest.delete({
+    url: `/api/v1/merchants/promotions/${promotionId}`
+  });
+};
+
+/**
+ * 获取员工分页数据
+ * @param {Object} params - 查询参数
+ * @returns {Promise}
+ */
+export const getEmployeePageApi = (params) => {
+  return merchantRequest.get({
+    url: '/api/v1/merchants/staff/page',
+    data: params
+  });
 }; 

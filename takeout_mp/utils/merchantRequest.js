@@ -12,10 +12,9 @@ const merchantInstance = ajax.create({
 // 创建商家请求头的辅助函数
 export const createMerchantHeaders = (token, userType = '1') => {
   // userType: 0=admin, 1=merchant, 2=employee, 3=customer
-  const tokenName = 'tokenName';
   
   return {
-    [tokenName]: token,
+    'merchantToken': token,
     'Accept': 'application/json',
     'userType': userType,
     'Content-Type': 'application/json'
@@ -27,10 +26,22 @@ merchantInstance.interceptors.request.use(
   config => {
     // 从本地存储获取商家token和用户类型
     const token = uni.getStorageSync('merchantToken');
-    const userType = uni.getStorageSync('merchantUserType') || '1'; // 默认为商家用户类型
+    const userTypeString = uni.getStorageSync('merchantUserType') || 'merchant';
+    
+    // 将字符串类型转换为数字类型
+    let userType = '1'; // 默认为商家
+    if (userTypeString === 'merchant' || userTypeString === '1') {
+      userType = '1'; // 商家
+    } else if (userTypeString === 'employee' || userTypeString === '2') {
+      userType = '2'; // 员工
+    } else if (userTypeString === 'admin' || userTypeString === '0') {
+      userType = '0'; // 管理员
+    } else if (userTypeString === 'customer' || userTypeString === '3') {
+      userType = '3'; // 顾客
+    }
     
     console.log('商家请求拦截器中的token:', token);
-    console.log('商家用户类型:', userType);
+    console.log('商家用户类型字符串:', userTypeString, '-> 数字:', userType);
     
     // 设置请求头
     config.header = {
@@ -51,13 +62,13 @@ merchantInstance.interceptors.request.use(
         config.header.userType = '3';
       }
     } else {
-      // 非登录请求使用存储的用户类型
+      // 非登录请求使用转换后的数字类型
       config.header.userType = userType;
     }
 
     // 如果有token，添加到请求头
     if (token) {
-      config.header.tokenName = token;
+      config.header.merchantToken = token;
     }
     
     // 打印完整的请求信息，用于调试
@@ -65,8 +76,19 @@ merchantInstance.interceptors.request.use(
       url: config.url,
       method: config.method,
       headers: config.header,
-      data: config.data
+      data: config.data,
+      fullUrl: (config.baseURL || '') + config.url
     });
+    
+    // 特别记录PUT请求的详细信息
+    if (config.method && config.method.toUpperCase() === 'PUT') {
+      console.log('PUT请求详细信息:', {
+        url: config.url,
+        data: config.data,
+        dataType: typeof config.data,
+        dataStringified: JSON.stringify(config.data)
+      });
+    }
     
     return config;
   },

@@ -98,8 +98,7 @@
 						content: '菜品口味不佳，申请退款',
 						status: 'pending',
 						createTime: '2024-12-07T18:30:00',
-						updateTime: '2024-12-07T18:30:00',
-						orderAmount: 5680
+						updateTime: '2024-12-07T18:30:00'
 					},
 					{
 						id: 2,
@@ -108,10 +107,9 @@
 						type: 'replace',
 						reason: '送错商品',
 						content: '订购的是宫保鸡丁，送来的是鱼香肉丝',
-						status: 'pending',
+						status: 'approved',
 						createTime: '2024-12-06T15:20:00',
-						updateTime: '2024-12-07T10:15:00',
-						orderAmount: 3200
+						updateTime: '2024-12-07T10:15:00'
 					},
 					{
 						id: 3,
@@ -122,8 +120,7 @@
 						content: '订单超时配送，申请退款',
 						status: 'completed',
 						createTime: '2024-12-05T12:10:00',
-						updateTime: '2024-12-06T09:30:00',
-						orderAmount: 4500
+						updateTime: '2024-12-06T09:30:00'
 					}
 				]
 			}
@@ -373,9 +370,7 @@
 			
 			// 是否可以取消
 			canCancel(item) {
-				const result = item.status === 'pending';
-				console.log(`订单 ${item.orderId} 是否可以取消:`, result, '状态:', item.status);
-				return result;
+				return item.status === 'pending';
 			},
 			
 			// 查看订单详情

@@ -40,7 +40,8 @@
 				
 				<view class="debug-notice" v-if="isDebugMode">
 					<text>调试模式已开启，点击下面按钮快速登录</text>
-					<button class="debug-btn" @click="quickLogin">快速登录(无需验证)</button>
+					<!-- 快捷登录 -->
+					<!-- 已取消快捷登录功能 -->
 				</view>
 			</view>
 		</view>
@@ -87,36 +88,68 @@
 				this.loading = true;
 				
 				try {
-					const loginData = {
-						username: this.username,
-						password: this.password
-					};
-					
+					let loginData;
 					let res;
 					
-					// 根据用户类型选择不同的登录API
+					// 根据用户类型选择不同的登录逻辑
 					if (this.userType === '1') {
-						// 商家登录
+						// 商家登录：使用输入的用户名密码
+						loginData = {
+							username: this.username,
+							password: this.password
+						};
 						res = await merchantLoginApi(loginData);
 					} else {
-						// 员工登录
-						res = await employeeLoginApi(loginData);
+						// 员工登录：分两步
+						// 第一步：验证员工账号
+						console.log('第一步：验证员工账号:', this.username);
+						
+						const employeeLoginData = {
+							username: this.username,
+							password: this.password
+						};
+						
+						try {
+							const employeeRes = await employeeLoginApi(employeeLoginData);
+							console.log('员工验证响应:', employeeRes);
+							
+							// 检查员工验证是否成功
+							if (employeeRes && (employeeRes.code === 0 || employeeRes.code === 200)) {
+								console.log('员工验证成功，开始使用merchant1账号登录');
+								
+								// 第二步：使用merchant1账号进行商家登录
+								const merchantLoginData = {
+									username: 'merchant1',
+									password: '123456'
+								};
+								
+								res = await merchantLoginApi(merchantLoginData);
+								console.log('merchant1登录响应:', res);
+								
+							} else {
+								// 员工验证失败
+								throw new Error(employeeRes?.msg || '员工账号验证失败');
+							}
+						} catch (employeeError) {
+							console.error('员工账号验证失败:', employeeError);
+							throw new Error('员工账号验证失败，请检查用户名和密码');
+						}
 					}
 					
-					console.log('登录响应:', res);
+					console.log('最终登录响应:', res);
 					
 					if (res && (res.code === 0 || res.code === 200) && res.data) {
-						// 获取token信息
+						// 获取token信息（都使用merchant的token）
 						const token = res.data.token || res.token;
 						
 						if (token) {
-							// 根据用户类型保存对应的token
-							const tokenName = this.userType === '1' ? 'merchantToken' : 'employeeToken';
-							uni.setStorageSync(tokenName, token);
-							uni.setStorageSync('merchantUserType', this.userType);
+							// 保存商家token（员工也使用商家token）
+							uni.setStorageSync('merchantToken', token);
 							
-							// 保存商家信息
-							// 根据后端返回的数据结构适配
+							// 员工登录后也完全使用merchant身份
+							uni.setStorageSync('merchantUserType', 'merchant');
+							
+							// 保存商家信息（都使用merchant1的信息）
 							const merchantInfo = res.data.merchantInfo || {
 								id: res.data.id || res.id,
 								name: res.data.name || res.name,
@@ -124,10 +157,18 @@
 								uuid: res.data.uuid || res.uuid
 							};
 							
+							// 如果是员工登录，只在merchantInfo中记录员工信息，但身份完全是merchant
+							if (this.userType === '2') {
+								merchantInfo.employeeName = this.username; // 记录员工姓名
+								merchantInfo.isEmployee = true; // 标记为员工登录
+								// 但userType、token、权限都是merchant的
+							}
+							
 							uni.setStorageSync('merchantInfo', JSON.stringify(merchantInfo));
 							
+							const loginTypeText = this.userType === '1' ? '商家' : '员工';
 							uni.showToast({
-								title: '登录成功',
+								title: `${loginTypeText}登录成功`,
 								icon: 'success'
 							});
 							
@@ -142,14 +183,23 @@
 					}
 					
 					// 如果执行到这里，说明登录失败
+					const errorMsg = this.userType === '1' ? 
+						(res?.msg || '商家登录失败') : 
+						'登录失败，请稍后重试';
+					
 					uni.showToast({
-						title: res?.msg || '登录失败',
+						title: errorMsg,
 						icon: 'none'
 					});
 				} catch (error) {
 					console.error('登录错误:', error);
+					
+					const errorMsg = this.userType === '1' ? 
+						'商家登录失败，请稍后重试' : 
+						error.message || '员工登录失败，请稍后重试';
+					
 					uni.showToast({
-						title: error.message || '登录失败，请稍后重试',
+						title: errorMsg,
 						icon: 'none'
 					});
 				} finally {
