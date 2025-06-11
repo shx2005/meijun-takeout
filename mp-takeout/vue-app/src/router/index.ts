@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Login from '../views/Login.vue';
-import Dashboard from '../views/Dashboard.vue'; // 可以自行创建
+import DashboardAdm from '../views/Dashboard-adm.vue'; // 可以自行创建
 
 const routes = [
   { path: '/login', component: Login },
-  { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } }
+  { path: '/adm-dashboard', component: DashboardAdm, meta: { requiresAuth: true } }
 ];
 
 const router = createRouter({

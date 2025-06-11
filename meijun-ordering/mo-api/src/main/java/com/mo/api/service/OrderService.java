@@ -40,5 +40,7 @@ public interface OrderService {
      */
     List<Order> getPage(int offset, int size);
 
+    void refund(Long orderId);
+
     void cancelOrder(Long orderId);
 }

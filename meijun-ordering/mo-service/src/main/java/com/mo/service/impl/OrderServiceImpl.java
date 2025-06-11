@@ -38,6 +38,8 @@ public class OrderServiceImpl implements OrderService {
     private CartItemMapper cartItemMapper;
     @Autowired
     private PaymentService paymentService;
+    @Autowired
+    private CustomerMapper customerMapper;
 
     @Override
     public List<Order> getAll() {
@@ -153,6 +155,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public void refund(Long orderId){
+        Order order = orderMapper.getOrderById(orderId);
+        Long userId = order.getUserId();
+        BigDecimal total = order.getTotal();
+
+        Customer customer = customerMapper.getCustomerById(userId);
+        customer.setBalance(customer.getBalance().add(total));
+        customerMapper.updateCustomer(customer);
+    }
+
+    @Override
     public void cancelOrder(Long orderId){
         Order order = orderMapper.getOrderById(orderId);
 
@@ -172,7 +185,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         if(order.getStatus().equals(OrderStatus.unconfirmed) || order.getStatus().equals(OrderStatus.pending)){
-            paymentService.refund(orderId);
+            refund(orderId);
             newOrder.setPayStatus(OrderPayStaus.refund);
         }
 

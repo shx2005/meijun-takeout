@@ -11,7 +11,7 @@ import { ElContainer, ElHeader, ElMain, ElAside, ElMenu, ElMenuItem } from 'elem
       <h2 style="margin: 0;">MeiJun 外卖系统</h2>
       <div>
         <el-menu
-          default-active="/dashboard"
+          default-active="/login"
           mode="horizontal"
           background-color="#409EFF"
           text-color="white"

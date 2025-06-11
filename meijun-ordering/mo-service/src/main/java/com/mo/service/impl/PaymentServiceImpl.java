@@ -27,8 +27,6 @@ public class PaymentServiceImpl implements PaymentService {
     private CustomerMapper customerMapper;
     @Autowired
     private OrderMapper orderMapper;
-    @Autowired
-    private OrderService orderService;
 
     @Override
     public BalanceVO pay(BalanceDTO dto) {
@@ -88,7 +86,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public void refund(Long orderId){
-        Order order = orderService.getOrderById(orderId);
+        Order order = orderMapper.getOrderById(orderId);
         Long userId = order.getUserId();
         BigDecimal total = order.getTotal();
 

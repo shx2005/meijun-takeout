@@ -77,11 +77,11 @@ const handleLogin = async () => {
     const { token, uuid } = res.data;
     // 根据身份跳转到不同的页面
     if (form.value.role === 'admin') {
-      router.push('/admin');
+      router.push('/adm-dashboard');
     } else if (form.value.role === 'merchant') {
-      router.push('/merchant');
+      router.push('/mer-dashboard');
     } else if (form.value.role === 'employee') {
-      router.push('/employee');
+      router.push('/emp-dashboard');
     }
     localStorage.setItem('uuid', uuid);
     localStorage.setItem('token', token);

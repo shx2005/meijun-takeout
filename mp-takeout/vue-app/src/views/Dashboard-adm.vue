@@ -2,7 +2,7 @@
 import {defineComponent} from 'vue'
 
 export default defineComponent({
-  name: "Dashboard"
+  name: "DashboardAdm"
 })
 </script>
 
@@ -57,7 +57,7 @@ export default defineComponent({
           <el-col :span="8">
             <el-card>
               <div>销售总额</div>
-              <div style="font-size: 2em; color: #409EFF;">￥{{ salesTotal }}</div>
+              <div style="font-size: 2em; color: #409EFF;">${{ salesTotal }}</div>
             </el-card>
           </el-col>
           <el-col :span="8">
