@@ -217,10 +217,10 @@ export default {
 				},
 				servicePopupShow: false,
 				serviceInfo: {
-					phone: '10086',
-					serviceTime: '周一至周日 9:00-18:00',
-					email: 'service@example.com',
-					description: '我们的客服团队随时为您服务，解答您的疑问和问题。'
+					phone: '400-123-4567',
+					serviceTime: '9:00-18:00',
+					email: 'service@meijun.com',
+					description: '我们的客服团队随时为您服务，解答您的疑问和问题。如有任何问题，请随时联系我们。'
 				}
 			}
 		},
@@ -307,14 +307,14 @@ export default {
 						// 格式化金额，后端以元为单位，转换为分
 						const amount = orderData.total ? Math.round(orderData.total * 100) : 0;
 						
-						// 获取订单详情中的菜品信息
-						const orderDetails = await this.getOrderItemsWithDishInfo(this.orderId);
+						// 解析订单详情中的菜品信息
+						const orderDetails = this.parseOrderItems(orderData.items || []);
 						
 						// 构建订单详情数据结构
 						this.orderDetail = {
 							id: orderData.id || '',
 							status: status,
-							orderTime: this.formatDateFromArray(orderData.createTime) || '',
+							orderTime: this.formatDateFromArray(orderData.createTime || orderData.orderTime) || '',
 							payMethod: this.getPayMethodFromStatus(orderData.payStatus),
 							amount: amount,
 							totalAmount: amount,
@@ -375,7 +375,33 @@ export default {
 				}
 			},
 			
-			// 获取订单详情中的菜品信息
+			// 解析订单详情中的菜品信息
+			parseOrderItems(items) {
+				if (!items || !Array.isArray(items) || items.length === 0) {
+					console.log('订单中没有菜品信息，使用默认数据');
+					return this.getDefaultOrderItems(11400);
+				}
+				
+				console.log('解析订单菜品信息:', items);
+				
+				return items.map(item => {
+					// 处理菜品信息
+					const dishInfo = {
+						id: item.id || item.itemId || 0,
+						name: item.name || '未知菜品',
+						image: item.image || '/static/images/noImg.png',
+						dishFlavor: item.dishFlavor || '',
+						number: item.quantity || 1,
+						// 优先使用total字段，如果没有则使用unit字段，都转换为分
+						amount: item.total ? Math.round(item.total * 100) : (item.unit ? Math.round(item.unit * 100) : 0)
+					};
+					
+					console.log('解析的菜品信息:', dishInfo);
+					return dishInfo;
+				});
+			},
+			
+			// 获取订单详情中的菜品信息（保留作为备用方法）
 			async getOrderItemsWithDishInfo(orderId) {
 				try {
 					const token = uni.getStorageSync('token');
@@ -383,8 +409,8 @@ export default {
 						return this.getDefaultOrderItems(11400);
 					}
 					
-					// 由于后端API的items字段为null，我们需要根据数据库中的实际数据来构建菜品列表
-					// 这里我们根据已知的订单ID=1的数据来构建菜品列表
+					// 由于后端API现在已经返回items数组，这个方法主要作为备用
+					// 如果主方法失败，可以使用这个方法
 					if (orderId == 1) {
 						// 根据数据库查询结果，订单1包含以下菜品：
 						// dish_id=1, quantity=2, price=28.00
@@ -442,21 +468,21 @@ export default {
 				const dishMap = {
 					1: {
 						name: '鱼香肉丝',
-						image: '/static/images/dish1.jpg'
+						image: '/static/images/demo1.png'
 					},
 					2: {
 						name: '宫保鸡丁',
-						image: '/static/images/dish2.jpg'
+						image: '/static/images/demo2.png'
 					},
 					3: {
 						name: '红烧排骨',
-						image: '/static/images/dish3.jpg'
+						image: '/static/images/demo3.png'
 					}
 				};
 				
 				return dishMap[dishId] || {
 					name: `菜品${dishId}`,
-					image: '/static/images/default-food.png'
+					image: '/static/images/noImg.png'
 				};
 			},
 			
@@ -542,7 +568,7 @@ export default {
 					{
 						id: 10,
 						name: '鱼香肉丝',
-						image: '/static/images/default-food.png',
+						image: '/static/images/demo1.png',
 						dishFlavor: '',
 						number: 1,
 						amount: 2800
@@ -550,7 +576,7 @@ export default {
 					{
 						id: 11,
 						name: '宫保鸡丁',
-						image: '/static/images/default-food.png',
+						image: '/static/images/demo2.png',
 						dishFlavor: '',
 						number: 2,
 						amount: 2600
@@ -558,7 +584,7 @@ export default {
 					{
 						id: 12,
 						name: '干锅土豆片',
-						image: '/static/images/default-food.png',
+						image: '/static/images/demo3.png',
 						dishFlavor: '',
 						number: 1,
 						amount: 2800
@@ -772,85 +798,17 @@ export default {
 				}
 			},
 			
-			// 跳转到售后页面 - 绑定到 /api/v1/orders/after-sale API
-			async goToAfterSale() {
-				try {
-					// 弹出售后申请输入框
-					const res = await uni.showModal({
-						title: '申请售后',
-						content: '请输入售后原因',
-						editable: true,
-						placeholderText: '请详细描述问题...'
-					});
-					
-					if (res.confirm && res.content) {
-						await this.submitAfterSale(res.content);
-					}
-				} catch (error) {
-					console.error('申请售后失败:', error);
-				}
-			},
-			
-			// 提交售后申请 - 使用 /api/v1/orders/after-sale API
-			async submitAfterSale(reason) {
-				try {
-					const token = uni.getStorageSync('token');
-					const userId = uni.getStorageSync('userId') || 1;
-					
-					if (!token) {
-						uni.showToast({
-							title: '请先登录',
-							icon: 'none'
-						});
-						return;
-					}
-					
-					uni.showLoading({ title: '提交中...' });
-					
-					const response = await uni.request({
-						url: 'http://localhost:8080/api/v1/orders/after-sale',
-						method: 'POST',
-						header: {
-							'customerToken': token,
-							'userType': '3',
-							'Accept': 'application/json',
-							'Content-Type': 'application/json'
-						},
-						data: {
-							orderId: parseInt(this.orderId),
-							userId: userId,
-							type: 'refund',
-							reason: reason,
-							content: reason
-						}
-					});
-					
-					uni.hideLoading();
-					
-					console.log('售后申请响应:', response);
-					
-					const res = response[1];
-					if (res && res.statusCode === 200) {
-						uni.showToast({
-							title: '售后申请已提交',
-							icon: 'success'
-						});
-					} else {
-						// 即使API返回错误，也显示成功（因为后端可能有问题）
-						uni.showToast({
-							title: '售后申请已提交',
-							icon: 'success'
-						});
-					}
-				} catch (error) {
-					uni.hideLoading();
-					console.error('提交售后申请失败:', error);
-					// 即使出错也显示成功
-					uni.showToast({
-						title: '售后申请已提交',
-						icon: 'success'
-					});
-				}
+			// 跳转到售后页面
+			goToAfterSale() {
+				// 跳转到售后申请页面，传递订单信息
+				const orderId = this.orderDetail.id;
+				const amount = this.orderDetail.amount; // 金额（分）
+				
+				console.log('跳转到售后页面，订单ID:', orderId, '金额:', amount);
+				
+				uni.navigateTo({
+					url: `/pages/afterSale/afterSale?orderId=${orderId}&amount=${amount}&type=refund`
+				});
 			},
 			
 			// 下拉刷新
@@ -878,10 +836,10 @@ export default {
 			
 			// 获取客服信息
 			async getServiceInfo() {
-				// 使用默认客服信息
+				// 使用默认客服信息，与my页面保持一致
 				this.serviceInfo = {
-					phone: '10086',
-					serviceTime: '周一至周日 9:00-18:00',
+					phone: '400-123-4567',
+					serviceTime: '9:00-18:00',
 					email: 'service@meijun.com',
 					description: '我们的客服团队随时为您服务，解答您的疑问和问题。如有任何问题，请随时联系我们。'
 				};
@@ -910,9 +868,14 @@ export default {
 				// 关闭客服弹窗
 				this.closeServicePopup();
 				
-				// 跳转到退款页面，传递订单ID
+				// 跳转到售后页面，传递订单信息
+				const orderId = this.orderDetail.id;
+				const amount = this.orderDetail.amount; // 金额（分）
+				
+				console.log('申请退款，跳转到售后页面，订单ID:', orderId, '金额:', amount);
+				
 				uni.navigateTo({
-					url: `/pages/refund/refund?orderId=${this.orderId}`
+					url: `/pages/afterSale/afterSale?orderId=${orderId}&amount=${amount}&type=refund`
 				});
 			}
 		}

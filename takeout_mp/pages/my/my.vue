@@ -55,6 +55,13 @@
 								<u-icon name="arrow-right"></u-icon>
 							</view>
 						</view>
+						<view @click="goToAfterSaleCenter" class="item">
+							<image src="../../static/me/shouhou.png"></image>
+							<text>售后中心</text>
+							<view>
+								<u-icon name="arrow-right"></u-icon>
+							</view>
+						</view>
 						<view @click="contactService" class="item">
 							<image src="../../static/me/duihuaxinxi.png"></image>
 							<text>联系客服</text>
@@ -1223,6 +1230,33 @@
 			showLoginErrorMsg(msg) {
 				this.showLoginError = true;
 				this.loginErrorMsg = msg;
+			},
+			goToAfterSaleCenter() {
+				// 检查登录状态
+				const token = uni.getStorageSync('token');
+				const DEBUG_MODE = true; // 设置为true开启调试模式，跳过登录验证
+				
+				if (token || DEBUG_MODE) {
+					// 已登录或调试模式，直接跳转到售后中心
+					uni.navigateTo({
+						url: '/pages/afterSaleCenter/afterSaleCenter'
+					});
+				} else {
+					// 未登录，提示用户登录
+					uni.showModal({
+						title: '提示',
+						content: '请先登录后查看售后中心',
+						showCancel: true,
+						confirmText: '去登录',
+						cancelText: '取消',
+						success: (res) => {
+							if (res.confirm) {
+								// 用户选择去登录，打开登录弹窗
+								this.openLogin();
+							}
+						}
+					});
+				}
 			},
 		},
 

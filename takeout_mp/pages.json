@@ -124,9 +124,9 @@
 			}
 		},
 		{
-			"path": "pages/refund/refund",
+			"path": "pages/afterSaleCenter/afterSaleCenter",
 			"style": {
-				"navigationBarTitleText": "申请退款",
+				"navigationBarTitleText": "售后中心",
 				"enablePullDownRefresh": false
 			}
 		},
