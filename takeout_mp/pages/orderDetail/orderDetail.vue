@@ -291,17 +291,42 @@ export default {
 					if (response && response.success && response.data) {
 						const orderData = response.data;
 						
-						// 转换订单状态
+						// 转换订单状态 - 基于支付状态和订单状态综合判断
 						let status = 0;
-						switch(orderData.status) {
-							case 'pending': status = 1; break;  // 待付款
-							case 'unconfirmed': status = 2; break;  // 待确认
-							case 'confirmed': status = 2; break;  // 已确认
-							case 'delivering': status = 3; break;  // 正在派送
-							case 'delivered': status = 3; break;  // 已派送
-							case 'completed': status = 4; break;  // 已完成
-							case 'cancelled': status = 5; break;  // 已取消
-							default: status = 4; // 默认为已完成
+						const orderStatus = orderData.status;
+						const payStatus = orderData.payStatus;
+						
+						// 如果支付状态是未支付，则显示为待付款
+						if (payStatus === 'unpaid') {
+							status = 1; // 待付款
+						} else if (payStatus === 'paid') {
+							// 已支付，根据订单状态判断
+							switch(orderStatus) {
+								case 'pending': 
+									status = 2; // 待配送（已支付但还未开始配送）
+									break;
+								case 'unconfirmed': 
+								case 'confirmed': 
+									status = 2; // 待配送（已确认，准备配送）
+									break;
+								case 'delivering': 
+									status = 3; // 配送中（正在派送）
+									break;
+								case 'delivered': 
+									status = 4; // 已完成（已送达）
+									break;
+								case 'completed': 
+									status = 4; // 已完成
+									break;
+								case 'cancelled': 
+									status = 5; // 已取消
+									break;
+								default: 
+									status = 2; // 默认为待配送
+							}
+						} else {
+							// 其他支付状态（退款等）
+							status = 4; // 已完成
 						}
 						
 						// 格式化金额，后端以元为单位，转换为分
@@ -314,6 +339,7 @@ export default {
 						this.orderDetail = {
 							id: orderData.id || '',
 							status: status,
+							payStatus: payStatus, // 保存原始支付状态
 							orderTime: this.formatDateFromArray(orderData.createTime || orderData.orderTime) || '',
 							payMethod: this.getPayMethodFromStatus(orderData.payStatus),
 							amount: amount,
@@ -622,8 +648,8 @@ export default {
 			getStatusText(status) {
 				switch (status) {
 					case 1: return '待付款';
-					case 2: return '正在派送';
-					case 3: return '已派送';
+					case 2: return '待配送';
+					case 3: return '配送中';
 					case 4: return '已完成';
 					case 5: return '已取消';
 					default: return '未知状态';
@@ -634,8 +660,8 @@ export default {
 			getStatusDesc(status) {
 				switch (status) {
 					case 1: return '请尽快完成支付';
-					case 2: return '骑手正在配送中，请耐心等待';
-					case 3: return '您的订单已送达，请查收';
+					case 2: return '订单已确认，正在准备配送';
+					case 3: return '骑手正在配送中，请耐心等待';
 					case 4: return '订单已完成，感谢您的支持';
 					case 5: return '订单已取消';
 					default: return '';
@@ -847,7 +873,8 @@ export default {
 			
 			// 是否可以支付
 			canPay() {
-				return this.orderDetail.status === 1; // 待付款状态可以支付
+				// 基于支付状态判断，而不是订单状态
+				return this.orderDetail.payStatus === 'unpaid'; // 只有未支付状态才可以支付
 			},
 			
 			// 跳转到支付页面

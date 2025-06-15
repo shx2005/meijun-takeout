@@ -398,49 +398,64 @@ export default {
     
     // 确认支付
     async handleConfirmPayment() {
-      if (this.loading) return; // 防止重复点击
+      console.log('=== 开始支付确认流程 ===');
+      console.log('当前页面数据状态:');
+      console.log('- orderId:', this.orderId);
+      console.log('- finalAmount:', this.finalAmount);
+      console.log('- balance:', this.balance);
+      console.log('- loading:', this.loading);
+      console.log('- orderInfo:', this.orderInfo);
       
-      // 检查是否有订单信息
-      if (!this.orderInfo && !this.orderId) {
-        uni.showToast({
-          title: '订单信息错误',
-          icon: 'none'
-        });
+      if (this.loading) {
+        console.log('支付正在进行中，忽略重复点击');
         return;
       }
       
       // 检查余额是否足够
-      if (parseFloat(this.balance) < parseFloat(this.finalAmount)) {
+      const currentBalance = parseFloat(this.balance);
+      const paymentAmount = parseFloat(this.finalAmount);
+      
+      console.log('余额检查:');
+      console.log('- 当前余额:', currentBalance);
+      console.log('- 支付金额:', paymentAmount);
+      console.log('- 余额是否足够:', currentBalance >= paymentAmount);
+      
+      if (currentBalance < paymentAmount) {
+        console.log('余额不足，终止支付流程');
         uni.showToast({
           title: '余额不足，请充值',
           icon: 'none'
         });
         return;
       }
-
+      
+      this.loading = true;
+      console.log('设置loading状态为true，开始支付处理');
+      
       try {
-        this.loading = true;
-        uni.showLoading({ title: '处理中...' });
+        uni.showLoading({ title: '支付中...' });
+        console.log('显示支付加载提示');
         
-        // 获取用户ID和token
-        const userId = uni.getStorageSync('userId') || 1;
+        // 获取token和用户信息
         const token = uni.getStorageSync('token');
+        const userId = uni.getStorageSync('userId') || 1;
+        
+        console.log('获取用户信息:');
+        console.log('- token存在:', !!token);
+        console.log('- userId:', userId);
         
         if (!token) {
-          uni.hideLoading();
-          uni.showToast({
-            title: '请先登录',
-            icon: 'none'
-          });
-          this.loading = false;
-          return;
+          console.log('用户未登录，终止支付流程');
+          throw new Error('请先登录');
         }
         
+        // 确定当前订单ID
         let currentOrderId = this.orderId;
+        console.log('确定订单ID:', currentOrderId);
         
-        // 如果没有订单ID，说明需要先提交订单
         if (!currentOrderId && this.orderInfo) {
-          console.log('开始提交订单...');
+          console.log('没有订单ID，需要先提交订单');
+          console.log('准备提交的订单信息:', this.orderInfo);
           
           // 准备订单数据
           const orderData = {
@@ -494,23 +509,27 @@ export default {
               
               console.log('订单提交成功，订单ID:', currentOrderId);
         
-              // 订单创建成功后，调用支付API
+              // 如果已有订单ID，调用支付API进行支付
+              console.log('使用现有订单ID进行支付:', currentOrderId);
               console.log('开始调用支付API...');
               
+              // 准备支付数据
               const paymentData = {
                 orderId: currentOrderId,
                 customerId: userId,
-                method: 'cash_pay',
-                amount: this.finalAmount
+                method: 'cash_pay', // 使用字符串形式的枚举值
+                amount: parseFloat(this.finalAmount)
               };
               
               console.log('支付API请求数据:', paymentData);
               
+              // 调用支付API
               const paymentResponse = await uni.request({
                 url: 'http://localhost:8080/api/v1/payment/balance',
                 method: 'POST',
                 header: {
                   'customerToken': token,
+                  'Accept': 'application/json',
                   'userType': '3',
                   'Content-Type': 'application/json'
                 },
@@ -519,40 +538,37 @@ export default {
               
               console.log('支付API响应:', paymentResponse);
               
-              const payRes = paymentResponse[1];
-              if (payRes && payRes.statusCode === 200) {
-                let payResult = payRes.data;
-            
-                // 检查是否为XML格式响应
+              // 处理支付响应
+              if (paymentResponse && paymentResponse[1] && paymentResponse[1].statusCode === 200) {
+                let payResult = paymentResponse[1].data;
+                
+                // 检查是否为XML格式的响应
                 if (typeof payResult === 'string' && payResult.includes('<Result>')) {
                   console.log('检测到XML格式支付响应，开始解析');
                   payResult = this.parseXMLPaymentResponse(payResult);
                   console.log('XML解析后的支付结果:', payResult);
                 }
                 
-                if (payResult && (payResult.code === 200 || payResult.success === true)) {
-                  // 支付成功
+                // 检查支付结果
+                if (payResult && (payResult.success === true || payResult.code === 200)) {
                   console.log('支付成功');
                   
-                  // 重新获取余额（支付后余额应该被扣除）
-                  await this.fetchBalance();
-            
-          uni.showToast({
-              title: '支付成功',
-              icon: 'success'
-          });
-            
-            // 支付成功后跳转到支付成功页面
-          setTimeout(() => {
-              console.log('=== 跳转到支付成功页面 ===');
-              console.log('跳转时使用的订单ID:', currentOrderId);
-              console.log('跳转URL:', `/pages/paySuccess/paySuccess?orderId=${currentOrderId}&amount=${this.finalAmount}`);
-              console.log('=== 跳转调试结束 ===');
-              
-              uni.redirectTo({
+                  // 显示支付成功提示
+                  uni.showToast({
+                    title: '支付成功',
+                    icon: 'success'
+                  });
+                  
+                  // 延迟跳转到支付成功页面
+                  setTimeout(() => {
+                    console.log('=== 跳转到支付成功页面 ===');
+                    console.log('订单ID:', currentOrderId);
+                    console.log('支付金额:', this.finalAmount);
+                    
+                    uni.redirectTo({
                       url: `/pages/paySuccess/paySuccess?orderId=${currentOrderId}&amount=${this.finalAmount}`
-            });
-            }, 1500);
+                    });
+                  }, 1500);
                 } else {
                   throw new Error(payResult?.msg || '支付失败');
                 }
@@ -566,21 +582,72 @@ export default {
             throw new Error('订单提交请求失败');
           }
         } else {
-          // 如果已有订单ID，说明是旧流程，直接进行支付
+          // 如果已有订单ID，调用支付API进行支付
           console.log('使用现有订单ID进行支付:', currentOrderId);
+          console.log('开始调用支付API...');
           
-          // 这里可以添加单独的支付逻辑，但根据当前的API设计，
-          // 订单提交已经包含了支付，所以这个分支可能不会被使用
-          uni.showToast({
-            title: '支付成功',
-            icon: 'success'
+          // 准备支付数据
+          const paymentData = {
+            orderId: currentOrderId,
+            customerId: userId,
+            method: 'cash_pay', // 使用字符串形式的枚举值
+            amount: parseFloat(this.finalAmount)
+          };
+          
+          console.log('支付API请求数据:', paymentData);
+          
+          // 调用支付API
+          const paymentResponse = await uni.request({
+            url: 'http://localhost:8080/api/v1/payment/balance',
+            method: 'POST',
+            header: {
+              'customerToken': token,
+              'Accept': 'application/json',
+              'userType': '3',
+              'Content-Type': 'application/json'
+            },
+            data: paymentData
           });
           
-          setTimeout(() => {
-            uni.redirectTo({
-              url: `/pages/paySuccess/paySuccess?orderId=${currentOrderId}&amount=${this.finalAmount}`
-            });
-          }, 1500);
+          console.log('支付API响应:', paymentResponse);
+          
+          // 处理支付响应
+          if (paymentResponse && paymentResponse[1] && paymentResponse[1].statusCode === 200) {
+            let payResult = paymentResponse[1].data;
+            
+            // 检查是否为XML格式的响应
+            if (typeof payResult === 'string' && payResult.includes('<Result>')) {
+              console.log('检测到XML格式支付响应，开始解析');
+              payResult = this.parseXMLPaymentResponse(payResult);
+              console.log('XML解析后的支付结果:', payResult);
+            }
+            
+            // 检查支付结果
+            if (payResult && (payResult.success === true || payResult.code === 200)) {
+              console.log('支付成功');
+              
+              // 显示支付成功提示
+              uni.showToast({
+                title: '支付成功',
+                icon: 'success'
+              });
+              
+              // 延迟跳转到支付成功页面
+              setTimeout(() => {
+                console.log('=== 跳转到支付成功页面 ===');
+                console.log('订单ID:', currentOrderId);
+                console.log('支付金额:', this.finalAmount);
+                
+                uni.redirectTo({
+                  url: `/pages/paySuccess/paySuccess?orderId=${currentOrderId}&amount=${this.finalAmount}`
+                });
+              }, 1500);
+            } else {
+              throw new Error(payResult?.msg || '支付失败');
+            }
+          } else {
+            throw new Error('支付请求失败');
+          }
         }
         
         uni.hideLoading();
