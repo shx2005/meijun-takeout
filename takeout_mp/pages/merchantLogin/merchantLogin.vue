@@ -16,6 +16,17 @@
 				<input type="password" v-model="password" placeholder="请输入商家密码" class="input" />
 			</view>
 			
+			<!-- 添加验证码输入框和显示区域 -->
+			<view class="form-item">
+				<text class="label">验证码</text>
+				<view class="captcha-row">
+					<input type="text" v-model="captcha" placeholder="请输入验证码" class="input captcha-input" />
+					<view class="captcha-image" @click="refreshCaptcha">
+						<canvas canvas-id="captchaCanvas" class="captcha-canvas"></canvas>
+					</view>
+				</view>
+			</view>
+			
 			<view class="form-item">
 				<view class="radio-group">
 					<view class="radio-item" @click="userType = '1'">
@@ -45,8 +56,14 @@
 				username: '',
 				password: '',
 				userType: '1', // 1: 商家, 2: 员工
-				loading: false
+				loading: false,
+				captcha: '', // 用户输入的验证码
+				captchaCode: '', // 生成的验证码
 			}
+		},
+		mounted() {
+			// 页面加载时生成验证码
+			this.generateCaptcha();
 		},
 		methods: {
 			validateInput() {
@@ -66,7 +83,92 @@
 					return false;
 				}
 				
+				if (!this.captcha) {
+					uni.showToast({
+						title: '请输入验证码',
+						icon: 'none'
+					});
+					return false;
+				}
+				
+				if (this.captcha.toLowerCase() !== this.captchaCode.toLowerCase()) {
+					uni.showToast({
+						title: '验证码错误',
+						icon: 'none'
+					});
+					this.refreshCaptcha();
+					return false;
+				}
+				
 				return true;
+			},
+			
+			// 生成随机验证码
+			generateCaptcha() {
+				const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+				let code = '';
+				for (let i = 0; i < 6; i++) {
+					code += chars.charAt(Math.floor(Math.random() * chars.length));
+				}
+				this.captchaCode = code;
+				this.drawCaptcha();
+			},
+			
+			// 绘制验证码
+			drawCaptcha() {
+				const ctx = uni.createCanvasContext('captchaCanvas', this);
+				const canvasWidth = 200;
+				const canvasHeight = 80;
+				
+				// 清空画布
+				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+				
+				// 设置背景
+				ctx.fillStyle = '#f3f3f3';
+				ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+				
+				// 绘制文字
+				ctx.font = 'bold 18px Arial';
+				ctx.textBaseline = 'middle';
+				
+				// 随机颜色和位置绘制每个字符
+				for (let i = 0; i < this.captchaCode.length; i++) {
+					const x = i * 18;
+					const y = (canvasHeight-10) / 2;
+					const rotate = (Math.random() - 0.5) * 0.3;
+					
+					ctx.save();
+					ctx.translate(x, y);
+					ctx.rotate(rotate);
+					ctx.fillStyle = `rgb(${Math.random() * 100},${Math.random() * 100},${Math.random() * 100})`;
+					ctx.fillText(this.captchaCode[i], 0, 0);
+					ctx.restore();
+				}
+				
+				// 绘制干扰线
+				for (let i = 0; i < 4; i++) {
+					ctx.beginPath();
+					ctx.moveTo(Math.random() * canvasWidth, Math.random() * canvasHeight);
+					ctx.lineTo(Math.random() * canvasWidth, Math.random() * canvasHeight);
+					ctx.strokeStyle = `rgba(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255},0.5)`;
+					ctx.lineWidth = 2;
+					ctx.stroke();
+				}
+				
+				// 绘制干扰点
+				for (let i = 0; i < 50; i++) {
+					ctx.beginPath();
+					ctx.arc(Math.random() * canvasWidth, Math.random() * canvasHeight, 1, 0, 2 * Math.PI);
+					ctx.fillStyle = `rgba(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255},0.5)`;
+					ctx.fill();
+				}
+				
+				ctx.draw();
+			},
+			
+			// 刷新验证码
+			refreshCaptcha() {
+				this.generateCaptcha();
 			},
 			
 			async handleLogin() {
@@ -293,6 +395,33 @@
 						color: #333;
 					}
 				}
+			}
+			
+			.captcha-row {
+				display: flex;
+				align-items: center;
+				gap: 20rpx;
+			}
+			
+			.captcha-input {
+				flex: 1;
+			}
+			
+			.captcha-image {
+				width: 200rpx;
+				height: 80rpx;
+				background: #f3f3f3;
+				border-radius: 8rpx;
+				overflow: hidden;
+				position: relative;
+			}
+			
+			.captcha-canvas {
+				width: 100%;
+				height: 100%;
+				position: absolute;
+				top: 0;
+				left: 0;
 			}
 		}
 		

@@ -148,6 +148,14 @@
 							<input class="input" type="password" v-model="password" placeholder="请输入密码"
 								placeholder-style="font-weight:normal;color:#bbbbbb;" @input="clearLoginError"></input>
 						</view>
+						<!-- 添加验证码输入框和显示区域 -->
+						<view class="form-row captcha-row">
+							<input class="input captcha-input" type="text" v-model="captcha" placeholder="请输入验证码"
+								placeholder-style="font-weight:normal;color:#bbbbbb;" @input="clearLoginError"></input>
+							<view class="captcha-image" @click="refreshCaptcha">
+								<canvas canvas-id="captchaCanvas" class="captcha-canvas"></canvas>
+							</view>
+						</view>
 						<button  class="submit" size="default" @click="onSubmit"
 							:style="{background:PrimaryColor}">确定</button>
 						<button class="register" size="default" @click="toRegister"
@@ -328,7 +336,9 @@
 					workTime: '9:00-18:00',
 					email: 'service@meijun.com',
 					wechat: 'meijun-service'
-				}
+				},
+				captcha: '', // 用户输入的验证码
+				captchaCode: '', // 生成的验证码
 			};
 		},
 		computed: {
@@ -459,19 +469,22 @@
 			},
 			// 手机号登录
 			async onSubmit() {
-				if (!this.phone) {
-					this.showLoginErrorMsg('请输入手机号');
+				if (!this.phone || !this.password) {
+					this.showLoginError = true;
+					this.loginErrorMsg = '请输入手机号和密码';
 					return;
 				}
 				
-				const trimmedPhone = this.phone.trim();
-				if (!/^1\d{10}$/.test(trimmedPhone)) {
-					this.showLoginErrorMsg('手机号格式不正确');
+				if (!this.captcha) {
+					this.showLoginError = true;
+					this.loginErrorMsg = '请输入验证码';
 					return;
 				}
 				
-				if (!this.password) {
-					this.showLoginErrorMsg('请输入密码');
+				if (this.captcha.toLowerCase() !== this.captchaCode.toLowerCase()) {
+					this.showLoginError = true;
+					this.loginErrorMsg = '验证码错误';
+					this.refreshCaptcha();
 					return;
 				}
 				
@@ -482,7 +495,7 @@
 				try {
 					// 调用登录接口
 					const result = await phoneLoginApi({
-						phone: trimmedPhone,
+						phone: this.phone,
 						password: this.password
 					});
 
@@ -508,10 +521,10 @@
 							
 							// 保存登录信息
 							this.userToken = token;
-							uni.setStorageSync('phoneNumber', trimmedPhone);
+							uni.setStorageSync('phoneNumber', this.phone);
 							
 							// 初始化用户名
-							this.initPhoneUserName(trimmedPhone);
+							this.initPhoneUserName(this.phone);
 							
 							// 获取用户信息并刷新界面
 							await this.getUserInfo();
@@ -541,9 +554,9 @@
 						this.showLoginErrorMsg(errorMsg);
 					}
 				} catch (error) {
-					console.error('登录请求出错:', error);
-					uni.$showMsg('登录失败，请检查网络连接', 'none');
-					this.showLoginErrorMsg('登录失败，请检查网络连接');
+					console.error('登录失败:', error);
+					this.showLoginError = true;
+					this.loginErrorMsg = '登录失败，请重试';
 				} finally {
 					this.isLoading = false;
 				}
@@ -931,10 +944,8 @@
 				}
 			},
 			openLogin() {
-				this.loginPopupShow = true
-				uni.hideTabBar({
-					animation: true
-				})
+				this.loginPopupShow = true;
+				this.generateCaptcha();
 			},
 			closeLogin() {
 				this.loginPopupShow = false
@@ -1257,6 +1268,73 @@
 						}
 					});
 				}
+			},
+			// 生成随机验证码
+			generateCaptcha() {
+				const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+				let code = '';
+				for (let i = 0; i < 6; i++) {
+					code += chars.charAt(Math.floor(Math.random() * chars.length));
+				}
+				this.captchaCode = code;
+				this.drawCaptcha();
+			},
+			
+			// 绘制验证码
+			drawCaptcha() {
+				const ctx = uni.createCanvasContext('captchaCanvas', this);
+				const canvasWidth = 200;
+				const canvasHeight = 80;
+				
+				// 清空画布
+				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+				
+				// 设置背景
+				ctx.fillStyle = '#f3f3f3';
+				ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+				
+				// 绘制文字
+				ctx.font = 'bold 18px Arial';
+				ctx.textBaseline = 'middle';
+				
+				// 随机颜色和位置绘制每个字符
+				for (let i = 0; i < this.captchaCode.length; i++) {
+					const x = i * 18;
+					const y = (canvasHeight-10) / 2;
+					const rotate = (Math.random() - 0.5) * 0.3;
+					
+					ctx.save();
+					ctx.translate(x, y);
+					ctx.rotate(rotate);
+					ctx.fillStyle = `rgb(${Math.random() * 100},${Math.random() * 100},${Math.random() * 100})`;
+					ctx.fillText(this.captchaCode[i], 0, 0);
+					ctx.restore();
+				}
+				
+				// 绘制干扰线
+				for (let i = 0; i < 4; i++) {
+					ctx.beginPath();
+					ctx.moveTo(Math.random() * canvasWidth, Math.random() * canvasHeight);
+					ctx.lineTo(Math.random() * canvasWidth, Math.random() * canvasHeight);
+					ctx.strokeStyle = `rgba(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255},0.5)`;
+					ctx.lineWidth = 2;
+					ctx.stroke();
+				}
+				
+				// 绘制干扰点
+				for (let i = 0; i < 50; i++) {
+					ctx.beginPath();
+					ctx.arc(Math.random() * canvasWidth, Math.random() * canvasHeight, 1, 0, 2 * Math.PI);
+					ctx.fillStyle = `rgba(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255},0.5)`;
+					ctx.fill();
+				}
+				
+				ctx.draw();
+			},
+			
+			// 刷新验证码
+			refreshCaptcha() {
+				this.generateCaptcha();
 			},
 		},
 
@@ -1763,5 +1841,33 @@
 		.error-text {
 			font-size: 28rpx;
 		}
+	}
+
+	.captcha-row {
+		display: flex;
+		align-items: center;
+		margin-bottom: 20rpx;
+	}
+
+	.captcha-input {
+		flex: 1;
+		margin-right: 20rpx;
+	}
+
+	.captcha-image {
+		width: 200rpx;
+		height: 80rpx;
+		background: #f3f3f3;
+		border-radius: 8rpx;
+		overflow: hidden;
+		position: relative;
+	}
+
+	.captcha-canvas {
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;
 	}
 </style>
